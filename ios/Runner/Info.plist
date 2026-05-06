@@ -30,6 +30,8 @@
 	<true/>
 	<key>NSContactsUsageDescription</key>
 	<string>Lumi optionally uses contacts to make inviting your close family effortless.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Lumi can use the camera when you choose to capture a profile photo during onboarding.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Lumi needs notifications so quiet glows, morning delivery batches, and reactions arrive on time.</string>
 	<key>UIApplicationSceneManifest</key>

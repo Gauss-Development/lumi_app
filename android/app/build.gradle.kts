@@ -25,7 +25,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders["lumiAppName"] = "Lumi"
+        manifestPlaceholders["appName"] = "Lumi"
     }
 
     flavorDimensions += "environment"
@@ -34,11 +34,11 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-            manifestPlaceholders["lumiAppName"] = "Lumi Dev"
+            manifestPlaceholders["appName"] = "Lumi Dev"
         }
         create("production") {
             dimension = "environment"
-            manifestPlaceholders["lumiAppName"] = "Lumi"
+            manifestPlaceholders["appName"] = "Lumi"
         }
     }
 
