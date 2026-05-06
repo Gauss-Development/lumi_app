@@ -1,4 +1,4 @@
-package com.example.lumi
+package dev.gauss.lumi
 
 import io.flutter.embedding.android.FlutterActivity
 
