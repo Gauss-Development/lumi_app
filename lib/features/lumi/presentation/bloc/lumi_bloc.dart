@@ -1,0 +1,237 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'package:lumi/core/error/failures.dart';
+import 'package:lumi/features/lumi/domain/entities/lumi.dart';
+import 'package:lumi/features/lumi/domain/usecases/get_recent_lumis_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/mark_lumi_seen_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/react_to_lumi_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
+
+part 'lumi_bloc.freezed.dart';
+
+class LumiBloc extends Bloc<LumiEvent, LumiState> {
+  LumiBloc({
+    required GetRecentLumisUseCase getRecentLumisUseCase,
+    required SendLumiUseCase sendLumiUseCase,
+    required ReactToLumiUseCase reactToLumiUseCase,
+    required MarkLumiSeenUseCase markLumiSeenUseCase,
+    required SaveDoodleDraftUseCase saveDoodleDraftUseCase,
+  }) : _getRecentLumisUseCase = getRecentLumisUseCase,
+       _sendLumiUseCase = sendLumiUseCase,
+       _reactToLumiUseCase = reactToLumiUseCase,
+       _markLumiSeenUseCase = markLumiSeenUseCase,
+       _saveDoodleDraftUseCase = saveDoodleDraftUseCase,
+       super(const LumiState.initial()) {
+    on<_WatchRecent>(_onWatchRecent);
+    on<_SendPureRequested>(_onSendPureRequested);
+    on<_SendLightRequested>(_onSendLightRequested);
+    on<_ReactRequested>(_onReactRequested);
+    on<_MarkSeenRequested>(_onMarkSeenRequested);
+    on<_SaveDoodleDraftRequested>(_onSaveDoodleDraftRequested);
+  }
+
+  final GetRecentLumisUseCase _getRecentLumisUseCase;
+  final SendLumiUseCase _sendLumiUseCase;
+  final ReactToLumiUseCase _reactToLumiUseCase;
+  final MarkLumiSeenUseCase _markLumiSeenUseCase;
+  final SaveDoodleDraftUseCase _saveDoodleDraftUseCase;
+
+  Future<void> _onWatchRecent(
+    _WatchRecent event,
+    Emitter<LumiState> emit,
+  ) async {
+    emit(
+      LumiState.loading(
+        selectedMemberId: event.memberId,
+        recentLumis: state.recentLumis,
+      ),
+    );
+    final result = await _getRecentLumisUseCase(memberId: event.memberId);
+    result.fold(
+      (Failure failure) => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (List<Lumi> lumis) => emit(
+        LumiState.loaded(selectedMemberId: event.memberId, recentLumis: lumis),
+      ),
+    );
+  }
+
+  Future<void> _onSendPureRequested(
+    _SendPureRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _sendLumiUseCase(
+      SendLumiParams.pure(
+        senderId: event.senderId,
+        recipientId: event.memberId,
+        colorValue: event.colorValue,
+      ),
+    );
+    await result.fold(
+      (Failure failure) async => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+    );
+  }
+
+  Future<void> _onSendLightRequested(
+    _SendLightRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _sendLumiUseCase(
+      SendLumiParams.light(
+        senderId: event.senderId,
+        recipientId: event.memberId,
+        colorValue: event.colorValue,
+        intensity: event.intensity,
+      ),
+    );
+    await result.fold(
+      (Failure failure) async => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+    );
+  }
+
+  Future<void> _onReactRequested(
+    _ReactRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _reactToLumiUseCase(
+      lumiId: event.lumiId,
+      reaction: event.reaction,
+    );
+    await result.fold(
+      (Failure failure) async => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+    );
+  }
+
+  Future<void> _onMarkSeenRequested(
+    _MarkSeenRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _markLumiSeenUseCase(event.lumiId);
+    await result.fold(
+      (Failure failure) async => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+    );
+  }
+
+  Future<void> _onSaveDoodleDraftRequested(
+    _SaveDoodleDraftRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _saveDoodleDraftUseCase(event.stroke);
+    result.fold(
+      (Failure failure) => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: state.selectedMemberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) => emit(
+        LumiState.loaded(
+          selectedMemberId: state.selectedMemberId,
+          recentLumis: state.recentLumis,
+          draftSaved: true,
+        ),
+      ),
+    );
+  }
+}
+
+@freezed
+sealed class LumiEvent with _$LumiEvent {
+  const factory LumiEvent.watchRecent({String? memberId}) = _WatchRecent;
+  const factory LumiEvent.sendPureRequested({
+    required String senderId,
+    required String memberId,
+    required int colorValue,
+  }) = _SendPureRequested;
+  const factory LumiEvent.sendLightRequested({
+    required String senderId,
+    required String memberId,
+    required int colorValue,
+    required double intensity,
+  }) = _SendLightRequested;
+  const factory LumiEvent.reactRequested({
+    required String memberId,
+    required String lumiId,
+    required LumiReactionType reaction,
+  }) = _ReactRequested;
+  const factory LumiEvent.markSeenRequested({
+    required String memberId,
+    required String lumiId,
+  }) = _MarkSeenRequested;
+  const factory LumiEvent.saveDoodleDraftRequested(DoodleStroke stroke) =
+      _SaveDoodleDraftRequested;
+}
+
+@freezed
+sealed class LumiState with _$LumiState {
+  const LumiState._();
+
+  const factory LumiState.initial({
+    String? selectedMemberId,
+    @Default(<Lumi>[]) List<Lumi> recentLumis,
+  }) = _Initial;
+  const factory LumiState.loading({
+    String? selectedMemberId,
+    @Default(<Lumi>[]) List<Lumi> recentLumis,
+  }) = _Loading;
+  const factory LumiState.loaded({
+    String? selectedMemberId,
+    @Default(<Lumi>[]) List<Lumi> recentLumis,
+    @Default(false) bool draftSaved,
+  }) = _Loaded;
+  const factory LumiState.failure({
+    required Failure failure,
+    String? selectedMemberId,
+    @Default(<Lumi>[]) List<Lumi> recentLumis,
+  }) = _Failure;
+
+  String? get currentMemberId => map(
+    initial: (value) => value.selectedMemberId,
+    loading: (value) => value.selectedMemberId,
+    loaded: (value) => value.selectedMemberId,
+    failure: (value) => value.selectedMemberId,
+  );
+
+  List<Lumi> get items => map(
+    initial: (value) => value.recentLumis,
+    loading: (value) => value.recentLumis,
+    loaded: (value) => value.recentLumis,
+    failure: (value) => value.recentLumis,
+  );
+}
