@@ -74,11 +74,14 @@ class LumiLocalDataSource {
       memberId: recipientId,
       senderId: recipientId,
       isIncoming: true,
-      type: LumiType.pure,
+      type: type,
       colorValue: colorValue,
       createdAt: DateTime.now().add(const Duration(seconds: 4)),
       deliveryStatus: LumiDeliveryStatus.delivered,
       reaction: LumiReactionType.handOnHeart,
+      intensity: intensity,
+      pulsePattern: pulsePattern,
+      doodleStroke: doodleStroke,
     );
     await saveAll(<Lumi>[simulatedReply, lumi, ...all]);
     return lumi;

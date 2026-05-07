@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/app_constants.dart';
+import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
+import 'package:lumi/features/lumi/presentation/widgets/doodle_canvas.dart';
+import 'package:lumi/features/lumi/presentation/widgets/pulse_pattern_pad.dart';
 
 class LumiComposerSheet extends StatefulWidget {
   const LumiComposerSheet({required this.member, super.key});
@@ -18,9 +21,37 @@ class LumiComposerSheet extends StatefulWidget {
 }
 
 class _LumiComposerSheetState extends State<LumiComposerSheet> {
+  final HapticsService _hapticsService = const HapticsService();
   LumiType _selectedType = LumiType.pure;
   double _intensity = 0.7;
   int _selectedColorValue = AppConstants.signatureColors.first.toARGB32();
+  final List<int> _pulseBeats = <int>[];
+  final List<DoodlePoint> _doodlePoints = <DoodlePoint>[];
+  DateTime? _lastPulseTapAt;
+
+  void _recordPulseBeat() {
+    final DateTime now = DateTime.now();
+    if (_lastPulseTapAt != null) {
+      _pulseBeats.add(now.difference(_lastPulseTapAt!).inMilliseconds);
+    }
+    _lastPulseTapAt = now;
+    setState(() {});
+  }
+
+  void _resetPulse() {
+    _pulseBeats.clear();
+    _lastPulseTapAt = null;
+    setState(() {});
+  }
+
+  bool get _canSendCurrentMode {
+    return switch (_selectedType) {
+      LumiType.pure => true,
+      LumiType.light => true,
+      LumiType.pulse => _pulseBeats.isNotEmpty,
+      LumiType.doodle => _doodlePoints.length > 1,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,14 +99,31 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                 },
               ),
             ],
-            if (_selectedType == LumiType.pulse ||
-                _selectedType == LumiType.doodle)
-              const Padding(
-                padding: EdgeInsets.only(top: 16),
-                child: Text(
-                  'Pulse and Doodle are scaffolded in the architecture and UI. This build sends the soft Pure/Light core loop first.',
-                ),
+            if (_selectedType == LumiType.pulse) ...<Widget>[
+              const SizedBox(height: 20),
+              PulsePatternPad(
+                onTapBeat: _recordPulseBeat,
+                onReset: _resetPulse,
+                recordedBeats: _pulseBeats,
               ),
+            ],
+            if (_selectedType == LumiType.doodle) ...<Widget>[
+              const SizedBox(height: 20),
+              DoodleCanvas(
+                points: _doodlePoints,
+                color: Color(_selectedColorValue),
+                onChanged: (List<DoodlePoint> points) {
+                  setState(() {
+                    _doodlePoints
+                      ..clear()
+                      ..addAll(points);
+                  });
+                },
+                onClear: () {
+                  setState(_doodlePoints.clear);
+                },
+              ),
+            ],
             const SizedBox(height: 20),
             SizedBox(
               height: 48,
@@ -111,30 +159,54 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
             ),
             const SizedBox(height: 24),
             PrimaryGlowButton(
-              label: _selectedType == LumiType.light
-                  ? 'Send Light Lumi'
-                  : 'Send Pure Lumi',
-              onPressed: () {
-                if (_selectedType == LumiType.light) {
-                  context.read<LumiBloc>().add(
-                    LumiEvent.sendLightRequested(
-                      senderId: senderId,
-                      memberId: widget.member.id,
-                      colorValue: _selectedColorValue,
-                      intensity: _intensity,
-                    ),
-                  );
-                } else {
-                  context.read<LumiBloc>().add(
-                    LumiEvent.sendPureRequested(
-                      senderId: senderId,
-                      memberId: widget.member.id,
-                      colorValue: _selectedColorValue,
-                    ),
-                  );
-                }
-                Navigator.of(context).pop();
-              },
+              label: 'Send ${_selectedType.label}',
+              onPressed: _canSendCurrentMode
+                  ? () {
+                      switch (_selectedType) {
+                        case LumiType.pure:
+                          context.read<LumiBloc>().add(
+                            LumiEvent.sendPureRequested(
+                              senderId: senderId,
+                              memberId: widget.member.id,
+                              colorValue: _selectedColorValue,
+                            ),
+                          );
+                        case LumiType.light:
+                          context.read<LumiBloc>().add(
+                            LumiEvent.sendLightRequested(
+                              senderId: senderId,
+                              memberId: widget.member.id,
+                              colorValue: _selectedColorValue,
+                              intensity: _intensity,
+                            ),
+                          );
+                        case LumiType.pulse:
+                          context.read<LumiBloc>().add(
+                            LumiEvent.sendPulseRequested(
+                              senderId: senderId,
+                              memberId: widget.member.id,
+                              colorValue: _selectedColorValue,
+                              pulsePattern: PulsePattern(
+                                List<int>.of(_pulseBeats),
+                              ),
+                            ),
+                          );
+                        case LumiType.doodle:
+                          context.read<LumiBloc>().add(
+                            LumiEvent.sendDoodleRequested(
+                              senderId: senderId,
+                              memberId: widget.member.id,
+                              colorValue: _selectedColorValue,
+                              doodleStroke: DoodleStroke(
+                                List<DoodlePoint>.of(_doodlePoints),
+                              ),
+                            ),
+                          );
+                      }
+                      _hapticsService.playSoftSelection();
+                      Navigator.of(context).pop();
+                    }
+                  : null,
             ),
           ],
         ),

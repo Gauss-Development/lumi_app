@@ -57,6 +57,32 @@ class SendLumiParams {
          intensity: intensity,
        );
 
+  const SendLumiParams.pulse({
+    required String senderId,
+    required String recipientId,
+    required int colorValue,
+    required PulsePattern pulsePattern,
+  }) : this._(
+         senderId: senderId,
+         recipientId: recipientId,
+         type: LumiType.pulse,
+         colorValue: colorValue,
+         pulsePattern: pulsePattern,
+       );
+
+  const SendLumiParams.doodle({
+    required String senderId,
+    required String recipientId,
+    required int colorValue,
+    required DoodleStroke doodleStroke,
+  }) : this._(
+         senderId: senderId,
+         recipientId: recipientId,
+         type: LumiType.doodle,
+         colorValue: colorValue,
+         doodleStroke: doodleStroke,
+       );
+
   final String senderId;
   final String recipientId;
   final LumiType type;
