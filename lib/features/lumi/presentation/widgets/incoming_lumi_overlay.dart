@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/core/constants/app_constants.dart';
 import 'package:lumi/core/services/haptics_service.dart';
+import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/reaction_tray.dart';
+import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
+import 'package:lumi/features/shelf/domain/entities/kept_lumi.dart';
+import 'package:lumi/features/shelf/presentation/bloc/shelf_bloc.dart';
+import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
+import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
 
 class IncomingLumiOverlay extends StatefulWidget {
   const IncomingLumiOverlay({required this.lumi, super.key});
@@ -36,6 +45,78 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
           widget.lumi.pulsePattern?.beats ?? const <int>[180, 180],
         );
     }
+  }
+
+  String _senderName(BuildContext context) {
+    return context.read<CircleBloc>().state.maybeWhen(
+      loaded: (members, availableSlots, latestInviteLink, showUpgradePrompt) {
+        for (final member in members) {
+          if (member.id == widget.lumi.memberId) {
+            return member.displayName;
+          }
+        }
+        return widget.lumi.memberId;
+      },
+      orElse: () => widget.lumi.memberId,
+    );
+  }
+
+  void _markSeen(BuildContext context) {
+    context.read<LumiBloc>().add(
+      LumiEvent.markSeenRequested(
+        memberId: widget.lumi.memberId,
+        lumiId: widget.lumi.id,
+      ),
+    );
+  }
+
+  void _sendLumiBack(BuildContext context) {
+    final String senderId = context.read<AuthBloc>().state.maybeWhen(
+      authenticated: (session) => session.userId,
+      orElse: () => 'local-user',
+    );
+    final int colorValue = context.read<ProfileSetupBloc>().state.signatureColorValue;
+
+    context.read<LumiBloc>().add(
+      LumiEvent.sendPureRequested(
+        senderId: senderId,
+        memberId: widget.lumi.memberId,
+        colorValue: colorValue == 0
+            ? AppConstants.signatureColors.first.toARGB32()
+            : colorValue,
+      ),
+    );
+    _markSeen(context);
+  }
+
+  void _saveToShelf(BuildContext context) {
+    final EntitlementStatus? status = context.read<SubscriptionBloc>().state
+        .maybeWhen(
+          loaded: (status, _) => status,
+          orElse: () => null,
+        );
+
+    if (status == null || !status.isActive) {
+      PaywallSheet.show(context);
+      return;
+    }
+
+    context.read<ShelfBloc>().add(
+      ShelfEvent.saveRequested(
+        KeptLumi(
+          id: 'kept-${widget.lumi.id}',
+          lumiId: widget.lumi.id,
+          senderId: widget.lumi.senderId,
+          senderName: _senderName(context),
+          savedAt: DateTime.now(),
+          previewLabel: widget.lumi.type.label,
+        ),
+      ),
+    );
+    _markSeen(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Saved to Kept Shelf')),
+    );
   }
 
   @override
@@ -92,24 +173,30 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
               ),
               const SizedBox(height: 20),
               FilledButton(
-                onPressed: () => context.read<LumiBloc>().add(
-                  LumiEvent.reactRequested(
-                    memberId: widget.lumi.memberId,
-                    lumiId: widget.lumi.id,
-                    reaction: LumiReactionType.handOnHeart,
-                  ),
-                ),
+                onPressed: () => _sendLumiBack(context),
                 child: const Text('Lumi back'),
               ),
               const SizedBox(height: 12),
               ReactionTray(
-                onSelected: (reaction) => context.read<LumiBloc>().add(
-                  LumiEvent.reactRequested(
-                    memberId: widget.lumi.memberId,
-                    lumiId: widget.lumi.id,
-                    reaction: reaction,
-                  ),
-                ),
+                onSelected: (reaction) {
+                  context.read<LumiBloc>().add(
+                    LumiEvent.reactRequested(
+                      memberId: widget.lumi.memberId,
+                      lumiId: widget.lumi.id,
+                      reaction: reaction,
+                    ),
+                  );
+                  _markSeen(context);
+                },
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => _saveToShelf(context),
+                child: const Text('Save'),
+              ),
+              TextButton(
+                onPressed: () => _markSeen(context),
+                child: const Text('Close'),
               ),
             ],
           ),
