@@ -39,6 +39,18 @@ class SettingsPage extends StatelessWidget {
                   );
                 },
               ),
+              SwitchListTile(
+                title: const Text('App-wide pause'),
+                subtitle: const Text(
+                  'Queue every Lumi until you are ready to feel connected again.',
+                ),
+                value: state.appPaused,
+                onChanged: (bool value) {
+                  context.read<SettingsBloc>().add(
+                    SettingsEvent.appPauseToggled(value),
+                  );
+                },
+              ),
               const SizedBox(height: 12),
               ListTile(
                 title: const Text('Quiet hours'),

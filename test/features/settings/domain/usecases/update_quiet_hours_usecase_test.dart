@@ -29,6 +29,7 @@ void main() {
       quietHours: quietHours,
       notificationsEnabled: true,
       hapticsEnabled: true,
+      appPaused: false,
     );
 
     when(

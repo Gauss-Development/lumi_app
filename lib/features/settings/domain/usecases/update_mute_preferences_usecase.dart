@@ -12,10 +12,12 @@ class UpdateMutePreferencesUseCase {
   Future<Either<Failure, LumiSettings>> call({
     required bool notificationsEnabled,
     required bool hapticsEnabled,
+    required bool appPaused,
   }) {
     return _repository.updateMutePreferences(
       notificationsEnabled: notificationsEnabled,
       hapticsEnabled: hapticsEnabled,
+      appPaused: appPaused,
     );
   }
 }

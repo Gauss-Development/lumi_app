@@ -11,5 +11,6 @@ abstract class SettingsRepository {
   Future<Either<Failure, LumiSettings>> updateMutePreferences({
     required bool notificationsEnabled,
     required bool hapticsEnabled,
+    required bool appPaused,
   });
 }

@@ -37,9 +37,9 @@ class LumiRepositoryImpl implements LumiRepository {
   }) async {
     try {
       final settingsResult = await _settingsRepository.getSettings();
-      final quietHours = settingsResult.fold(
+      final settings = settingsResult.fold(
         (_) => null,
-        (settings) => settings.quietHours,
+        (value) => value,
       );
       return Right(
         await _localDataSource.sendLumi(
@@ -50,7 +50,8 @@ class LumiRepositoryImpl implements LumiRepository {
           intensity: intensity,
           pulsePattern: pulsePattern,
           doodleStroke: doodleStroke,
-          quietHours: quietHours,
+          quietHours: settings?.quietHours,
+          forceQueued: settings?.appPaused ?? false,
         ),
       );
     } catch (_) {

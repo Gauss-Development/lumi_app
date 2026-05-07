@@ -55,14 +55,15 @@ extension SettingsEventPatterns on SettingsEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _QuietHoursUpdated value)?  quietHoursUpdated,TResult Function( _NotificationsToggled value)?  notificationsToggled,TResult Function( _HapticsToggled value)?  hapticsToggled,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _QuietHoursUpdated value)?  quietHoursUpdated,TResult Function( _NotificationsToggled value)?  notificationsToggled,TResult Function( _HapticsToggled value)?  hapticsToggled,TResult Function( _AppPauseToggled value)?  appPauseToggled,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
 return loadRequested(_that);case _QuietHoursUpdated() when quietHoursUpdated != null:
 return quietHoursUpdated(_that);case _NotificationsToggled() when notificationsToggled != null:
 return notificationsToggled(_that);case _HapticsToggled() when hapticsToggled != null:
-return hapticsToggled(_that);case _:
+return hapticsToggled(_that);case _AppPauseToggled() when appPauseToggled != null:
+return appPauseToggled(_that);case _:
   return orElse();
 
 }
@@ -80,14 +81,15 @@ return hapticsToggled(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _QuietHoursUpdated value)  quietHoursUpdated,required TResult Function( _NotificationsToggled value)  notificationsToggled,required TResult Function( _HapticsToggled value)  hapticsToggled,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _QuietHoursUpdated value)  quietHoursUpdated,required TResult Function( _NotificationsToggled value)  notificationsToggled,required TResult Function( _HapticsToggled value)  hapticsToggled,required TResult Function( _AppPauseToggled value)  appPauseToggled,}){
 final _that = this;
 switch (_that) {
 case _LoadRequested():
 return loadRequested(_that);case _QuietHoursUpdated():
 return quietHoursUpdated(_that);case _NotificationsToggled():
 return notificationsToggled(_that);case _HapticsToggled():
-return hapticsToggled(_that);}
+return hapticsToggled(_that);case _AppPauseToggled():
+return appPauseToggled(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -101,14 +103,15 @@ return hapticsToggled(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _QuietHoursUpdated value)?  quietHoursUpdated,TResult? Function( _NotificationsToggled value)?  notificationsToggled,TResult? Function( _HapticsToggled value)?  hapticsToggled,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _QuietHoursUpdated value)?  quietHoursUpdated,TResult? Function( _NotificationsToggled value)?  notificationsToggled,TResult? Function( _HapticsToggled value)?  hapticsToggled,TResult? Function( _AppPauseToggled value)?  appPauseToggled,}){
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
 return loadRequested(_that);case _QuietHoursUpdated() when quietHoursUpdated != null:
 return quietHoursUpdated(_that);case _NotificationsToggled() when notificationsToggled != null:
 return notificationsToggled(_that);case _HapticsToggled() when hapticsToggled != null:
-return hapticsToggled(_that);case _:
+return hapticsToggled(_that);case _AppPauseToggled() when appPauseToggled != null:
+return appPauseToggled(_that);case _:
   return null;
 
 }
@@ -125,13 +128,14 @@ return hapticsToggled(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( QuietHours quietHours)?  quietHoursUpdated,TResult Function( bool enabled)?  notificationsToggled,TResult Function( bool enabled)?  hapticsToggled,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( QuietHours quietHours)?  quietHoursUpdated,TResult Function( bool enabled)?  notificationsToggled,TResult Function( bool enabled)?  hapticsToggled,TResult Function( bool enabled)?  appPauseToggled,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
 return loadRequested();case _QuietHoursUpdated() when quietHoursUpdated != null:
 return quietHoursUpdated(_that.quietHours);case _NotificationsToggled() when notificationsToggled != null:
 return notificationsToggled(_that.enabled);case _HapticsToggled() when hapticsToggled != null:
-return hapticsToggled(_that.enabled);case _:
+return hapticsToggled(_that.enabled);case _AppPauseToggled() when appPauseToggled != null:
+return appPauseToggled(_that.enabled);case _:
   return orElse();
 
 }
@@ -149,13 +153,14 @@ return hapticsToggled(_that.enabled);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( QuietHours quietHours)  quietHoursUpdated,required TResult Function( bool enabled)  notificationsToggled,required TResult Function( bool enabled)  hapticsToggled,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( QuietHours quietHours)  quietHoursUpdated,required TResult Function( bool enabled)  notificationsToggled,required TResult Function( bool enabled)  hapticsToggled,required TResult Function( bool enabled)  appPauseToggled,}) {final _that = this;
 switch (_that) {
 case _LoadRequested():
 return loadRequested();case _QuietHoursUpdated():
 return quietHoursUpdated(_that.quietHours);case _NotificationsToggled():
 return notificationsToggled(_that.enabled);case _HapticsToggled():
-return hapticsToggled(_that.enabled);}
+return hapticsToggled(_that.enabled);case _AppPauseToggled():
+return appPauseToggled(_that.enabled);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -169,13 +174,14 @@ return hapticsToggled(_that.enabled);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( QuietHours quietHours)?  quietHoursUpdated,TResult? Function( bool enabled)?  notificationsToggled,TResult? Function( bool enabled)?  hapticsToggled,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( QuietHours quietHours)?  quietHoursUpdated,TResult? Function( bool enabled)?  notificationsToggled,TResult? Function( bool enabled)?  hapticsToggled,TResult? Function( bool enabled)?  appPauseToggled,}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
 return loadRequested();case _QuietHoursUpdated() when quietHoursUpdated != null:
 return quietHoursUpdated(_that.quietHours);case _NotificationsToggled() when notificationsToggled != null:
 return notificationsToggled(_that.enabled);case _HapticsToggled() when hapticsToggled != null:
-return hapticsToggled(_that.enabled);case _:
+return hapticsToggled(_that.enabled);case _AppPauseToggled() when appPauseToggled != null:
+return appPauseToggled(_that.enabled);case _:
   return null;
 
 }
@@ -414,9 +420,75 @@ as bool,
 }
 
 /// @nodoc
+
+
+class _AppPauseToggled implements SettingsEvent {
+  const _AppPauseToggled(this.enabled);
+  
+
+ final  bool enabled;
+
+/// Create a copy of SettingsEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$AppPauseToggledCopyWith<_AppPauseToggled> get copyWith => __$AppPauseToggledCopyWithImpl<_AppPauseToggled>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppPauseToggled&&(identical(other.enabled, enabled) || other.enabled == enabled));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,enabled);
+
+@override
+String toString() {
+  return 'SettingsEvent.appPauseToggled(enabled: $enabled)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$AppPauseToggledCopyWith<$Res> implements $SettingsEventCopyWith<$Res> {
+  factory _$AppPauseToggledCopyWith(_AppPauseToggled value, $Res Function(_AppPauseToggled) _then) = __$AppPauseToggledCopyWithImpl;
+@useResult
+$Res call({
+ bool enabled
+});
+
+
+
+
+}
+/// @nodoc
+class __$AppPauseToggledCopyWithImpl<$Res>
+    implements _$AppPauseToggledCopyWith<$Res> {
+  __$AppPauseToggledCopyWithImpl(this._self, this._then);
+
+  final _AppPauseToggled _self;
+  final $Res Function(_AppPauseToggled) _then;
+
+/// Create a copy of SettingsEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? enabled = null,}) {
+  return _then(_AppPauseToggled(
+null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$SettingsState {
 
- QuietHours get quietHours; bool get isLoading; bool get notificationsEnabled; bool get hapticsEnabled; String? get errorMessage;
+ QuietHours get quietHours; bool get isLoading; bool get notificationsEnabled; bool get hapticsEnabled; bool get appPaused; String? get errorMessage;
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -427,16 +499,16 @@ $SettingsStateCopyWith<SettingsState> get copyWith => _$SettingsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.quietHours, quietHours) || other.quietHours == quietHours)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.hapticsEnabled, hapticsEnabled) || other.hapticsEnabled == hapticsEnabled)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.quietHours, quietHours) || other.quietHours == quietHours)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.hapticsEnabled, hapticsEnabled) || other.hapticsEnabled == hapticsEnabled)&&(identical(other.appPaused, appPaused) || other.appPaused == appPaused)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,quietHours,isLoading,notificationsEnabled,hapticsEnabled,errorMessage);
+int get hashCode => Object.hash(runtimeType,quietHours,isLoading,notificationsEnabled,hapticsEnabled,appPaused,errorMessage);
 
 @override
 String toString() {
-  return 'SettingsState(quietHours: $quietHours, isLoading: $isLoading, notificationsEnabled: $notificationsEnabled, hapticsEnabled: $hapticsEnabled, errorMessage: $errorMessage)';
+  return 'SettingsState(quietHours: $quietHours, isLoading: $isLoading, notificationsEnabled: $notificationsEnabled, hapticsEnabled: $hapticsEnabled, appPaused: $appPaused, errorMessage: $errorMessage)';
 }
 
 
@@ -447,7 +519,7 @@ abstract mixin class $SettingsStateCopyWith<$Res>  {
   factory $SettingsStateCopyWith(SettingsState value, $Res Function(SettingsState) _then) = _$SettingsStateCopyWithImpl;
 @useResult
 $Res call({
- QuietHours quietHours, bool isLoading, bool notificationsEnabled, bool hapticsEnabled, String? errorMessage
+ QuietHours quietHours, bool isLoading, bool notificationsEnabled, bool hapticsEnabled, bool appPaused, String? errorMessage
 });
 
 
@@ -464,12 +536,13 @@ class _$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? quietHours = null,Object? isLoading = null,Object? notificationsEnabled = null,Object? hapticsEnabled = null,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? quietHours = null,Object? isLoading = null,Object? notificationsEnabled = null,Object? hapticsEnabled = null,Object? appPaused = null,Object? errorMessage = freezed,}) {
   return _then(_self.copyWith(
 quietHours: null == quietHours ? _self.quietHours : quietHours // ignore: cast_nullable_to_non_nullable
 as QuietHours,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,notificationsEnabled: null == notificationsEnabled ? _self.notificationsEnabled : notificationsEnabled // ignore: cast_nullable_to_non_nullable
 as bool,hapticsEnabled: null == hapticsEnabled ? _self.hapticsEnabled : hapticsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,appPaused: null == appPaused ? _self.appPaused : appPaused // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -553,10 +626,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( QuietHours quietHours,  bool isLoading,  bool notificationsEnabled,  bool hapticsEnabled,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( QuietHours quietHours,  bool isLoading,  bool notificationsEnabled,  bool hapticsEnabled,  bool appPaused,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_that.hapticsEnabled,_that.errorMessage);case _:
+return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_that.hapticsEnabled,_that.appPaused,_that.errorMessage);case _:
   return orElse();
 
 }
@@ -574,10 +647,10 @@ return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( QuietHours quietHours,  bool isLoading,  bool notificationsEnabled,  bool hapticsEnabled,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( QuietHours quietHours,  bool isLoading,  bool notificationsEnabled,  bool hapticsEnabled,  bool appPaused,  String? errorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState():
-return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_that.hapticsEnabled,_that.errorMessage);}
+return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_that.hapticsEnabled,_that.appPaused,_that.errorMessage);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -591,10 +664,10 @@ return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( QuietHours quietHours,  bool isLoading,  bool notificationsEnabled,  bool hapticsEnabled,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( QuietHours quietHours,  bool isLoading,  bool notificationsEnabled,  bool hapticsEnabled,  bool appPaused,  String? errorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_that.hapticsEnabled,_that.errorMessage);case _:
+return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_that.hapticsEnabled,_that.appPaused,_that.errorMessage);case _:
   return null;
 
 }
@@ -606,13 +679,14 @@ return $default(_that.quietHours,_that.isLoading,_that.notificationsEnabled,_tha
 
 
 class _SettingsState implements SettingsState {
-  const _SettingsState({required this.quietHours, this.isLoading = false, this.notificationsEnabled = true, this.hapticsEnabled = true, this.errorMessage});
+  const _SettingsState({required this.quietHours, this.isLoading = false, this.notificationsEnabled = true, this.hapticsEnabled = true, this.appPaused = false, this.errorMessage});
   
 
 @override final  QuietHours quietHours;
 @override@JsonKey() final  bool isLoading;
 @override@JsonKey() final  bool notificationsEnabled;
 @override@JsonKey() final  bool hapticsEnabled;
+@override@JsonKey() final  bool appPaused;
 @override final  String? errorMessage;
 
 /// Create a copy of SettingsState
@@ -625,16 +699,16 @@ _$SettingsStateCopyWith<_SettingsState> get copyWith => __$SettingsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.quietHours, quietHours) || other.quietHours == quietHours)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.hapticsEnabled, hapticsEnabled) || other.hapticsEnabled == hapticsEnabled)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.quietHours, quietHours) || other.quietHours == quietHours)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.hapticsEnabled, hapticsEnabled) || other.hapticsEnabled == hapticsEnabled)&&(identical(other.appPaused, appPaused) || other.appPaused == appPaused)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,quietHours,isLoading,notificationsEnabled,hapticsEnabled,errorMessage);
+int get hashCode => Object.hash(runtimeType,quietHours,isLoading,notificationsEnabled,hapticsEnabled,appPaused,errorMessage);
 
 @override
 String toString() {
-  return 'SettingsState(quietHours: $quietHours, isLoading: $isLoading, notificationsEnabled: $notificationsEnabled, hapticsEnabled: $hapticsEnabled, errorMessage: $errorMessage)';
+  return 'SettingsState(quietHours: $quietHours, isLoading: $isLoading, notificationsEnabled: $notificationsEnabled, hapticsEnabled: $hapticsEnabled, appPaused: $appPaused, errorMessage: $errorMessage)';
 }
 
 
@@ -645,7 +719,7 @@ abstract mixin class _$SettingsStateCopyWith<$Res> implements $SettingsStateCopy
   factory _$SettingsStateCopyWith(_SettingsState value, $Res Function(_SettingsState) _then) = __$SettingsStateCopyWithImpl;
 @override @useResult
 $Res call({
- QuietHours quietHours, bool isLoading, bool notificationsEnabled, bool hapticsEnabled, String? errorMessage
+ QuietHours quietHours, bool isLoading, bool notificationsEnabled, bool hapticsEnabled, bool appPaused, String? errorMessage
 });
 
 
@@ -662,12 +736,13 @@ class __$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? quietHours = null,Object? isLoading = null,Object? notificationsEnabled = null,Object? hapticsEnabled = null,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? quietHours = null,Object? isLoading = null,Object? notificationsEnabled = null,Object? hapticsEnabled = null,Object? appPaused = null,Object? errorMessage = freezed,}) {
   return _then(_SettingsState(
 quietHours: null == quietHours ? _self.quietHours : quietHours // ignore: cast_nullable_to_non_nullable
 as QuietHours,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,notificationsEnabled: null == notificationsEnabled ? _self.notificationsEnabled : notificationsEnabled // ignore: cast_nullable_to_non_nullable
 as bool,hapticsEnabled: null == hapticsEnabled ? _self.hapticsEnabled : hapticsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,appPaused: null == appPaused ? _self.appPaused : appPaused // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

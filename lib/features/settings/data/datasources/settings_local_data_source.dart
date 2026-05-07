@@ -21,6 +21,7 @@ class SettingsLocalDataSource {
         'notifications_enabled',
       ),
       hapticsEnabled: _preferencesService.readBool('haptics_enabled'),
+      appPaused: _preferencesService.readBool('app_paused'),
     );
   }
 
@@ -47,17 +48,20 @@ class SettingsLocalDataSource {
   Future<LumiSettings> updatePreferences({
     required bool notificationsEnabled,
     required bool hapticsEnabled,
+    required bool appPaused,
   }) async {
     await _preferencesService.writeBool(
       'notifications_enabled',
       notificationsEnabled,
     );
     await _preferencesService.writeBool('haptics_enabled', hapticsEnabled);
+    await _preferencesService.writeBool('app_paused', appPaused);
 
     final current = await getSettings();
     return current.copyWith(
       notificationsEnabled: notificationsEnabled,
       hapticsEnabled: hapticsEnabled,
+      appPaused: appPaused,
     );
   }
 }

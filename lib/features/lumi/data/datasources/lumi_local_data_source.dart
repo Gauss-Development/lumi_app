@@ -52,8 +52,9 @@ class LumiLocalDataSource {
     PulsePattern? pulsePattern,
     DoodleStroke? doodleStroke,
     QuietHours? quietHours,
+    bool forceQueued = false,
   }) async {
-    final queued = quietHours?.isActiveAt(DateTime.now()) ?? false;
+    final queued = forceQueued || (quietHours?.isActiveAt(DateTime.now()) ?? false);
     final lumi = Lumi(
       id: 'lumi-${DateTime.now().microsecondsSinceEpoch}',
       memberId: recipientId,
