@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/services/preferences_service.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 
@@ -97,5 +98,37 @@ class CircleLocalDataSource {
 
     await saveMembers(updated);
     return mutedMember;
+  }
+
+  Future<void> touchMemberActivity({
+    required String memberId,
+    required bool queued,
+  }) async {
+    final DateTime now = DateTime.now();
+    final List<CircleMember> members = await getMembers();
+    final List<CircleMember> updated = members
+        .map((CircleMember member) {
+          if (member.id != memberId) {
+            return member;
+          }
+
+          final bool resetWindow =
+              member.lastInteractionAt == null ||
+              now.difference(member.lastInteractionAt!).inHours >= 24;
+
+          final int nextPaceCount =
+              (resetWindow ? 0 : member.paceCount) + 1;
+
+          return member.copyWith(
+            paceCount: nextPaceCount.clamp(0, LumiLimits.maxLumisPerPairPerDay),
+            queuedCount: queued
+                ? member.queuedCount + 1
+                : member.queuedCount.clamp(0, LumiLimits.maxLumisPerPairPerDay),
+            lastInteractionAt: now,
+          );
+        })
+        .toList(growable: false);
+
+    await saveMembers(updated);
   }
 }

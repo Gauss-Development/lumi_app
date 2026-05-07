@@ -50,6 +50,7 @@ class CircleMember extends Equatable {
     required this.queuedCount,
     required this.mutualConnection,
     this.relationshipLabel,
+    this.lastInteractionAt,
     this.subtitle,
     this.mutedUntil,
   });
@@ -85,6 +86,9 @@ class CircleMember extends Equatable {
       queuedCount: json['queuedCount'] as int? ?? 0,
       mutualConnection: json['mutualConnection'] as bool? ?? false,
       relationshipLabel: json['relationshipLabel'] as String?,
+      lastInteractionAt: json['lastInteractionAt'] == null
+          ? null
+          : DateTime.tryParse(json['lastInteractionAt'] as String),
       subtitle: json['subtitle'] as String?,
       mutedUntil: json['mutedUntil'] == null
           ? null
@@ -100,6 +104,7 @@ class CircleMember extends Equatable {
   final int queuedCount;
   final bool mutualConnection;
   final String? relationshipLabel;
+  final DateTime? lastInteractionAt;
   final String? subtitle;
   final DateTime? mutedUntil;
 
@@ -133,6 +138,7 @@ class CircleMember extends Equatable {
     int? queuedCount,
     bool? mutualConnection,
     String? relationshipLabel,
+    DateTime? lastInteractionAt,
     String? subtitle,
     DateTime? mutedUntil,
   }) {
@@ -145,6 +151,7 @@ class CircleMember extends Equatable {
       queuedCount: queuedCount ?? this.queuedCount,
       mutualConnection: mutualConnection ?? this.mutualConnection,
       relationshipLabel: relationshipLabel ?? this.relationshipLabel,
+      lastInteractionAt: lastInteractionAt ?? this.lastInteractionAt,
       subtitle: subtitle ?? this.subtitle,
       mutedUntil: mutedUntil ?? this.mutedUntil,
     );
@@ -160,6 +167,7 @@ class CircleMember extends Equatable {
       'queuedCount': queuedCount,
       'mutualConnection': mutualConnection,
       'relationshipLabel': relationshipLabel,
+      'lastInteractionAt': lastInteractionAt?.toIso8601String(),
       'subtitle': subtitle,
       'mutedUntil': mutedUntil?.toIso8601String(),
     };
@@ -175,6 +183,7 @@ class CircleMember extends Equatable {
     queuedCount,
     mutualConnection,
     relationshipLabel,
+    lastInteractionAt,
     subtitle,
     mutedUntil,
   ];

@@ -1,13 +1,15 @@
 import 'dart:convert';
 
 import 'package:lumi/core/services/preferences_service.dart';
+import 'package:lumi/features/circle/data/datasources/circle_local_data_source.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 
 class LumiLocalDataSource {
-  LumiLocalDataSource(this._preferencesService);
+  LumiLocalDataSource(this._preferencesService, this._circleLocalDataSource);
 
   final PreferencesService _preferencesService;
+  final CircleLocalDataSource _circleLocalDataSource;
 
   static const String _lumiKey = 'lumi_items';
   static const String _doodleDraftKey = 'doodle_draft';
@@ -84,6 +86,10 @@ class LumiLocalDataSource {
       doodleStroke: doodleStroke,
     );
     await saveAll(<Lumi>[simulatedReply, lumi, ...all]);
+    await _circleLocalDataSource.touchMemberActivity(
+      memberId: recipientId,
+      queued: queued,
+    );
     return lumi;
   }
 

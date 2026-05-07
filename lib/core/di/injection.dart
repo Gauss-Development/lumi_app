@@ -139,7 +139,10 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   );
 
   sl.registerLazySingleton<LumiLocalDataSource>(
-    () => LumiLocalDataSource(sl<PreferencesService>()),
+    () => LumiLocalDataSource(
+      sl<PreferencesService>(),
+      sl<CircleLocalDataSource>(),
+    ),
   );
   sl.registerLazySingleton<LumiRepository>(
     () => LumiRepositoryImpl(

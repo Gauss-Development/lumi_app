@@ -35,6 +35,19 @@ class MemberOrb extends StatelessWidget {
     final color = Color(currentMember.signatureColorValue);
     final isNearLimit =
         currentMember.paceCount >= LumiLimits.maxLumisPerPairPerDay - 1;
+    final double recentActivityGlow = switch (currentMember.lastInteractionAt) {
+      null => 0.12,
+      final DateTime lastSeen
+          when DateTime.now().difference(lastSeen).inHours < 1 =>
+        0.42,
+      final DateTime lastSeen
+          when DateTime.now().difference(lastSeen).inHours < 6 =>
+        0.28,
+      final DateTime lastSeen
+          when DateTime.now().difference(lastSeen).inHours < 24 =>
+        0.18,
+      _ => 0.1,
+    };
 
     return GestureDetector(
       onTap: onTap,
@@ -56,7 +69,9 @@ class MemberOrb extends StatelessWidget {
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: color.withValues(alpha: isNearLimit ? 0.12 : 0.28),
+              color: color.withValues(
+                alpha: isNearLimit ? 0.12 : recentActivityGlow,
+              ),
               blurRadius: isNearLimit ? 10 : 18,
             ),
           ],
