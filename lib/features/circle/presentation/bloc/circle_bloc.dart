@@ -77,7 +77,10 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
       return;
     }
 
-    final result = await _sendInviteUseCase(event.name);
+    final result = await _sendInviteUseCase(
+      displayName: event.name,
+      relationshipLabel: event.relationshipLabel,
+    );
     result.fold(
       (failure) => emit(CircleState.failure(failure: failure)),
       (_) => add(const CircleEvent.loadRequested()),
@@ -148,7 +151,10 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
 @freezed
 class CircleEvent with _$CircleEvent {
   const factory CircleEvent.loadRequested() = _LoadRequested;
-  const factory CircleEvent.inviteRequested({required String name}) =
+  const factory CircleEvent.inviteRequested({
+    required String name,
+    String? relationshipLabel,
+  }) =
       _InviteRequested;
   const factory CircleEvent.inviteLinkRequested({required String name}) =
       _InviteLinkRequested;

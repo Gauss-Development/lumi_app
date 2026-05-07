@@ -78,6 +78,15 @@ class MemberOrb extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            if ((currentMember.relationshipLabel ?? '').isNotEmpty)
+              Text(
+                currentMember.relationshipLabel!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
           ],
         ),
       ),

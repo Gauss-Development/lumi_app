@@ -8,6 +8,7 @@ abstract class CircleRepository {
 
   Future<Either<Failure, CircleMember>> sendInvite({
     required String displayName,
+    String? relationshipLabel,
   });
 
   Future<Either<Failure, InviteLink>> createInviteLink({

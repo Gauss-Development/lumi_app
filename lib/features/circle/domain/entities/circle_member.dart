@@ -49,6 +49,7 @@ class CircleMember extends Equatable {
     required this.paceCount,
     required this.queuedCount,
     required this.mutualConnection,
+    this.relationshipLabel,
     this.subtitle,
     this.mutedUntil,
   });
@@ -57,6 +58,7 @@ class CircleMember extends Equatable {
     required String id,
     required String displayName,
     required int signatureColorValue,
+    String? relationshipLabel,
   }) {
     return CircleMember(
       id: id,
@@ -66,6 +68,7 @@ class CircleMember extends Equatable {
       paceCount: 0,
       queuedCount: 0,
       mutualConnection: false,
+      relationshipLabel: relationshipLabel,
       subtitle: 'Invite sent · expires in 24h',
     );
   }
@@ -81,6 +84,7 @@ class CircleMember extends Equatable {
       paceCount: json['paceCount'] as int? ?? 0,
       queuedCount: json['queuedCount'] as int? ?? 0,
       mutualConnection: json['mutualConnection'] as bool? ?? false,
+      relationshipLabel: json['relationshipLabel'] as String?,
       subtitle: json['subtitle'] as String?,
       mutedUntil: json['mutedUntil'] == null
           ? null
@@ -95,6 +99,7 @@ class CircleMember extends Equatable {
   final int paceCount;
   final int queuedCount;
   final bool mutualConnection;
+  final String? relationshipLabel;
   final String? subtitle;
   final DateTime? mutedUntil;
 
@@ -127,6 +132,7 @@ class CircleMember extends Equatable {
     int? paceCount,
     int? queuedCount,
     bool? mutualConnection,
+    String? relationshipLabel,
     String? subtitle,
     DateTime? mutedUntil,
   }) {
@@ -138,6 +144,7 @@ class CircleMember extends Equatable {
       paceCount: paceCount ?? this.paceCount,
       queuedCount: queuedCount ?? this.queuedCount,
       mutualConnection: mutualConnection ?? this.mutualConnection,
+      relationshipLabel: relationshipLabel ?? this.relationshipLabel,
       subtitle: subtitle ?? this.subtitle,
       mutedUntil: mutedUntil ?? this.mutedUntil,
     );
@@ -152,6 +159,7 @@ class CircleMember extends Equatable {
       'paceCount': paceCount,
       'queuedCount': queuedCount,
       'mutualConnection': mutualConnection,
+      'relationshipLabel': relationshipLabel,
       'subtitle': subtitle,
       'mutedUntil': mutedUntil?.toIso8601String(),
     };
@@ -166,6 +174,7 @@ class CircleMember extends Equatable {
     paceCount,
     queuedCount,
     mutualConnection,
+    relationshipLabel,
     subtitle,
     mutedUntil,
   ];

@@ -38,12 +38,14 @@ class CircleLocalDataSource {
   Future<CircleMember> addInvite({
     required String displayName,
     required int colorValue,
+    String? relationshipLabel,
   }) async {
     final List<CircleMember> members = await getMembers();
     final CircleMember invite = CircleMember.pendingOutbound(
       id: 'invite-${DateTime.now().millisecondsSinceEpoch}',
       displayName: displayName,
       signatureColorValue: colorValue,
+      relationshipLabel: relationshipLabel,
     );
     final List<CircleMember> updated = <CircleMember>[invite, ...members];
     await saveMembers(updated);

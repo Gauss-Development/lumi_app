@@ -27,6 +27,13 @@ class MemberDetailSheet extends StatelessWidget {
               member.displayName,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
+            if ((member.relationshipLabel ?? '').isNotEmpty) ...<Widget>[
+              const SizedBox(height: 6),
+              Text(
+                member.relationshipLabel!,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
             const SizedBox(height: 12),
             Text(member.status.label),
             if ((member.subtitle ?? '').isNotEmpty) ...<Widget>[

@@ -106,6 +106,7 @@ class CircleRepositoryImpl implements CircleRepository {
   @override
   Future<Either<Failure, CircleMember>> sendInvite({
     required String displayName,
+    String? relationshipLabel,
   }) async {
     try {
       final availableSlotsResult = await getAvailableSlots();
@@ -122,6 +123,7 @@ class CircleRepositoryImpl implements CircleRepository {
         await _localDataSource.addInvite(
           displayName: displayName,
           colorValue: AppConstants.signatureColors.first.toARGB32(),
+          relationshipLabel: relationshipLabel,
         ),
       );
     } catch (_) {
