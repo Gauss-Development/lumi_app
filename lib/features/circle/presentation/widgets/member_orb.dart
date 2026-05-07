@@ -35,6 +35,10 @@ class MemberOrb extends StatelessWidget {
     final color = Color(currentMember.signatureColorValue);
     final isNearLimit =
         currentMember.paceCount >= LumiLimits.maxLumisPerPairPerDay - 1;
+    final bool anniversaryNudge =
+        currentMember.isActive &&
+        currentMember.lastInteractionAt != null &&
+        DateTime.now().difference(currentMember.lastInteractionAt!).inDays >= 14;
     final double recentActivityGlow = switch (currentMember.lastInteractionAt) {
       null => 0.12,
       final DateTime lastSeen
@@ -74,6 +78,12 @@ class MemberOrb extends StatelessWidget {
               ),
               blurRadius: isNearLimit ? 10 : 18,
             ),
+            if (anniversaryNudge)
+              BoxShadow(
+                color: Colors.amber.withValues(alpha: 0.16),
+                blurRadius: 22,
+                spreadRadius: 1,
+              ),
           ],
         ),
         child: Column(

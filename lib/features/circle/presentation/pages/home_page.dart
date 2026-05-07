@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
+import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/circle/presentation/widgets/circle_empty_state.dart';
@@ -12,6 +13,7 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
+import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
@@ -58,6 +60,9 @@ class HomePage extends StatelessWidget {
                   String latestInviteLink,
                   bool showUpgradePrompt,
                 ) {
+                  final List<CircleMember> activeMembers = members
+                      .where((member) => member.isActive)
+                      .toList(growable: false);
                   return LumiScaffold(
                     title: 'Lumi',
                     actions: <Widget>[
@@ -106,6 +111,22 @@ class HomePage extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
+                            if (activeMembers.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  12,
+                                  24,
+                                  0,
+                                ),
+                                child: FilledButton.tonal(
+                                  onPressed: () => _sendMorningLight(
+                                    context,
+                                    activeMembers,
+                                  ),
+                                  child: const Text('Morning Light'),
+                                ),
+                              ),
                             if (members.isEmpty)
                               CircleEmptyState(
                                 onInviteTap: () => _showInviteSheet(context),
@@ -171,6 +192,25 @@ class HomePage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _sendMorningLight(BuildContext context, List<CircleMember> members) {
+    final String senderId = context.read<AuthBloc>().state.maybeWhen(
+      authenticated: (session) => session.userId,
+      orElse: () => 'local-user',
+    );
+    final int colorValue =
+        context.read<ProfileSetupBloc>().state.signatureColorValue;
+
+    for (final CircleMember member in members.take(2)) {
+      context.read<LumiBloc>().add(
+        LumiEvent.sendPureRequested(
+          senderId: senderId,
+          memberId: member.id,
+          colorValue: colorValue,
+        ),
+      );
+    }
   }
 
   void _showInviteSheet(BuildContext context) {
