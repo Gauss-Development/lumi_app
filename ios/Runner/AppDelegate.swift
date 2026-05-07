@@ -1,16 +1,22 @@
 import Flutter
 import UIKit
+import home_widget
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+@objc class AppDelegate: FlutterAppDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
+    GeneratedPluginRegistrant.register(with: self)
+    UIApplication.shared.setMinimumBackgroundFetchInterval(TimeInterval(60 * 15))
 
-  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    if #available(iOS 17.0, *) {
+      HomeWidgetBackgroundWorker.setPluginRegistrantCallback { registry in
+        GeneratedPluginRegistrant.register(with: registry)
+      }
+    }
+
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }
