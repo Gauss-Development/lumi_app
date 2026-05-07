@@ -12,6 +12,8 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
+import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
+import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
 
 class HomePage extends StatelessWidget {
@@ -62,6 +64,41 @@ class HomePage extends StatelessWidget {
                       IconButton(
                         onPressed: () => _showInviteSheet(context),
                         icon: const Icon(Icons.person_add_alt_1_rounded),
+                      ),
+                      PopupMenuButton<_HomeMenuAction>(
+                        onSelected: (_HomeMenuAction action) {
+                          switch (action) {
+                            case _HomeMenuAction.shelf:
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const KeptShelfPage(),
+                                ),
+                              );
+                            case _HomeMenuAction.settings:
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const SettingsPage(),
+                                ),
+                              );
+                            case _HomeMenuAction.upgrade:
+                              PaywallSheet.show(context);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) =>
+                            const <PopupMenuEntry<_HomeMenuAction>>[
+                              PopupMenuItem<_HomeMenuAction>(
+                                value: _HomeMenuAction.shelf,
+                                child: Text('Kept Shelf'),
+                              ),
+                              PopupMenuItem<_HomeMenuAction>(
+                                value: _HomeMenuAction.settings,
+                                child: Text('Settings'),
+                              ),
+                              PopupMenuItem<_HomeMenuAction>(
+                                value: _HomeMenuAction.upgrade,
+                                child: Text('Upgrade'),
+                              ),
+                            ],
                       ),
                     ],
                     child: Stack(
@@ -183,3 +220,5 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+
+enum _HomeMenuAction { shelf, settings, upgrade }

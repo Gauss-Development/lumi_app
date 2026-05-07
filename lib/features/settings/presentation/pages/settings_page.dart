@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -67,6 +68,14 @@ class SettingsPage extends StatelessWidget {
                     SettingsEvent.quietHoursUpdated(next),
                   );
                 },
+              ),
+              ListTile(
+                title: const Text('Manage subscription'),
+                subtitle: const Text(
+                  'Upgrade, restore, or review your household plan.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => PaywallSheet.show(context),
               ),
               if (state.errorMessage != null) ...<Widget>[
                 const SizedBox(height: 12),
