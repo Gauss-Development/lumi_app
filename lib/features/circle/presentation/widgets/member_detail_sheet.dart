@@ -7,12 +7,14 @@ class MemberDetailSheet extends StatelessWidget {
     required this.member,
     required this.onActivate,
     required this.onMute,
+    required this.onMemorialize,
     super.key,
   });
 
   final CircleMember member;
   final VoidCallback onActivate;
   final VoidCallback onMute;
+  final VoidCallback onMemorialize;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +53,11 @@ class MemberDetailSheet extends StatelessWidget {
             OutlinedButton(
               onPressed: onMute,
               child: const Text('Mute for one week'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onMemorialize,
+              child: const Text('Mark memorial'),
             ),
           ],
         ),

@@ -35,6 +35,7 @@ class MemberOrb extends StatelessWidget {
     final color = Color(currentMember.signatureColorValue);
     final isNearLimit =
         currentMember.paceCount >= LumiLimits.maxLumisPerPairPerDay - 1;
+    final bool isMemorial = currentMember.status == CircleStatus.memorial;
     final bool anniversaryNudge =
         currentMember.isActive &&
         currentMember.lastInteractionAt != null &&
@@ -62,12 +63,24 @@ class MemberOrb extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: color.withValues(alpha: currentMember.isMuted ? 0.25 : 0.8),
+            color: color.withValues(
+              alpha: isMemorial
+                  ? 0.18
+                  : currentMember.isMuted
+                  ? 0.25
+                  : 0.8,
+            ),
             width: 1.4,
           ),
           gradient: RadialGradient(
             colors: <Color>[
-              color.withValues(alpha: currentMember.isMuted ? 0.08 : 0.24),
+              color.withValues(
+                alpha: isMemorial
+                    ? 0.06
+                    : currentMember.isMuted
+                    ? 0.08
+                    : 0.24,
+              ),
               AppColors.midnight,
             ],
           ),
@@ -101,7 +114,9 @@ class MemberOrb extends StatelessWidget {
               currentMember.displayName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white.withValues(alpha: isMemorial ? 0.6 : 1),
+              ),
             ),
             if ((currentMember.relationshipLabel ?? '').isNotEmpty)
               Text(

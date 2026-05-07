@@ -256,6 +256,12 @@ class HomePage extends StatelessWidget {
             ),
           );
         },
+        onMemorialize: () {
+          Navigator.of(context).pop();
+          context.read<CircleBloc>().add(
+            CircleEvent.memberMemorialized(memberId: member.id),
+          );
+        },
       ),
     );
   }

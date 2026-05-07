@@ -104,6 +104,25 @@ class CircleRepositoryImpl implements CircleRepository {
   }
 
   @override
+  Future<Either<Failure, CircleMember>> memorializeMember({
+    required String memberId,
+  }) async {
+    try {
+      final member = await _localDataSource.memorializeMember(memberId);
+      if (member == null) {
+        return const Left(
+          UnexpectedFailure('Unable to memorialize this member right now.'),
+        );
+      }
+      return Right(member);
+    } catch (_) {
+      return const Left(
+        UnexpectedFailure('Unable to memorialize this member right now.'),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, CircleMember>> sendInvite({
     required String displayName,
     String? relationshipLabel,

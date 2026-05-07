@@ -24,5 +24,9 @@ abstract class CircleRepository {
     required DateTime until,
   });
 
+  Future<Either<Failure, CircleMember>> memorializeMember({
+    required String memberId,
+  });
+
   Future<Either<Failure, int>> getAvailableSlots();
 }

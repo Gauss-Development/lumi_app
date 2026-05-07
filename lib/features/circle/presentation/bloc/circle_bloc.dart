@@ -7,6 +7,7 @@ import 'package:lumi/features/circle/domain/usecases/accept_invite_usecase.dart'
 import 'package:lumi/features/circle/domain/usecases/create_invite_link_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_available_slots_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_circle_members_usecase.dart';
+import 'package:lumi/features/circle/domain/usecases/memorialize_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/mute_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/send_invite_usecase.dart';
 
@@ -19,12 +20,14 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     required CreateInviteLinkUseCase createInviteLinkUseCase,
     required AcceptInviteUseCase acceptInviteUseCase,
     required MuteMemberUseCase muteMemberUseCase,
+    required MemorializeMemberUseCase memorializeMemberUseCase,
     required GetAvailableSlotsUseCase getAvailableSlotsUseCase,
   }) : _getCircleMembersUseCase = getCircleMembersUseCase,
        _sendInviteUseCase = sendInviteUseCase,
        _createInviteLinkUseCase = createInviteLinkUseCase,
        _acceptInviteUseCase = acceptInviteUseCase,
        _muteMemberUseCase = muteMemberUseCase,
+       _memorializeMemberUseCase = memorializeMemberUseCase,
        _getAvailableSlotsUseCase = getAvailableSlotsUseCase,
        super(const CircleState.initial()) {
     on<_LoadRequested>(_onLoadRequested);
@@ -32,6 +35,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     on<_InviteLinkRequested>(_onInviteLinkRequested);
     on<_MemberActivated>(_onMemberActivated);
     on<_MemberMuted>(_onMemberMuted);
+    on<_MemberMemorialized>(_onMemberMemorialized);
     on<_DismissUpgradePrompt>(_onDismissUpgradePrompt);
   }
 
@@ -40,6 +44,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
   final CreateInviteLinkUseCase _createInviteLinkUseCase;
   final AcceptInviteUseCase _acceptInviteUseCase;
   final MuteMemberUseCase _muteMemberUseCase;
+  final MemorializeMemberUseCase _memorializeMemberUseCase;
   final GetAvailableSlotsUseCase _getAvailableSlotsUseCase;
 
   Future<void> _onLoadRequested(
@@ -128,6 +133,17 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     );
   }
 
+  Future<void> _onMemberMemorialized(
+    _MemberMemorialized event,
+    Emitter<CircleState> emit,
+  ) async {
+    final result = await _memorializeMemberUseCase(event.memberId);
+    result.fold(
+      (failure) => emit(CircleState.failure(failure: failure)),
+      (_) => add(const CircleEvent.loadRequested()),
+    );
+  }
+
   void _onDismissUpgradePrompt(
     _DismissUpgradePrompt event,
     Emitter<CircleState> emit,
@@ -164,6 +180,8 @@ class CircleEvent with _$CircleEvent {
     required String memberId,
     required Duration duration,
   }) = _MemberMuted;
+  const factory CircleEvent.memberMemorialized({required String memberId}) =
+      _MemberMemorialized;
   const factory CircleEvent.dismissUpgradePrompt() = _DismissUpgradePrompt;
 }
 

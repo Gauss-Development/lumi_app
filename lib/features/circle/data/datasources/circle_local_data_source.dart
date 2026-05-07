@@ -100,6 +100,27 @@ class CircleLocalDataSource {
     return mutedMember;
   }
 
+  Future<CircleMember?> memorializeMember(String memberId) async {
+    final List<CircleMember> members = await getMembers();
+    CircleMember? memorializedMember;
+    final List<CircleMember> updated = members
+        .map((CircleMember member) {
+          if (member.id != memberId) {
+            return member;
+          }
+
+          memorializedMember = member.copyWith(
+            status: CircleStatus.memorial,
+            subtitle: 'Kept in your circle for the long arc',
+          );
+          return memorializedMember!;
+        })
+        .toList(growable: false);
+
+    await saveMembers(updated);
+    return memorializedMember;
+  }
+
   Future<void> touchMemberActivity({
     required String memberId,
     required bool queued,
