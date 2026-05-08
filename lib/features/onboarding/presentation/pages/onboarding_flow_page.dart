@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:lumi/core/widgets/lumi_scaffold.dart';
+import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/loading_view.dart';
+import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/presentation/pages/home_page.dart';
@@ -16,9 +18,9 @@ class OnboardingFlowPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
-      listeners: [
+      listeners: <BlocListener<dynamic, dynamic>>[
         BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
+          listener: (BuildContext context, AuthState state) {
             state.whenOrNull(
               codeSent: (_) => context.read<OnboardingBloc>().add(
                 const OnboardingEvent.jumpTo(OnboardingStage.otp),
@@ -26,14 +28,14 @@ class OnboardingFlowPage extends StatelessWidget {
               authenticated: (_) => context.read<OnboardingBloc>().add(
                 const OnboardingEvent.jumpTo(OnboardingStage.profile),
               ),
-              failure: (message) => ScaffoldMessenger.of(
+              failure: (String message) => ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text(message))),
             );
           },
         ),
         BlocListener<ProfileSetupBloc, ProfileSetupState>(
-          listener: (context, state) {
+          listener: (BuildContext context, ProfileSetupState state) {
             if (state.status == ProfileSetupStatus.saved) {
               context.read<OnboardingBloc>().add(
                 const OnboardingEvent.completeProfile(),
@@ -43,31 +45,25 @@ class OnboardingFlowPage extends StatelessWidget {
         ),
       ],
       child: BlocBuilder<OnboardingBloc, OnboardingState>(
-        builder: (context, onboardingState) {
+        builder: (BuildContext context, OnboardingState onboardingState) {
           if (onboardingState.completed) {
             return const HomePage();
           }
 
           return BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, authState) {
-              switch (onboardingState.stage) {
-                case OnboardingStage.welcome:
-                  return _WelcomeStep(
+            builder: (BuildContext context, AuthState authState) {
+              return switch (onboardingState.stage) {
+                OnboardingStage.welcome => _WelcomeStep(
                     onBegin: () => context.read<OnboardingBloc>().add(
                       const OnboardingEvent.advance(),
                     ),
-                  );
-                case OnboardingStage.phone:
-                  return _PhoneStep(authState: authState);
-                case OnboardingStage.otp:
-                  return _OtpStep(authState: authState);
-                case OnboardingStage.profile:
-                  return const _ProfileStep();
-                case OnboardingStage.permissions:
-                  return const _PermissionsStep();
-                case OnboardingStage.complete:
-                  return const HomePage();
-              }
+                  ),
+                OnboardingStage.phone => _PhoneStep(authState: authState),
+                OnboardingStage.otp => _OtpStep(authState: authState),
+                OnboardingStage.profile => const _ProfileStep(),
+                OnboardingStage.permissions => const _PermissionsStep(),
+                OnboardingStage.complete => const HomePage(),
+              };
             },
           );
         },
@@ -84,21 +80,34 @@ class _WelcomeStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LumiScaffold(
+      centered: true,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
+          const SizedBox(height: 16),
+          const GlowOrb(color: AppColors.peach, size: 260),
+          const SizedBox(height: 44),
           Text(
-            'A little light for someone you love.',
+            'A little light for\nsomeone you love.',
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineLarge,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
-            'Lumi keeps family close without the pressure to compose a message.',
-            style: Theme.of(context).textTheme.bodyLarge,
+            'Lumi helps you reach out without the pressure to find the right words.',
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 32),
-          PrimaryGlowButton(label: 'Begin', onPressed: onBegin),
+          const SizedBox(height: 56),
+          const Spacer(),
+          PrimaryGlowButton(
+            label: 'Begin',
+            glowColor: AppColors.peach,
+            onPressed: onBegin,
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -125,27 +134,57 @@ class _PhoneStepState extends State<_PhoneStep> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = widget.authState.maybeWhen(
+    final bool isLoading = widget.authState.maybeWhen(
       loading: () => true,
       orElse: () => false,
     );
 
     return LumiScaffold(
+      centered: true,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
+          const GlowOrb(color: AppColors.softLavender, size: 140),
+          const SizedBox(height: 32),
           Text(
-            'Use your phone number to begin.',
+            'Use your phone number to begin',
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Phone number',
-              hintText: '+1 555 111 2233',
+          const SizedBox(height: 32),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceStrong,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Row(
+              children: <Widget>[
+                Text(
+                  '+1',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 1,
+                  height: 20,
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '(555) 123 4567',
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
@@ -154,12 +193,21 @@ class _PhoneStepState extends State<_PhoneStep> {
           else
             PrimaryGlowButton(
               label: 'Send code',
+              glowColor: AppColors.softLavender,
               onPressed: () {
                 context.read<AuthBloc>().add(
                   AuthEvent.otpRequested(_phoneController.text.trim()),
                 );
               },
             ),
+          const SizedBox(height: 28),
+          Text(
+            'We use a one-time code. No password, no inbox.',
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.textFaint),
+          ),
         ],
       ),
     );
@@ -176,52 +224,124 @@ class _OtpStep extends StatefulWidget {
 }
 
 class _OtpStepState extends State<_OtpStep> {
-  final TextEditingController _codeController = TextEditingController();
+  final List<TextEditingController> _controllers = List<TextEditingController>.generate(
+    6,
+    (_) => TextEditingController(),
+  );
+  final List<FocusNode> _focusNodes = List<FocusNode>.generate(
+    6,
+    (_) => FocusNode(),
+  );
 
   @override
   void dispose() {
-    _codeController.dispose();
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    for (final node in _focusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
+  void _onChanged(int index, String value) {
+    final String digit = value.replaceAll(RegExp(r'[^0-9]'), '');
+    _controllers[index].text = digit.isEmpty ? '' : digit.substring(digit.length - 1);
+    if (_controllers[index].text.isNotEmpty && index < _focusNodes.length - 1) {
+      _focusNodes[index + 1].requestFocus();
+    }
+  }
+
+  String get _code => _controllers.map((c) => c.text).join();
+
   @override
   Widget build(BuildContext context) {
-    final requestedPhone = widget.authState.maybeWhen(
-      codeSent: (phone) => phone,
-      orElse: () => '',
-    );
-
     return LumiScaffold(
+      centered: true,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
+          const GlowOrb(color: AppColors.mint, size: 120),
+          const SizedBox(height: 32),
           Text(
-            requestedPhone.isEmpty
-                ? 'Enter the code sent to your phone.'
-                : 'Enter the 6-digit code sent to $requestedPhone.',
-            style: Theme.of(context).textTheme.headlineSmall,
+            'Enter the code we sent',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _codeController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'SMS code',
-              hintText: '123456',
-            ),
+          const SizedBox(height: 10),
+          Text(
+            'Sent to your phone moments ago',
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 24),
-          PrimaryGlowButton(
-            label: 'Confirm',
-            onPressed: () {
-              context.read<AuthBloc>().add(
-                AuthEvent.otpVerified(
-                  phoneNumber: requestedPhone,
-                  code: _codeController.text.trim(),
+          const SizedBox(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List<Widget>.generate(6, (int index) {
+              final bool filled = _controllers[index].text.isNotEmpty;
+              return SizedBox(
+                width: 48,
+                child: TextField(
+                  controller: _controllers[index],
+                  focusNode: _focusNodes[index],
+                  onChanged: (String value) => _onChanged(index, value),
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 1,
+                  decoration: InputDecoration(
+                    counterText: '',
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: BorderSide(
+                        color: filled ? AppColors.mint : AppColors.cardBorder,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: AppColors.surfaceStrong,
+                  ),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontSize: 22,
+                  ),
                 ),
               );
+            }),
+          ),
+          const SizedBox(height: 28),
+          PrimaryGlowButton(
+            label: 'Confirm',
+            glowColor: AppColors.mint,
+            onPressed: () {
+              final String requestedPhone = widget.authState.maybeWhen(
+                codeSent: (phone) => phone,
+                orElse: () => '',
+              );
+              context.read<AuthBloc>().add(
+                AuthEvent.otpVerified(phoneNumber: requestedPhone, code: _code),
+              );
             },
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextButton(onPressed: () {}, child: const Text('Resend code')),
+              Text(
+                '·',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.textFaint),
+              ),
+              TextButton(
+                onPressed: () => context.read<OnboardingBloc>().add(
+                  const OnboardingEvent.jumpTo(OnboardingStage.phone),
+                ),
+                child: const Text('Edit phone'),
+              ),
+            ],
           ),
         ],
       ),
@@ -235,30 +355,31 @@ class _ProfileStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, authState) {
-        final userId = authState.maybeWhen(
+      builder: (BuildContext context, AuthState authState) {
+        final String userId = authState.maybeWhen(
           authenticated: (session) => session.userId,
           orElse: () => 'demo-user',
         );
 
         return BlocBuilder<ProfileSetupBloc, ProfileSetupState>(
-          builder: (context, state) {
+          builder: (BuildContext context, ProfileSetupState state) {
             return LumiScaffold(
+              centered: true,
               child: ProfileSetupCard(
                 state: state,
-                onNameChanged: (value) {
+                onNameChanged: (String value) {
                   context.read<ProfileSetupBloc>().add(
                     ProfileSetupEvent.displayNameChanged(value),
                   );
                 },
-                onAvatarStyleChanged: (value) {
+                onAvatarStyleChanged: (String value) {
                   context.read<ProfileSetupBloc>().add(
                     ProfileSetupEvent.avatarStyleChanged(value),
                   );
                 },
-                onColorSelected: (value) {
+                onColorSelected: (int value) {
                   context.read<ProfileSetupBloc>().add(
-                    ProfileSetupEvent.signatureColorChanged(value),
+                    ProfileSetupEvent.signatureColorChanged(value, userId: userId),
                   );
                 },
                 onSubmit: () {
@@ -281,30 +402,47 @@ class _PermissionsStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LumiScaffold(
+      centered: true,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
+          const GlowOrb(color: AppColors.peach, size: 120),
+          const SizedBox(height: 32),
           Text(
-            'A few permissions help Lumi feel effortless.',
+            'A few quiet permissions',
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
+          Text(
+            'Lumi only asks for what it needs to feel close.',
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 32),
           const _PermissionTile(
             title: 'Notifications',
-            description: 'Essential for quiet glows and reply loops.',
+            description: 'Essential for quiet glows and replies.',
+            glowColor: AppColors.amberGlow,
           ),
+          const SizedBox(height: 12),
           const _PermissionTile(
             title: 'Contacts',
-            description: 'Optional, but it speeds up family invites.',
+            description: 'Optional, but makes inviting family easier.',
+            glowColor: AppColors.sky,
           ),
+          const SizedBox(height: 12),
           const _PermissionTile(
             title: 'Haptics',
             description: 'Essential for pulse Lumis and soft arrivals.',
+            glowColor: AppColors.softLavender,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           PrimaryGlowButton(
             label: 'Finish setup',
+            glowColor: AppColors.peach,
             onPressed: () {
               context.read<OnboardingBloc>().add(
                 const OnboardingEvent.completePermissions(
@@ -322,26 +460,60 @@ class _PermissionsStep extends StatelessWidget {
 }
 
 class _PermissionTile extends StatelessWidget {
-  const _PermissionTile({required this.title, required this.description});
+  const _PermissionTile({
+    required this.title,
+    required this.description,
+    required this.glowColor,
+  });
 
   final String title;
   final String description;
+  final Color glowColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
+        color: Colors.white.withValues(alpha: 0.035),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(description),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: <Color>[
+                  glowColor.withValues(alpha: 0.35),
+                  glowColor.withValues(alpha: 0.12),
+                ],
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(color: glowColor.withValues(alpha: 0.28), blurRadius: 24),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

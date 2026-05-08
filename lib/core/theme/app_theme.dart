@@ -7,34 +7,38 @@ class AppTheme {
   const AppTheme._();
 
   static ThemeData light() {
-    final colorScheme = ColorScheme.fromSeed(
-      brightness: Brightness.dark,
-      seedColor: AppColors.signatureCoral,
-      surface: AppColors.surface,
-      primary: AppColors.signatureCoral,
-      secondary: AppColors.signatureGold,
+    const ColorScheme colorScheme = ColorScheme.dark(
+      primary: AppColors.coral,
+      secondary: AppColors.softLavender,
+      surface: AppColors.card,
+      error: AppColors.danger,
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.midnight,
-      textTheme: AppTextStyles.textTheme,
+      scaffoldBackgroundColor: AppColors.deepNight,
+      fontFamily: AppTextStyles.fontFamily,
+      textTheme: AppTextStyles.textTheme.apply(
+        bodyColor: AppColors.textPrimary,
+        displayColor: AppColors.textPrimary,
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         foregroundColor: AppColors.textPrimary,
         centerTitle: false,
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        showDragHandle: true,
+        showDragHandle: false,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.surfaceStrong,
-        contentTextStyle: AppTextStyles.bodyMedium,
+        backgroundColor: AppColors.dusk,
+        contentTextStyle: AppTextStyles.body,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
@@ -42,24 +46,39 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surfaceStrong,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 18,
+          horizontal: 20,
           vertical: 18,
         ),
-        hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.textMuted,
+        hintStyle: AppTextStyles.body.copyWith(color: AppColors.textMuted),
+        labelStyle: AppTextStyles.body.copyWith(color: AppColors.textMuted),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: AppColors.softLavender),
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
         ),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: AppColors.card,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+          side: const BorderSide(color: AppColors.cardBorder),
+        ),
       ),
       dividerColor: AppColors.outline,
       iconTheme: const IconThemeData(color: AppColors.textPrimary),
+      popupMenuTheme: PopupMenuThemeData(
+        color: AppColors.dusk,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
     );
   }
 }
