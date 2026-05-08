@@ -1,24 +1,15 @@
 import 'dart:convert';
 
 import 'package:lumi/core/services/preferences_service.dart';
-<<<<<<< HEAD
-=======
 import 'package:lumi/features/circle/data/datasources/circle_local_data_source.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 
 class LumiLocalDataSource {
-<<<<<<< HEAD
-  LumiLocalDataSource(this._preferencesService);
-
-  final PreferencesService _preferencesService;
-=======
   LumiLocalDataSource(this._preferencesService, this._circleLocalDataSource);
 
   final PreferencesService _preferencesService;
   final CircleLocalDataSource _circleLocalDataSource;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 
   static const String _lumiKey = 'lumi_items';
   static const String _doodleDraftKey = 'doodle_draft';
@@ -61,14 +52,9 @@ class LumiLocalDataSource {
     PulsePattern? pulsePattern,
     DoodleStroke? doodleStroke,
     QuietHours? quietHours,
-<<<<<<< HEAD
-  }) async {
-    final queued = quietHours?.isActiveAt(DateTime.now()) ?? false;
-=======
     bool forceQueued = false,
   }) async {
     final queued = forceQueued || (quietHours?.isActiveAt(DateTime.now()) ?? false);
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     final lumi = Lumi(
       id: 'lumi-${DateTime.now().microsecondsSinceEpoch}',
       memberId: recipientId,
@@ -91,19 +77,11 @@ class LumiLocalDataSource {
       memberId: recipientId,
       senderId: recipientId,
       isIncoming: true,
-<<<<<<< HEAD
-      type: LumiType.pure,
-=======
       type: type,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       colorValue: colorValue,
       createdAt: DateTime.now().add(const Duration(seconds: 4)),
       deliveryStatus: LumiDeliveryStatus.delivered,
       reaction: LumiReactionType.handOnHeart,
-<<<<<<< HEAD
-    );
-    await saveAll(<Lumi>[simulatedReply, lumi, ...all]);
-=======
       intensity: intensity,
       pulsePattern: pulsePattern,
       doodleStroke: doodleStroke,
@@ -113,7 +91,6 @@ class LumiLocalDataSource {
       memberId: recipientId,
       queued: queued,
     );
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     return lumi;
   }
 

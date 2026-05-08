@@ -5,9 +5,6 @@ import 'package:lumi/core/services/preferences_service.dart';
 
 part 'onboarding_bloc.freezed.dart';
 
-<<<<<<< HEAD
-enum OnboardingStage { welcome, phone, otp, profile, permissions, complete }
-=======
 enum OnboardingStage {
   welcome,
   phone,
@@ -17,7 +14,6 @@ enum OnboardingStage {
   onboarding,
   complete,
 }
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 
 @freezed
 sealed class OnboardingEvent with _$OnboardingEvent {
@@ -31,10 +27,7 @@ sealed class OnboardingEvent with _$OnboardingEvent {
     required bool contactsGranted,
     required bool hapticsGranted,
   }) = _CompletePermissions;
-<<<<<<< HEAD
-=======
   const factory OnboardingEvent.completeWalkthrough() = _CompleteWalkthrough;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }
 
 @freezed
@@ -56,10 +49,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<_JumpTo>(_onJumpTo);
     on<_CompleteProfile>(_onCompleteProfile);
     on<_CompletePermissions>(_onCompletePermissions);
-<<<<<<< HEAD
-=======
     on<_CompleteWalkthrough>(_onCompleteWalkthrough);
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }
 
   final PreferencesService _preferencesService;
@@ -103,25 +93,15 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     _CompletePermissions event,
     Emitter<OnboardingState> emit,
   ) async {
-<<<<<<< HEAD
-    await _preferencesService.setBool(_onboardingCompleteKey, true);
-    emit(
-      state.copyWith(
-        stage: OnboardingStage.complete,
-        completed: true,
-=======
     emit(
       state.copyWith(
         stage: OnboardingStage.onboarding,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         notificationsGranted: event.notificationsGranted,
         contactsGranted: event.contactsGranted,
         hapticsGranted: event.hapticsGranted,
       ),
     );
   }
-<<<<<<< HEAD
-=======
 
   Future<void> _onCompleteWalkthrough(
     _CompleteWalkthrough event,
@@ -138,5 +118,4 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       ),
     );
   }
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }

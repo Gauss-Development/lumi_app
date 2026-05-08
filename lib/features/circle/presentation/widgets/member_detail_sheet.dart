@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
-<<<<<<< HEAD
-=======
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 
 class MemberDetailSheet extends StatelessWidget {
@@ -12,51 +9,13 @@ class MemberDetailSheet extends StatelessWidget {
     required this.member,
     required this.onActivate,
     required this.onMute,
-<<<<<<< HEAD
-=======
     required this.onMemorialize,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     super.key,
   });
 
   final CircleMember member;
   final VoidCallback onActivate;
   final VoidCallback onMute;
-<<<<<<< HEAD
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              member.displayName,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 12),
-            Text(member.status.label),
-            if ((member.subtitle ?? '').isNotEmpty) ...<Widget>[
-              const SizedBox(height: 8),
-              Text(member.subtitle!),
-            ],
-            const SizedBox(height: 20),
-            if (member.status == CircleStatus.pendingOutbound ||
-                member.status == CircleStatus.pendingInbound)
-              FilledButton(
-                onPressed: onActivate,
-                child: const Text('Mark as connected'),
-              ),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: onMute,
-              child: const Text('Mute for one week'),
-            ),
-          ],
-=======
   final VoidCallback onMemorialize;
 
   @override
@@ -173,7 +132,6 @@ class MemberDetailSheet extends StatelessWidget {
               ),
             ],
           ),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ),
       ),
     );

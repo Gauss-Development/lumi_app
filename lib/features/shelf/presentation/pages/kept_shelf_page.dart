@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-<<<<<<< HEAD
-import 'package:lumi/core/widgets/lumi_scaffold.dart';
-=======
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/shelf/domain/entities/kept_lumi.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/features/shelf/presentation/bloc/shelf_bloc.dart';
 
 class KeptShelfPage extends StatelessWidget {
@@ -16,17 +12,6 @@ class KeptShelfPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LumiScaffold(
-<<<<<<< HEAD
-      title: 'Kept Shelf',
-      child: BlocBuilder<ShelfBloc, ShelfState>(
-        builder: (context, state) {
-          return state.when(
-            initial: (items) => _ShelfList(items: items),
-            loading: (items) => _ShelfList(items: items, isLoading: true),
-            loaded: (items) => _ShelfList(items: items),
-            failure: (items, message) =>
-                _ShelfList(items: items, footerMessage: message),
-=======
       padding: EdgeInsets.zero,
       child: BlocBuilder<ShelfBloc, ShelfState>(
         builder: (BuildContext context, ShelfState state) {
@@ -36,7 +21,6 @@ class KeptShelfPage extends StatelessWidget {
             loaded: (items) => _ShelfBody(items: items),
             failure: (items, message) =>
                 _ShelfBody(items: items, footerMessage: message),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
           );
         },
       ),
@@ -44,67 +28,19 @@ class KeptShelfPage extends StatelessWidget {
   }
 }
 
-<<<<<<< HEAD
-class _ShelfList extends StatelessWidget {
-  const _ShelfList({
-=======
 class _ShelfBody extends StatelessWidget {
   const _ShelfBody({
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     required this.items,
     this.isLoading = false,
     this.footerMessage,
   });
 
-<<<<<<< HEAD
-  final List<dynamic> items;
-=======
   final List<KeptLumi> items;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   final bool isLoading;
   final String? footerMessage;
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    if (items.isEmpty && !isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('Saved Lumis will rest here for the long arc.'),
-        ),
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
-      itemBuilder: (context, index) {
-        if (index == items.length) {
-          return Text(
-            footerMessage ?? (isLoading ? 'Loading…' : ''),
-            style: Theme.of(context).textTheme.bodyMedium,
-          );
-        }
-
-        final kept = items[index];
-        return ListTile(
-          tileColor: Colors.white.withValues(alpha: 0.04),
-          title: Text(kept.senderName),
-          subtitle: Text(kept.previewLabel),
-          trailing: IconButton(
-            onPressed: () {
-              context.read<ShelfBloc>().add(
-                ShelfEvent.removeRequested(kept.lumiId),
-              );
-            },
-            icon: const Icon(Icons.delete_outline),
-          ),
-        );
-      },
-      separatorBuilder: (BuildContext context, int index) =>
-          const SizedBox(height: 12),
-      itemCount: items.length + ((isLoading || footerMessage != null) ? 1 : 0),
-=======
     return CustomScrollView(
       slivers: <Widget>[
         SliverToBoxAdapter(
@@ -284,7 +220,6 @@ class _BackButton extends StatelessWidget {
         ),
       ),
       icon: const Icon(Icons.arrow_back_rounded, size: 18),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     );
   }
 }

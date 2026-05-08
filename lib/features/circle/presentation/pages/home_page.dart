@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-<<<<<<< HEAD
-import 'package:lumi/core/widgets/lumi_scaffold.dart';
-=======
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/circle/presentation/widgets/circle_empty_state.dart';
@@ -18,12 +14,9 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
-<<<<<<< HEAD
-=======
 import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
 
 class HomePage extends StatelessWidget {
@@ -39,10 +32,6 @@ class HomePage extends StatelessWidget {
               loaded: (_, _, _, bool showUpgradePrompt) => showUpgradePrompt,
               orElse: () => false,
             );
-<<<<<<< HEAD
-
-=======
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
             if (shouldShow) {
               PaywallSheet.show(context);
               context.read<CircleBloc>().add(
@@ -57,17 +46,9 @@ class HomePage extends StatelessWidget {
           return state.when(
             initial: () => const SizedBox.shrink(),
             loading: () => const LumiScaffold(
-<<<<<<< HEAD
-              title: 'Lumi',
               child: Center(child: CircularProgressIndicator()),
             ),
             failure: (failure) => LumiScaffold(
-              title: 'Lumi',
-=======
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            failure: (failure) => LumiScaffold(
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
               child: Center(child: Text(failure.message)),
             ),
             loaded:
@@ -77,39 +58,6 @@ class HomePage extends StatelessWidget {
                   String latestInviteLink,
                   bool showUpgradePrompt,
                 ) {
-<<<<<<< HEAD
-                  return LumiScaffold(
-                    title: 'Lumi',
-                    actions: <Widget>[
-                      IconButton(
-                        onPressed: () => _showInviteSheet(context),
-                        icon: const Icon(Icons.person_add_alt_1_rounded),
-                      ),
-                    ],
-                    child: Stack(
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            if (members.isEmpty)
-                              CircleEmptyState(
-                                onInviteTap: () => _showInviteSheet(context),
-                              )
-                            else
-                              Expanded(
-                                child: OrbGrid(
-                                  members: members,
-                                  onTap: (CircleMember? member) {
-                                    if (member != null) {
-                                      _openComposer(context, member);
-                                    }
-                                  },
-                                  onLongPress: (CircleMember? member) {
-                                    if (member != null) {
-                                      _openDetails(context, member);
-                                    }
-                                  },
-=======
                   final List<CircleMember> activeMembers = members
                       .where((CircleMember member) => member.isActive)
                       .toList(growable: false);
@@ -227,7 +175,6 @@ class HomePage extends StatelessWidget {
                                     foregroundColor: Colors.white,
                                   ),
                                   child: const Text('Morning Light'),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                                 ),
                               ),
                             if (latestInviteLink.isNotEmpty)
@@ -239,25 +186,14 @@ class HomePage extends StatelessWidget {
                                   16,
                                 ),
                                 child: Text(
-<<<<<<< HEAD
-                                  'Latest 24h invite link: $latestInviteLink',
-                                  style: Theme.of(context).textTheme.bodySmall,
-=======
                                   latestInviteLink,
                                   textAlign: TextAlign.center,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(color: AppColors.textFaint),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                                 ),
                               ),
                           ],
                         ),
-<<<<<<< HEAD
-                        BlocBuilder<LumiBloc, LumiState>(
-                          builder: (BuildContext context, LumiState lumiState) {
-                            final List<Lumi> lumis = lumiState.recentLumis;
-                            final List<Lumi> incomingLumis = lumis
-=======
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Padding(
@@ -276,7 +212,6 @@ class HomePage extends StatelessWidget {
                         BlocBuilder<LumiBloc, LumiState>(
                           builder: (BuildContext context, LumiState lumiState) {
                             final List<Lumi> incoming = lumiState.items
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                                 .where(
                                   (Lumi item) =>
                                       item.isIncoming &&
@@ -284,22 +219,12 @@ class HomePage extends StatelessWidget {
                                           LumiDeliveryStatus.seen,
                                 )
                                 .toList(growable: false);
-<<<<<<< HEAD
-                            if (incomingLumis.isEmpty) {
-=======
                             if (incoming.isEmpty) {
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                               return const SizedBox.shrink();
                             }
                             return Align(
                               alignment: Alignment.bottomCenter,
-<<<<<<< HEAD
-                              child: IncomingLumiOverlay(
-                                lumi: incomingLumis.first,
-                              ),
-=======
                               child: IncomingLumiOverlay(lumi: incoming.first),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                             );
                           },
                         ),
@@ -313,8 +238,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-<<<<<<< HEAD
-=======
   void _sendMorningLight(BuildContext context, List<CircleMember> members) {
     final String senderId = context.read<AuthBloc>().state.maybeWhen(
       authenticated: (session) => session.userId,
@@ -334,31 +257,16 @@ class HomePage extends StatelessWidget {
     }
   }
 
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   void _showInviteSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-<<<<<<< HEAD
-=======
       backgroundColor: Colors.transparent,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       builder: (_) => const InviteSheet(),
     );
   }
 
   void _openComposer(BuildContext context, CircleMember member) {
-<<<<<<< HEAD
-    if (!(member.status == CircleStatus.active ||
-        member.status == CircleStatus.muted)) {
-      _openDetails(context, member);
-      return;
-    }
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-=======
     if (!member.canSend) {
       _openDetails(context, member);
       return;
@@ -367,7 +275,6 @@ class HomePage extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       builder: (_) => LumiComposerSheet(member: member),
     );
   }
@@ -376,10 +283,7 @@ class HomePage extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-<<<<<<< HEAD
-=======
       backgroundColor: Colors.transparent,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       builder: (_) => MemberDetailSheet(
         member: member,
         onActivate: () {
@@ -397,8 +301,6 @@ class HomePage extends StatelessWidget {
             ),
           );
         },
-<<<<<<< HEAD
-=======
         onMemorialize: () {
           Navigator.of(context).pop();
           context.read<CircleBloc>().add(
@@ -464,7 +366,6 @@ class _ComposeButton extends StatelessWidget {
           ],
         ),
         child: const Icon(Icons.wb_incandescent_outlined, color: Colors.white),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       ),
     );
   }

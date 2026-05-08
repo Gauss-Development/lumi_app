@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-<<<<<<< HEAD
-import 'package:lumi/core/widgets/lumi_scaffold.dart';
-import 'package:lumi/core/widgets/loading_view.dart';
-=======
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/loading_view.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/presentation/pages/home_page.dart';
@@ -23,15 +18,9 @@ class OnboardingFlowPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
-<<<<<<< HEAD
-      listeners: [
-        BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
-=======
       listeners: <BlocListener<dynamic, dynamic>>[
         BlocListener<AuthBloc, AuthState>(
           listener: (BuildContext context, AuthState state) {
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
             state.whenOrNull(
               codeSent: (_) => context.read<OnboardingBloc>().add(
                 const OnboardingEvent.jumpTo(OnboardingStage.otp),
@@ -39,22 +28,14 @@ class OnboardingFlowPage extends StatelessWidget {
               authenticated: (_) => context.read<OnboardingBloc>().add(
                 const OnboardingEvent.jumpTo(OnboardingStage.profile),
               ),
-<<<<<<< HEAD
-              failure: (message) => ScaffoldMessenger.of(
-=======
               failure: (String message) => ScaffoldMessenger.of(
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                 context,
               ).showSnackBar(SnackBar(content: Text(message))),
             );
           },
         ),
         BlocListener<ProfileSetupBloc, ProfileSetupState>(
-<<<<<<< HEAD
-          listener: (context, state) {
-=======
           listener: (BuildContext context, ProfileSetupState state) {
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
             if (state.status == ProfileSetupStatus.saved) {
               context.read<OnboardingBloc>().add(
                 const OnboardingEvent.completeProfile(),
@@ -64,37 +45,12 @@ class OnboardingFlowPage extends StatelessWidget {
         ),
       ],
       child: BlocBuilder<OnboardingBloc, OnboardingState>(
-<<<<<<< HEAD
-        builder: (context, onboardingState) {
-=======
         builder: (BuildContext context, OnboardingState onboardingState) {
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
           if (onboardingState.completed) {
             return const HomePage();
           }
 
           return BlocBuilder<AuthBloc, AuthState>(
-<<<<<<< HEAD
-            builder: (context, authState) {
-              switch (onboardingState.stage) {
-                case OnboardingStage.welcome:
-                  return _WelcomeStep(
-                    onBegin: () => context.read<OnboardingBloc>().add(
-                      const OnboardingEvent.advance(),
-                    ),
-                  );
-                case OnboardingStage.phone:
-                  return _PhoneStep(authState: authState);
-                case OnboardingStage.otp:
-                  return _OtpStep(authState: authState);
-                case OnboardingStage.profile:
-                  return const _ProfileStep();
-                case OnboardingStage.permissions:
-                  return const _PermissionsStep();
-                case OnboardingStage.complete:
-                  return const HomePage();
-              }
-=======
             builder: (BuildContext context, AuthState authState) {
               return switch (onboardingState.stage) {
                 OnboardingStage.welcome => _WelcomeStep(
@@ -109,7 +65,6 @@ class OnboardingFlowPage extends StatelessWidget {
                 OnboardingStage.onboarding => const _NarrativeOnboardingStep(),
                 OnboardingStage.complete => const HomePage(),
               };
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
             },
           );
         },
@@ -126,23 +81,6 @@ class _WelcomeStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LumiScaffold(
-<<<<<<< HEAD
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'A little light for someone you love.',
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Lumi keeps family close without the pressure to compose a message.',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 32),
-          PrimaryGlowButton(label: 'Begin', onPressed: onBegin),
-=======
       centered: true,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -171,7 +109,6 @@ class _WelcomeStep extends StatelessWidget {
             onPressed: onBegin,
           ),
           const SizedBox(height: 24),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ],
       ),
     );
@@ -198,33 +135,12 @@ class _PhoneStepState extends State<_PhoneStep> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final isLoading = widget.authState.maybeWhen(
-=======
     final bool isLoading = widget.authState.maybeWhen(
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       loading: () => true,
       orElse: () => false,
     );
 
     return LumiScaffold(
-<<<<<<< HEAD
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Use your phone number to begin.',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Phone number',
-              hintText: '+1 555 111 2233',
-=======
       centered: true,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -270,7 +186,6 @@ class _PhoneStepState extends State<_PhoneStep> {
                   ),
                 ),
               ],
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
             ),
           ),
           const SizedBox(height: 24),
@@ -279,18 +194,13 @@ class _PhoneStepState extends State<_PhoneStep> {
           else
             PrimaryGlowButton(
               label: 'Send code',
-<<<<<<< HEAD
-=======
               glowColor: AppColors.softLavender,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
               onPressed: () {
                 context.read<AuthBloc>().add(
                   AuthEvent.otpRequested(_phoneController.text.trim()),
                 );
               },
             ),
-<<<<<<< HEAD
-=======
           const SizedBox(height: 28),
           Text(
             'We use a one-time code. No password, no inbox.',
@@ -299,7 +209,6 @@ class _PhoneStepState extends State<_PhoneStep> {
               context,
             ).textTheme.bodySmall?.copyWith(color: AppColors.textFaint),
           ),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ],
       ),
     );
@@ -316,51 +225,6 @@ class _OtpStep extends StatefulWidget {
 }
 
 class _OtpStepState extends State<_OtpStep> {
-<<<<<<< HEAD
-  final TextEditingController _codeController = TextEditingController();
-
-  @override
-  void dispose() {
-    _codeController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final requestedPhone = widget.authState.maybeWhen(
-      codeSent: (phone) => phone,
-      orElse: () => '',
-    );
-
-    return LumiScaffold(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            requestedPhone.isEmpty
-                ? 'Enter the code sent to your phone.'
-                : 'Enter the 6-digit code sent to $requestedPhone.',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _codeController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'SMS code',
-              hintText: '123456',
-            ),
-          ),
-          const SizedBox(height: 24),
-          PrimaryGlowButton(
-            label: 'Confirm',
-            onPressed: () {
-              context.read<AuthBloc>().add(
-                AuthEvent.otpVerified(
-                  phoneNumber: requestedPhone,
-                  code: _codeController.text.trim(),
-=======
   final List<TextEditingController> _controllers =
       List<TextEditingController>.generate(
         6,
@@ -463,13 +327,10 @@ class _OtpStepState extends State<_OtpStep> {
                 AuthEvent.otpVerified(
                   phoneNumber: requestedPhone,
                   code: _code,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                 ),
               );
             },
           ),
-<<<<<<< HEAD
-=======
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -489,7 +350,6 @@ class _OtpStepState extends State<_OtpStep> {
               ),
             ],
           ),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ],
       ),
     );
@@ -502,54 +362,31 @@ class _ProfileStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
-<<<<<<< HEAD
-      builder: (context, authState) {
-        final userId = authState.maybeWhen(
-=======
       builder: (BuildContext context, AuthState authState) {
         final String userId = authState.maybeWhen(
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
           authenticated: (session) => session.userId,
           orElse: () => 'demo-user',
         );
 
         return BlocBuilder<ProfileSetupBloc, ProfileSetupState>(
-<<<<<<< HEAD
-          builder: (context, state) {
-            return LumiScaffold(
-              child: ProfileSetupCard(
-                state: state,
-                onNameChanged: (value) {
-=======
           builder: (BuildContext context, ProfileSetupState state) {
             return LumiScaffold(
               centered: true,
               child: ProfileSetupCard(
                 state: state,
                 onNameChanged: (String value) {
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                   context.read<ProfileSetupBloc>().add(
                     ProfileSetupEvent.displayNameChanged(value),
                   );
                 },
-<<<<<<< HEAD
-                onAvatarStyleChanged: (value) {
-=======
                 onAvatarStyleChanged: (String value) {
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                   context.read<ProfileSetupBloc>().add(
                     ProfileSetupEvent.avatarStyleChanged(value),
                   );
                 },
-<<<<<<< HEAD
-                onColorSelected: (value) {
-                  context.read<ProfileSetupBloc>().add(
-                    ProfileSetupEvent.signatureColorChanged(value),
-=======
                 onColorSelected: (int value) {
                   context.read<ProfileSetupBloc>().add(
                     ProfileSetupEvent.signatureColorChanged(value, userId: userId),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
                   );
                 },
                 onSubmit: () {
@@ -572,32 +409,6 @@ class _PermissionsStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LumiScaffold(
-<<<<<<< HEAD
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'A few permissions help Lumi feel effortless.',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 24),
-          const _PermissionTile(
-            title: 'Notifications',
-            description: 'Essential for quiet glows and reply loops.',
-          ),
-          const _PermissionTile(
-            title: 'Contacts',
-            description: 'Optional, but it speeds up family invites.',
-          ),
-          const _PermissionTile(
-            title: 'Haptics',
-            description: 'Essential for pulse Lumis and soft arrivals.',
-          ),
-          const SizedBox(height: 24),
-          PrimaryGlowButton(
-            label: 'Finish setup',
-=======
       centered: true,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -639,7 +450,6 @@ class _PermissionsStep extends StatelessWidget {
           PrimaryGlowButton(
             label: 'Finish setup',
             glowColor: AppColors.peach,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
             onPressed: () {
               context.read<OnboardingBloc>().add(
                 const OnboardingEvent.completePermissions(
@@ -656,29 +466,6 @@ class _PermissionsStep extends StatelessWidget {
   }
 }
 
-<<<<<<< HEAD
-class _PermissionTile extends StatelessWidget {
-  const _PermissionTile({required this.title, required this.description});
-
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(description),
-=======
 class _NarrativeOnboardingStep extends StatefulWidget {
   const _NarrativeOnboardingStep();
 
@@ -884,7 +671,6 @@ class _PermissionTile extends StatelessWidget {
               ],
             ),
           ),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ],
       ),
     );

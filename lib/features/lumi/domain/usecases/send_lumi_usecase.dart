@@ -57,8 +57,6 @@ class SendLumiParams {
          intensity: intensity,
        );
 
-<<<<<<< HEAD
-=======
   const SendLumiParams.pulse({
     required String senderId,
     required String recipientId,
@@ -85,7 +83,6 @@ class SendLumiParams {
          doodleStroke: doodleStroke,
        );
 
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   final String senderId;
   final String recipientId;
   final LumiType type;

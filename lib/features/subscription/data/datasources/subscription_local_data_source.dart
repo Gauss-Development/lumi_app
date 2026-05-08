@@ -31,20 +31,6 @@ class SubscriptionLocalDataSource {
   List<PaywallPlan> defaultPlans() {
     return const <PaywallPlan>[
       PaywallPlan(
-<<<<<<< HEAD
-        id: 'household_monthly',
-        title: 'Household monthly',
-        priceLabel: '\$3.99/mo',
-        description: 'Up to 6 accounts, 12 circle members, Kept Shelf, rituals',
-        isAnnual: false,
-      ),
-      PaywallPlan(
-        id: 'household_yearly',
-        title: 'Household yearly',
-        priceLabel: '\$29/yr',
-        description: 'Best value for close family circles',
-        isAnnual: true,
-=======
         id: 'household_yearly',
         title: 'Yearly',
         priceLabel: '\$24',
@@ -57,7 +43,6 @@ class SubscriptionLocalDataSource {
         priceLabel: '\$4.99',
         description: 'billed monthly',
         isAnnual: false,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       ),
     ];
   }

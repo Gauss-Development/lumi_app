@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-<<<<<<< HEAD
-import 'package:lumi/core/constants/lumi_limits.dart';
-=======
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/widgets/member_orb.dart';
 
@@ -19,30 +15,6 @@ class OrbGrid extends StatelessWidget {
   final ValueChanged<CircleMember?> onTap;
   final ValueChanged<CircleMember?> onLongPress;
 
-<<<<<<< HEAD
-  @override
-  Widget build(BuildContext context) {
-    final List<CircleMember?> slots = List<CircleMember?>.generate(
-      LumiLimits.maxCircleMembers,
-      (int index) => index < members.length ? members[index] : null,
-    );
-
-    return GridView.builder(
-      padding: const EdgeInsets.all(24),
-      itemCount: slots.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.88,
-      ),
-      itemBuilder: (BuildContext context, int index) {
-        final CircleMember? member = slots[index];
-        return MemberOrb(
-          member: member,
-          onTap: () => onTap(member),
-          onLongPress: () => onLongPress(member),
-=======
   static const List<_OrbPosition> _positions = <_OrbPosition>[
     _OrbPosition(x: 0.50, y: 0.20, size: 96),
     _OrbPosition(x: 0.20, y: 0.33, size: 86),
@@ -83,14 +55,11 @@ class OrbGrid extends StatelessWidget {
               ),
             );
           }),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         );
       },
     );
   }
 }
-<<<<<<< HEAD
-=======
 
 class _OrbPosition {
   const _OrbPosition({
@@ -103,4 +72,3 @@ class _OrbPosition {
   final double y;
   final double size;
 }
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e

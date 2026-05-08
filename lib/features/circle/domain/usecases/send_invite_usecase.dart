@@ -9,10 +9,6 @@ class SendInviteUseCase {
 
   final CircleRepository _repository;
 
-<<<<<<< HEAD
-  Future<Either<Failure, CircleMember>> call(String displayName) {
-    return _repository.sendInvite(displayName: displayName);
-=======
   Future<Either<Failure, CircleMember>> call({
     required String displayName,
     String? relationshipLabel,
@@ -21,6 +17,5 @@ class SendInviteUseCase {
       displayName: displayName,
       relationshipLabel: relationshipLabel,
     );
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }
 }

@@ -30,10 +30,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<_QuietHoursUpdated>(_onQuietHoursUpdated);
     on<_NotificationsToggled>(_onNotificationsToggled);
     on<_HapticsToggled>(_onHapticsToggled);
-<<<<<<< HEAD
-=======
     on<_AppPauseToggled>(_onAppPauseToggled);
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }
 
   final GetSettingsUseCase _getSettings;
@@ -55,10 +52,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           quietHours: settings.quietHours,
           notificationsEnabled: settings.notificationsEnabled,
           hapticsEnabled: settings.hapticsEnabled,
-<<<<<<< HEAD
-=======
           appPaused: settings.appPaused,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ),
       ),
     );
@@ -76,10 +70,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           quietHours: settings.quietHours,
           notificationsEnabled: settings.notificationsEnabled,
           hapticsEnabled: settings.hapticsEnabled,
-<<<<<<< HEAD
-=======
           appPaused: settings.appPaused,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ),
       ),
     );
@@ -92,10 +83,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     final result = await _updatePreferences(
       notificationsEnabled: event.enabled,
       hapticsEnabled: state.hapticsEnabled,
-<<<<<<< HEAD
-=======
       appPaused: state.appPaused,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     );
     result.fold(
       (failure) => emit(state.copyWith(errorMessage: failure.message)),
@@ -103,10 +91,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         state.copyWith(
           notificationsEnabled: settings.notificationsEnabled,
           hapticsEnabled: settings.hapticsEnabled,
-<<<<<<< HEAD
-=======
           appPaused: settings.appPaused,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ),
       ),
     );
@@ -119,10 +104,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     final result = await _updatePreferences(
       notificationsEnabled: state.notificationsEnabled,
       hapticsEnabled: event.enabled,
-<<<<<<< HEAD
-=======
       appPaused: state.appPaused,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     );
     result.fold(
       (failure) => emit(state.copyWith(errorMessage: failure.message)),
@@ -130,8 +112,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         state.copyWith(
           notificationsEnabled: settings.notificationsEnabled,
           hapticsEnabled: settings.hapticsEnabled,
-<<<<<<< HEAD
-=======
           appPaused: settings.appPaused,
         ),
       ),
@@ -154,7 +134,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           notificationsEnabled: settings.notificationsEnabled,
           hapticsEnabled: settings.hapticsEnabled,
           appPaused: settings.appPaused,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ),
       ),
     );
@@ -169,10 +148,7 @@ sealed class SettingsEvent with _$SettingsEvent {
   const factory SettingsEvent.notificationsToggled(bool enabled) =
       _NotificationsToggled;
   const factory SettingsEvent.hapticsToggled(bool enabled) = _HapticsToggled;
-<<<<<<< HEAD
-=======
   const factory SettingsEvent.appPauseToggled(bool enabled) = _AppPauseToggled;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }
 
 @freezed
@@ -182,10 +158,7 @@ sealed class SettingsState with _$SettingsState {
     @Default(false) bool isLoading,
     @Default(true) bool notificationsEnabled,
     @Default(true) bool hapticsEnabled,
-<<<<<<< HEAD
-=======
     @Default(false) bool appPaused,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     String? errorMessage,
   }) = _SettingsState;
 }

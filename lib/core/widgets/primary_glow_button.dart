@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:lumi/core/theme/app_colors.dart';
-<<<<<<< HEAD
-=======
 import 'package:lumi/core/theme/app_text_styles.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 
 class PrimaryGlowButton extends StatelessWidget {
   const PrimaryGlowButton({
@@ -13,45 +10,13 @@ class PrimaryGlowButton extends StatelessWidget {
     super.key,
     this.icon,
     this.expanded = true,
-<<<<<<< HEAD
-=======
     this.glowColor,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   });
 
   final String label;
   final VoidCallback? onPressed;
   final Widget? icon;
   final bool expanded;
-<<<<<<< HEAD
-
-  @override
-  Widget build(BuildContext context) {
-    final button = DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.coral.withValues(alpha: 0.35),
-            blurRadius: 28,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: icon ?? const SizedBox.shrink(),
-        label: Text(label),
-        style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(56),
-          backgroundColor: AppColors.coral,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.midnight.withValues(alpha: 0.3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-        ),
-=======
   final Color? glowColor;
 
   @override
@@ -102,21 +67,13 @@ class PrimaryGlowButton extends StatelessWidget {
             ),
           ],
         ),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       ),
     );
 
     if (expanded) {
-<<<<<<< HEAD
-      return SizedBox(width: double.infinity, child: button);
-    }
-
-    return button;
-=======
       return SizedBox(width: double.infinity, child: content);
     }
 
     return content;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }
 }

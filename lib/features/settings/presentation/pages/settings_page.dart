@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-<<<<<<< HEAD
-import 'package:lumi/core/widgets/lumi_scaffold.dart';
-import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
-import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
-=======
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -19,11 +13,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LumiScaffold(
-<<<<<<< HEAD
-      title: 'Settings',
-=======
       padding: EdgeInsets.zero,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       child: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (BuildContext context, SettingsState state) {
           if (state.isLoading) {
@@ -31,52 +21,6 @@ class SettingsPage extends StatelessWidget {
           }
 
           return ListView(
-<<<<<<< HEAD
-            padding: const EdgeInsets.all(24),
-            children: <Widget>[
-              SwitchListTile(
-                title: const Text('Notifications'),
-                value: state.notificationsEnabled,
-                onChanged: (bool value) {
-                  context.read<SettingsBloc>().add(
-                    SettingsEvent.notificationsToggled(value),
-                  );
-                },
-              ),
-              SwitchListTile(
-                title: const Text('Haptics'),
-                value: state.hapticsEnabled,
-                onChanged: (bool value) {
-                  context.read<SettingsBloc>().add(
-                    SettingsEvent.hapticsToggled(value),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                title: const Text('Quiet hours'),
-                subtitle: Text(
-                  '${state.quietHours.startHour.toString().padLeft(2, '0')}:${state.quietHours.startMinute.toString().padLeft(2, '0')} '
-                  '– ${state.quietHours.endHour.toString().padLeft(2, '0')}:${state.quietHours.endMinute.toString().padLeft(2, '0')}',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  final QuietHours next = state.quietHours.copyWith(
-                    startHour: state.quietHours.startHour == 22 ? 21 : 22,
-                  );
-                  context.read<SettingsBloc>().add(
-                    SettingsEvent.quietHoursUpdated(next),
-                  );
-                },
-              ),
-              if (state.errorMessage != null) ...<Widget>[
-                const SizedBox(height: 12),
-                Text(
-                  state.errorMessage!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-=======
             padding: const EdgeInsets.fromLTRB(24, 56, 24, 32),
             children: <Widget>[
               Row(
@@ -226,15 +170,12 @@ class SettingsPage extends StatelessWidget {
                   color: AppColors.textFaint,
                 ),
               ),
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
             ],
           );
         },
       ),
     );
   }
-<<<<<<< HEAD
-=======
 
   String _quietHoursSummary(QuietHours quietHours) {
     return 'Dim Lumis after ${quietHours.startHour.toString().padLeft(2, '0')}:${quietHours.startMinute.toString().padLeft(2, '0')}';
@@ -346,5 +287,4 @@ class _BackButton extends StatelessWidget {
       icon: const Icon(Icons.arrow_back_rounded, size: 18),
     );
   }
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }
