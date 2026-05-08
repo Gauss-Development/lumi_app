@@ -51,15 +51,12 @@ Core stack:
 - `flutter_secure_storage`
 - `home_widget`
 
-<<<<<<< HEAD
-=======
 The current sample orb implementation lives in:
 
 - `lib/features/circle/presentation/widgets/member_orb.dart`
 
 It uses the shared design tokens and serves as the reference “soft glow” widget for the app shell.
 
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 ## Environment setup
 
 Environment values are loaded through `EnvironmentConfig` using this fallback order:
@@ -150,15 +147,12 @@ Run tests:
 flutter test
 ```
 
-<<<<<<< HEAD
-=======
 Optional flavor generator sync:
 
 ```bash
 dart run flutter_flavorizr
 ```
 
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 ## Platform notes
 
 - Android manifest includes notification, vibration, contacts, and home widget background hooks.
@@ -168,8 +162,6 @@ dart run flutter_flavorizr
 ## Known environment note
 
 Linux desktop builds may require additional linker/toolchain setup depending on the VM image. Web and test/analyze workflows are the most reliable local verification paths in minimal environments.
-<<<<<<< HEAD
-=======
 
 CI is configured in `.github/workflows/flutter_ci.yml` to run:
 
@@ -178,4 +170,3 @@ CI is configured in `.github/workflows/flutter_ci.yml` to run:
 - `flutter test`
 - `flutter build web --target lib/main_development.dart`
 - `flutter build web --target lib/main_production.dart`
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e

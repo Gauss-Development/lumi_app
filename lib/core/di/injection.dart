@@ -28,6 +28,7 @@ import 'package:lumi/features/circle/domain/usecases/accept_invite_usecase.dart'
 import 'package:lumi/features/circle/domain/usecases/create_invite_link_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_available_slots_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_circle_members_usecase.dart';
+import 'package:lumi/features/circle/domain/usecases/memorialize_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/mute_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/send_invite_usecase.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
@@ -139,7 +140,10 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   );
 
   sl.registerLazySingleton<LumiLocalDataSource>(
-    () => LumiLocalDataSource(sl<PreferencesService>()),
+    () => LumiLocalDataSource(
+      sl<PreferencesService>(),
+      sl<CircleLocalDataSource>(),
+    ),
   );
   sl.registerLazySingleton<LumiRepository>(
     () => LumiRepositoryImpl(
@@ -226,6 +230,9 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<MuteMemberUseCase>(
     () => MuteMemberUseCase(sl<CircleRepository>()),
   );
+  sl.registerLazySingleton<MemorializeMemberUseCase>(
+    () => MemorializeMemberUseCase(sl<CircleRepository>()),
+  );
   sl.registerLazySingleton<GetAvailableSlotsUseCase>(
     () => GetAvailableSlotsUseCase(sl<CircleRepository>()),
   );
@@ -281,6 +288,7 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
       createInviteLinkUseCase: sl<CreateInviteLinkUseCase>(),
       acceptInviteUseCase: sl<AcceptInviteUseCase>(),
       muteMemberUseCase: sl<MuteMemberUseCase>(),
+      memorializeMemberUseCase: sl<MemorializeMemberUseCase>(),
       getAvailableSlotsUseCase: sl<GetAvailableSlotsUseCase>(),
     ),
   );

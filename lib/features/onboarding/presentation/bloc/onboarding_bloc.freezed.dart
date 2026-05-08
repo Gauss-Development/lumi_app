@@ -55,11 +55,7 @@ extension OnboardingEventPatterns on OnboardingEvent {
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _Advance value)?  advance,TResult Function( _Back value)?  back,TResult Function( _JumpTo value)?  jumpTo,TResult Function( _CompleteProfile value)?  completeProfile,TResult Function( _CompletePermissions value)?  completePermissions,required TResult orElse(),}){
-=======
 @optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _Advance value)?  advance,TResult Function( _Back value)?  back,TResult Function( _JumpTo value)?  jumpTo,TResult Function( _CompleteProfile value)?  completeProfile,TResult Function( _CompletePermissions value)?  completePermissions,TResult Function( _CompleteWalkthrough value)?  completeWalkthrough,required TResult orElse(),}){
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -68,12 +64,8 @@ return advance(_that);case _Back() when back != null:
 return back(_that);case _JumpTo() when jumpTo != null:
 return jumpTo(_that);case _CompleteProfile() when completeProfile != null:
 return completeProfile(_that);case _CompletePermissions() when completePermissions != null:
-<<<<<<< HEAD
-return completePermissions(_that);case _:
-=======
 return completePermissions(_that);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough(_that);case _:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   return orElse();
 
 }
@@ -91,11 +83,7 @@ return completeWalkthrough(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _Advance value)  advance,required TResult Function( _Back value)  back,required TResult Function( _JumpTo value)  jumpTo,required TResult Function( _CompleteProfile value)  completeProfile,required TResult Function( _CompletePermissions value)  completePermissions,}){
-=======
 @optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _Advance value)  advance,required TResult Function( _Back value)  back,required TResult Function( _JumpTo value)  jumpTo,required TResult Function( _CompleteProfile value)  completeProfile,required TResult Function( _CompletePermissions value)  completePermissions,required TResult Function( _CompleteWalkthrough value)  completeWalkthrough,}){
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 final _that = this;
 switch (_that) {
 case _Started():
@@ -104,12 +92,8 @@ return advance(_that);case _Back():
 return back(_that);case _JumpTo():
 return jumpTo(_that);case _CompleteProfile():
 return completeProfile(_that);case _CompletePermissions():
-<<<<<<< HEAD
-return completePermissions(_that);}
-=======
 return completePermissions(_that);case _CompleteWalkthrough():
 return completeWalkthrough(_that);}
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -123,11 +107,7 @@ return completeWalkthrough(_that);}
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _Advance value)?  advance,TResult? Function( _Back value)?  back,TResult? Function( _JumpTo value)?  jumpTo,TResult? Function( _CompleteProfile value)?  completeProfile,TResult? Function( _CompletePermissions value)?  completePermissions,}){
-=======
 @optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _Advance value)?  advance,TResult? Function( _Back value)?  back,TResult? Function( _JumpTo value)?  jumpTo,TResult? Function( _CompleteProfile value)?  completeProfile,TResult? Function( _CompletePermissions value)?  completePermissions,TResult? Function( _CompleteWalkthrough value)?  completeWalkthrough,}){
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -136,12 +116,8 @@ return advance(_that);case _Back() when back != null:
 return back(_that);case _JumpTo() when jumpTo != null:
 return jumpTo(_that);case _CompleteProfile() when completeProfile != null:
 return completeProfile(_that);case _CompletePermissions() when completePermissions != null:
-<<<<<<< HEAD
-return completePermissions(_that);case _:
-=======
 return completePermissions(_that);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough(_that);case _:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   return null;
 
 }
@@ -158,11 +134,7 @@ return completeWalkthrough(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  advance,TResult Function()?  back,TResult Function( OnboardingStage stage)?  jumpTo,TResult Function()?  completeProfile,TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,required TResult orElse(),}) {final _that = this;
-=======
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  advance,TResult Function()?  back,TResult Function( OnboardingStage stage)?  jumpTo,TResult Function()?  completeProfile,TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult Function()?  completeWalkthrough,required TResult orElse(),}) {final _that = this;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 switch (_that) {
 case _Started() when started != null:
 return started();case _Advance() when advance != null:
@@ -170,12 +142,8 @@ return advance();case _Back() when back != null:
 return back();case _JumpTo() when jumpTo != null:
 return jumpTo(_that.stage);case _CompleteProfile() when completeProfile != null:
 return completeProfile();case _CompletePermissions() when completePermissions != null:
-<<<<<<< HEAD
-return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _:
-=======
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough();case _:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   return orElse();
 
 }
@@ -193,11 +161,7 @@ return completeWalkthrough();case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  advance,required TResult Function()  back,required TResult Function( OnboardingStage stage)  jumpTo,required TResult Function()  completeProfile,required TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  completePermissions,}) {final _that = this;
-=======
 @optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  advance,required TResult Function()  back,required TResult Function( OnboardingStage stage)  jumpTo,required TResult Function()  completeProfile,required TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  completePermissions,required TResult Function()  completeWalkthrough,}) {final _that = this;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 switch (_that) {
 case _Started():
 return started();case _Advance():
@@ -205,12 +169,8 @@ return advance();case _Back():
 return back();case _JumpTo():
 return jumpTo(_that.stage);case _CompleteProfile():
 return completeProfile();case _CompletePermissions():
-<<<<<<< HEAD
-return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);}
-=======
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough():
 return completeWalkthrough();}
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -224,11 +184,7 @@ return completeWalkthrough();}
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  advance,TResult? Function()?  back,TResult? Function( OnboardingStage stage)?  jumpTo,TResult? Function()?  completeProfile,TResult? Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,}) {final _that = this;
-=======
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  advance,TResult? Function()?  back,TResult? Function( OnboardingStage stage)?  jumpTo,TResult? Function()?  completeProfile,TResult? Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult? Function()?  completeWalkthrough,}) {final _that = this;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 switch (_that) {
 case _Started() when started != null:
 return started();case _Advance() when advance != null:
@@ -236,12 +192,8 @@ return advance();case _Back() when back != null:
 return back();case _JumpTo() when jumpTo != null:
 return jumpTo(_that.stage);case _CompleteProfile() when completeProfile != null:
 return completeProfile();case _CompletePermissions() when completePermissions != null:
-<<<<<<< HEAD
-return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _:
-=======
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough();case _:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   return null;
 
 }
@@ -514,8 +466,6 @@ as bool,
 }
 
 /// @nodoc
-<<<<<<< HEAD
-=======
 
 
 class _CompleteWalkthrough implements OnboardingEvent {
@@ -548,7 +498,6 @@ String toString() {
 
 
 /// @nodoc
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 mixin _$OnboardingState {
 
  OnboardingStage get stage; bool get completed; bool get notificationsGranted; bool get contactsGranted; bool get hapticsGranted;

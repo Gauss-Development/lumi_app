@@ -55,11 +55,7 @@ extension CircleEventPatterns on CircleEvent {
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _InviteRequested value)?  inviteRequested,TResult Function( _InviteLinkRequested value)?  inviteLinkRequested,TResult Function( _MemberActivated value)?  memberActivated,TResult Function( _MemberMuted value)?  memberMuted,TResult Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,required TResult orElse(),}){
-=======
 @optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _InviteRequested value)?  inviteRequested,TResult Function( _InviteLinkRequested value)?  inviteLinkRequested,TResult Function( _MemberActivated value)?  memberActivated,TResult Function( _MemberMuted value)?  memberMuted,TResult Function( _MemberMemorialized value)?  memberMemorialized,TResult Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,required TResult orElse(),}){
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
@@ -67,12 +63,8 @@ return loadRequested(_that);case _InviteRequested() when inviteRequested != null
 return inviteRequested(_that);case _InviteLinkRequested() when inviteLinkRequested != null:
 return inviteLinkRequested(_that);case _MemberActivated() when memberActivated != null:
 return memberActivated(_that);case _MemberMuted() when memberMuted != null:
-<<<<<<< HEAD
-return memberMuted(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-=======
 return memberMuted(_that);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 return dismissUpgradePrompt(_that);case _:
   return orElse();
 
@@ -91,11 +83,7 @@ return dismissUpgradePrompt(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _InviteRequested value)  inviteRequested,required TResult Function( _InviteLinkRequested value)  inviteLinkRequested,required TResult Function( _MemberActivated value)  memberActivated,required TResult Function( _MemberMuted value)  memberMuted,required TResult Function( _DismissUpgradePrompt value)  dismissUpgradePrompt,}){
-=======
 @optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _InviteRequested value)  inviteRequested,required TResult Function( _InviteLinkRequested value)  inviteLinkRequested,required TResult Function( _MemberActivated value)  memberActivated,required TResult Function( _MemberMuted value)  memberMuted,required TResult Function( _MemberMemorialized value)  memberMemorialized,required TResult Function( _DismissUpgradePrompt value)  dismissUpgradePrompt,}){
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 final _that = this;
 switch (_that) {
 case _LoadRequested():
@@ -103,12 +91,8 @@ return loadRequested(_that);case _InviteRequested():
 return inviteRequested(_that);case _InviteLinkRequested():
 return inviteLinkRequested(_that);case _MemberActivated():
 return memberActivated(_that);case _MemberMuted():
-<<<<<<< HEAD
-return memberMuted(_that);case _DismissUpgradePrompt():
-=======
 return memberMuted(_that);case _MemberMemorialized():
 return memberMemorialized(_that);case _DismissUpgradePrompt():
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 return dismissUpgradePrompt(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -126,11 +110,7 @@ return dismissUpgradePrompt(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _InviteRequested value)?  inviteRequested,TResult? Function( _InviteLinkRequested value)?  inviteLinkRequested,TResult? Function( _MemberActivated value)?  memberActivated,TResult? Function( _MemberMuted value)?  memberMuted,TResult? Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,}){
-=======
 @optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _InviteRequested value)?  inviteRequested,TResult? Function( _InviteLinkRequested value)?  inviteLinkRequested,TResult? Function( _MemberActivated value)?  memberActivated,TResult? Function( _MemberMuted value)?  memberMuted,TResult? Function( _MemberMemorialized value)?  memberMemorialized,TResult? Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,}){
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
@@ -138,12 +118,8 @@ return loadRequested(_that);case _InviteRequested() when inviteRequested != null
 return inviteRequested(_that);case _InviteLinkRequested() when inviteLinkRequested != null:
 return inviteLinkRequested(_that);case _MemberActivated() when memberActivated != null:
 return memberActivated(_that);case _MemberMuted() when memberMuted != null:
-<<<<<<< HEAD
-return memberMuted(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-=======
 return memberMuted(_that);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 return dismissUpgradePrompt(_that);case _:
   return null;
 
@@ -161,16 +137,6 @@ return dismissUpgradePrompt(_that);case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String name)?  inviteRequested,TResult Function( String name)?  inviteLinkRequested,TResult Function( String memberId)?  memberActivated,TResult Function( String memberId,  Duration duration)?  memberMuted,TResult Function()?  dismissUpgradePrompt,required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _LoadRequested() when loadRequested != null:
-return loadRequested();case _InviteRequested() when inviteRequested != null:
-return inviteRequested(_that.name);case _InviteLinkRequested() when inviteLinkRequested != null:
-return inviteLinkRequested(_that.name);case _MemberActivated() when memberActivated != null:
-return memberActivated(_that.memberId);case _MemberMuted() when memberMuted != null:
-return memberMuted(_that.memberId,_that.duration);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-=======
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String name,  String? relationshipLabel)?  inviteRequested,TResult Function( String name)?  inviteLinkRequested,TResult Function( String memberId)?  memberActivated,TResult Function( String memberId,  Duration duration)?  memberMuted,TResult Function( String memberId)?  memberMemorialized,TResult Function()?  dismissUpgradePrompt,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
@@ -180,7 +146,6 @@ return inviteLinkRequested(_that.name);case _MemberActivated() when memberActiva
 return memberActivated(_that.memberId);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 return dismissUpgradePrompt();case _:
   return orElse();
 
@@ -199,16 +164,6 @@ return dismissUpgradePrompt();case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String name)  inviteRequested,required TResult Function( String name)  inviteLinkRequested,required TResult Function( String memberId)  memberActivated,required TResult Function( String memberId,  Duration duration)  memberMuted,required TResult Function()  dismissUpgradePrompt,}) {final _that = this;
-switch (_that) {
-case _LoadRequested():
-return loadRequested();case _InviteRequested():
-return inviteRequested(_that.name);case _InviteLinkRequested():
-return inviteLinkRequested(_that.name);case _MemberActivated():
-return memberActivated(_that.memberId);case _MemberMuted():
-return memberMuted(_that.memberId,_that.duration);case _DismissUpgradePrompt():
-=======
 @optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String name,  String? relationshipLabel)  inviteRequested,required TResult Function( String name)  inviteLinkRequested,required TResult Function( String memberId)  memberActivated,required TResult Function( String memberId,  Duration duration)  memberMuted,required TResult Function( String memberId)  memberMemorialized,required TResult Function()  dismissUpgradePrompt,}) {final _that = this;
 switch (_that) {
 case _LoadRequested():
@@ -218,7 +173,6 @@ return inviteLinkRequested(_that.name);case _MemberActivated():
 return memberActivated(_that.memberId);case _MemberMuted():
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized():
 return memberMemorialized(_that.memberId);case _DismissUpgradePrompt():
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 return dismissUpgradePrompt();case _:
   throw StateError('Unexpected subclass');
 
@@ -236,16 +190,6 @@ return dismissUpgradePrompt();case _:
 /// }
 /// ```
 
-<<<<<<< HEAD
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String name)?  inviteRequested,TResult? Function( String name)?  inviteLinkRequested,TResult? Function( String memberId)?  memberActivated,TResult? Function( String memberId,  Duration duration)?  memberMuted,TResult? Function()?  dismissUpgradePrompt,}) {final _that = this;
-switch (_that) {
-case _LoadRequested() when loadRequested != null:
-return loadRequested();case _InviteRequested() when inviteRequested != null:
-return inviteRequested(_that.name);case _InviteLinkRequested() when inviteLinkRequested != null:
-return inviteLinkRequested(_that.name);case _MemberActivated() when memberActivated != null:
-return memberActivated(_that.memberId);case _MemberMuted() when memberMuted != null:
-return memberMuted(_that.memberId,_that.duration);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-=======
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String name,  String? relationshipLabel)?  inviteRequested,TResult? Function( String name)?  inviteLinkRequested,TResult? Function( String memberId)?  memberActivated,TResult? Function( String memberId,  Duration duration)?  memberMuted,TResult? Function( String memberId)?  memberMemorialized,TResult? Function()?  dismissUpgradePrompt,}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
@@ -255,7 +199,6 @@ return inviteLinkRequested(_that.name);case _MemberActivated() when memberActiva
 return memberActivated(_that.memberId);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 return dismissUpgradePrompt();case _:
   return null;
 
@@ -300,18 +243,11 @@ String toString() {
 
 
 class _InviteRequested implements CircleEvent {
-<<<<<<< HEAD
-  const _InviteRequested({required this.name});
-  
-
- final  String name;
-=======
   const _InviteRequested({required this.name, this.relationshipLabel});
   
 
  final  String name;
  final  String? relationshipLabel;
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 
 /// Create a copy of CircleEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -323,28 +259,16 @@ _$InviteRequestedCopyWith<_InviteRequested> get copyWith => __$InviteRequestedCo
 
 @override
 bool operator ==(Object other) {
-<<<<<<< HEAD
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InviteRequested&&(identical(other.name, name) || other.name == name));
-=======
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _InviteRequested&&(identical(other.name, name) || other.name == name)&&(identical(other.relationshipLabel, relationshipLabel) || other.relationshipLabel == relationshipLabel));
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }
 
 
 @override
-<<<<<<< HEAD
-int get hashCode => Object.hash(runtimeType,name);
-
-@override
-String toString() {
-  return 'CircleEvent.inviteRequested(name: $name)';
-=======
 int get hashCode => Object.hash(runtimeType,name,relationshipLabel);
 
 @override
 String toString() {
   return 'CircleEvent.inviteRequested(name: $name, relationshipLabel: $relationshipLabel)';
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }
 
 
@@ -355,11 +279,7 @@ abstract mixin class _$InviteRequestedCopyWith<$Res> implements $CircleEventCopy
   factory _$InviteRequestedCopyWith(_InviteRequested value, $Res Function(_InviteRequested) _then) = __$InviteRequestedCopyWithImpl;
 @useResult
 $Res call({
-<<<<<<< HEAD
- String name
-=======
  String name, String? relationshipLabel
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 });
 
 
@@ -376,18 +296,11 @@ class __$InviteRequestedCopyWithImpl<$Res>
 
 /// Create a copy of CircleEvent
 /// with the given fields replaced by the non-null parameter values.
-<<<<<<< HEAD
-@pragma('vm:prefer-inline') $Res call({Object? name = null,}) {
-  return _then(_InviteRequested(
-name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
-=======
 @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? relationshipLabel = freezed,}) {
   return _then(_InviteRequested(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,relationshipLabel: freezed == relationshipLabel ? _self.relationshipLabel : relationshipLabel // ignore: cast_nullable_to_non_nullable
 as String?,
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   ));
 }
 
@@ -597,8 +510,6 @@ as Duration,
 /// @nodoc
 
 
-<<<<<<< HEAD
-=======
 class _MemberMemorialized implements CircleEvent {
   const _MemberMemorialized({required this.memberId});
   
@@ -665,7 +576,6 @@ as String,
 /// @nodoc
 
 
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 class _DismissUpgradePrompt implements CircleEvent {
   const _DismissUpgradePrompt();
   
