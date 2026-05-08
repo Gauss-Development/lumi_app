@@ -118,19 +118,6 @@ class SettingsPage extends StatelessWidget {
                       },
                     ),
                   ),
-                  _SettingsTile(
-                    icon: Icons.pause_circle_outline_rounded,
-                    title: 'Pause all Lumis',
-                    description: 'Queue everything until you are ready again',
-                    trailing: Switch.adaptive(
-                      value: state.appPaused,
-                      onChanged: (bool value) {
-                        context.read<SettingsBloc>().add(
-                          SettingsEvent.appPauseToggled(value),
-                        );
-                      },
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 28),

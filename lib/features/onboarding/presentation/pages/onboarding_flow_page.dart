@@ -62,6 +62,7 @@ class OnboardingFlowPage extends StatelessWidget {
                 OnboardingStage.otp => _OtpStep(authState: authState),
                 OnboardingStage.profile => const _ProfileStep(),
                 OnboardingStage.permissions => const _PermissionsStep(),
+                OnboardingStage.onboarding => const _NarrativeOnboardingStep(),
                 OnboardingStage.complete => const HomePage(),
               };
             },
@@ -224,10 +225,11 @@ class _OtpStep extends StatefulWidget {
 }
 
 class _OtpStepState extends State<_OtpStep> {
-  final List<TextEditingController> _controllers = List<TextEditingController>.generate(
-    6,
-    (_) => TextEditingController(),
-  );
+  final List<TextEditingController> _controllers =
+      List<TextEditingController>.generate(
+        6,
+        (_) => TextEditingController(),
+      );
   final List<FocusNode> _focusNodes = List<FocusNode>.generate(
     6,
     (_) => FocusNode(),
@@ -235,10 +237,10 @@ class _OtpStepState extends State<_OtpStep> {
 
   @override
   void dispose() {
-    for (final controller in _controllers) {
+    for (final TextEditingController controller in _controllers) {
       controller.dispose();
     }
-    for (final node in _focusNodes) {
+    for (final FocusNode node in _focusNodes) {
       node.dispose();
     }
     super.dispose();
@@ -246,7 +248,9 @@ class _OtpStepState extends State<_OtpStep> {
 
   void _onChanged(int index, String value) {
     final String digit = value.replaceAll(RegExp(r'[^0-9]'), '');
-    _controllers[index].text = digit.isEmpty ? '' : digit.substring(digit.length - 1);
+    _controllers[index].text = digit.isEmpty
+        ? ''
+        : digit.substring(digit.length - 1);
     if (_controllers[index].text.isNotEmpty && index < _focusNodes.length - 1) {
       _focusNodes[index + 1].requestFocus();
     }
@@ -320,7 +324,10 @@ class _OtpStepState extends State<_OtpStep> {
                 orElse: () => '',
               );
               context.read<AuthBloc>().add(
-                AuthEvent.otpVerified(phoneNumber: requestedPhone, code: _code),
+                AuthEvent.otpVerified(
+                  phoneNumber: requestedPhone,
+                  code: _code,
+                ),
               );
             },
           ),
@@ -459,6 +466,153 @@ class _PermissionsStep extends StatelessWidget {
   }
 }
 
+class _NarrativeOnboardingStep extends StatefulWidget {
+  const _NarrativeOnboardingStep();
+
+  @override
+  State<_NarrativeOnboardingStep> createState() =>
+      _NarrativeOnboardingStepState();
+}
+
+class _NarrativeOnboardingStepState extends State<_NarrativeOnboardingStep> {
+  static const List<_SlideData> _slides = <_SlideData>[
+    _SlideData(
+      color: AppColors.amberGlow,
+      title: 'Send a glow,\nnot a message.',
+      body:
+          'Lumi turns presence into a soft signal. No typing, no pressure.',
+    ),
+    _SlideData(
+      color: AppColors.softLavender,
+      title: 'Choose how it\nfeels to arrive.',
+      body:
+          "Glow, pulse, doodle, or color — small gestures that say I'm thinking of you.",
+    ),
+    _SlideData(
+      color: AppColors.mint,
+      title: 'Quiet by design.',
+      body: 'No feeds. No likes. No badges. Only the people you love.',
+    ),
+  ];
+
+  int _index = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final _SlideData slide = _slides[_index];
+    final bool isLast = _index == _slides.length - 1;
+
+    return LumiScaffold(
+      centered: true,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 220,
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                child: GlowOrb(
+                  key: ValueKey<int>(_index),
+                  color: slide.color,
+                  size: 220,
+                ),
+              ),
+            ),
+          ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Column(
+              key: ValueKey<int>(_index),
+              children: <Widget>[
+                Text(
+                  slide.title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  slide.body,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List<Widget>.generate(_slides.length, (int idx) {
+              final bool active = idx == _index;
+              final _SlideData dot = _slides[idx];
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: active ? 22 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  color: active
+                      ? dot.color
+                      : Colors.white.withValues(alpha: 0.15),
+                  boxShadow: active
+                      ? <BoxShadow>[
+                          BoxShadow(
+                            color: dot.color.withValues(alpha: 0.55),
+                            blurRadius: 12,
+                          ),
+                        ]
+                      : null,
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 40),
+          PrimaryGlowButton(
+            label: isLast ? 'Enter Lumi' : 'Continue',
+            glowColor: slide.color,
+            onPressed: () {
+              if (isLast) {
+                context.read<OnboardingBloc>().add(
+                  const OnboardingEvent.completeWalkthrough(),
+                );
+              } else {
+                setState(() => _index += 1);
+              }
+            },
+          ),
+          if (!isLast) ...<Widget>[
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                context.read<OnboardingBloc>().add(
+                  const OnboardingEvent.completeWalkthrough(),
+                );
+              },
+              child: const Text('Skip'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SlideData {
+  const _SlideData({
+    required this.color,
+    required this.title,
+    required this.body,
+  });
+
+  final Color color;
+  final String title;
+  final String body;
+}
+
 class _PermissionTile extends StatelessWidget {
   const _PermissionTile({
     required this.title,
@@ -494,7 +648,10 @@ class _PermissionTile extends StatelessWidget {
                 ],
               ),
               boxShadow: <BoxShadow>[
-                BoxShadow(color: glowColor.withValues(alpha: 0.28), blurRadius: 24),
+                BoxShadow(
+                  color: glowColor.withValues(alpha: 0.28),
+                  blurRadius: 24,
+                ),
               ],
             ),
           ),

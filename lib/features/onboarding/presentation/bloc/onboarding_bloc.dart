@@ -5,7 +5,15 @@ import 'package:lumi/core/services/preferences_service.dart';
 
 part 'onboarding_bloc.freezed.dart';
 
-enum OnboardingStage { welcome, phone, otp, profile, permissions, complete }
+enum OnboardingStage {
+  welcome,
+  phone,
+  otp,
+  profile,
+  permissions,
+  onboarding,
+  complete,
+}
 
 @freezed
 sealed class OnboardingEvent with _$OnboardingEvent {
@@ -19,6 +27,7 @@ sealed class OnboardingEvent with _$OnboardingEvent {
     required bool contactsGranted,
     required bool hapticsGranted,
   }) = _CompletePermissions;
+  const factory OnboardingEvent.completeWalkthrough() = _CompleteWalkthrough;
 }
 
 @freezed
@@ -40,6 +49,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<_JumpTo>(_onJumpTo);
     on<_CompleteProfile>(_onCompleteProfile);
     on<_CompletePermissions>(_onCompletePermissions);
+    on<_CompleteWalkthrough>(_onCompleteWalkthrough);
   }
 
   final PreferencesService _preferencesService;
@@ -83,14 +93,28 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     _CompletePermissions event,
     Emitter<OnboardingState> emit,
   ) async {
+    emit(
+      state.copyWith(
+        stage: OnboardingStage.onboarding,
+        notificationsGranted: event.notificationsGranted,
+        contactsGranted: event.contactsGranted,
+        hapticsGranted: event.hapticsGranted,
+      ),
+    );
+  }
+
+  Future<void> _onCompleteWalkthrough(
+    _CompleteWalkthrough event,
+    Emitter<OnboardingState> emit,
+  ) async {
     await _preferencesService.setBool(_onboardingCompleteKey, true);
     emit(
       state.copyWith(
         stage: OnboardingStage.complete,
         completed: true,
-        notificationsGranted: event.notificationsGranted,
-        contactsGranted: event.contactsGranted,
-        hapticsGranted: event.hapticsGranted,
+        notificationsGranted: state.notificationsGranted,
+        contactsGranted: state.contactsGranted,
+        hapticsGranted: state.hapticsGranted,
       ),
     );
   }

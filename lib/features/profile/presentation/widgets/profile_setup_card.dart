@@ -26,6 +26,9 @@ class ProfileSetupCard extends StatelessWidget {
     '◐',
     '◓',
     '◑',
+    '◒',
+    '○',
+    '●',
   ];
 
   @override
@@ -97,7 +100,8 @@ class ProfileSetupCard extends StatelessWidget {
                   right: index == UserProfile.avatarOptions.length - 1 ? 0 : 8,
                 ),
                 child: GestureDetector(
-                  onTap: () => onAvatarStyleChanged(UserProfile.avatarOptions[index]),
+                  onTap: () =>
+                      onAvatarStyleChanged(UserProfile.avatarOptions[index]),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     height: 44,

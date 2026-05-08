@@ -10,9 +10,12 @@ class UserProfile extends Equatable {
   });
 
   static const List<String> avatarOptions = <String>[
-    'generatedGlow',
-    'softPortrait',
-    'monogram',
+    'avatar_0',
+    'avatar_1',
+    'avatar_2',
+    'avatar_3',
+    'avatar_4',
+    'avatar_5',
   ];
 
   final String id;
