@@ -28,6 +28,10 @@ import 'package:lumi/features/circle/domain/usecases/accept_invite_usecase.dart'
 import 'package:lumi/features/circle/domain/usecases/create_invite_link_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_available_slots_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_circle_members_usecase.dart';
+<<<<<<< HEAD
+=======
+import 'package:lumi/features/circle/domain/usecases/memorialize_member_usecase.dart';
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/features/circle/domain/usecases/mute_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/send_invite_usecase.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
@@ -139,7 +143,14 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   );
 
   sl.registerLazySingleton<LumiLocalDataSource>(
+<<<<<<< HEAD
     () => LumiLocalDataSource(sl<PreferencesService>()),
+=======
+    () => LumiLocalDataSource(
+      sl<PreferencesService>(),
+      sl<CircleLocalDataSource>(),
+    ),
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   );
   sl.registerLazySingleton<LumiRepository>(
     () => LumiRepositoryImpl(
@@ -226,6 +237,12 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<MuteMemberUseCase>(
     () => MuteMemberUseCase(sl<CircleRepository>()),
   );
+<<<<<<< HEAD
+=======
+  sl.registerLazySingleton<MemorializeMemberUseCase>(
+    () => MemorializeMemberUseCase(sl<CircleRepository>()),
+  );
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   sl.registerLazySingleton<GetAvailableSlotsUseCase>(
     () => GetAvailableSlotsUseCase(sl<CircleRepository>()),
   );
@@ -281,6 +298,10 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
       createInviteLinkUseCase: sl<CreateInviteLinkUseCase>(),
       acceptInviteUseCase: sl<AcceptInviteUseCase>(),
       muteMemberUseCase: sl<MuteMemberUseCase>(),
+<<<<<<< HEAD
+=======
+      memorializeMemberUseCase: sl<MemorializeMemberUseCase>(),
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
       getAvailableSlotsUseCase: sl<GetAvailableSlotsUseCase>(),
     ),
   );

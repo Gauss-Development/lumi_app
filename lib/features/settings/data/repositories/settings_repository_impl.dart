@@ -23,12 +23,20 @@ class SettingsRepositoryImpl implements SettingsRepository {
   Future<Either<Failure, LumiSettings>> updateMutePreferences({
     required bool notificationsEnabled,
     required bool hapticsEnabled,
+<<<<<<< HEAD
+=======
+    required bool appPaused,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }) async {
     try {
       return Right(
         await _localDataSource.updatePreferences(
           notificationsEnabled: notificationsEnabled,
           hapticsEnabled: hapticsEnabled,
+<<<<<<< HEAD
+=======
+          appPaused: appPaused,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ),
       );
     } catch (_) {

@@ -104,8 +104,33 @@ class CircleRepositoryImpl implements CircleRepository {
   }
 
   @override
+<<<<<<< HEAD
   Future<Either<Failure, CircleMember>> sendInvite({
     required String displayName,
+=======
+  Future<Either<Failure, CircleMember>> memorializeMember({
+    required String memberId,
+  }) async {
+    try {
+      final member = await _localDataSource.memorializeMember(memberId);
+      if (member == null) {
+        return const Left(
+          UnexpectedFailure('Unable to memorialize this member right now.'),
+        );
+      }
+      return Right(member);
+    } catch (_) {
+      return const Left(
+        UnexpectedFailure('Unable to memorialize this member right now.'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, CircleMember>> sendInvite({
+    required String displayName,
+    String? relationshipLabel,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }) async {
     try {
       final availableSlotsResult = await getAvailableSlots();
@@ -122,6 +147,10 @@ class CircleRepositoryImpl implements CircleRepository {
         await _localDataSource.addInvite(
           displayName: displayName,
           colorValue: AppConstants.signatureColors.first.toARGB32(),
+<<<<<<< HEAD
+=======
+          relationshipLabel: relationshipLabel,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
         ),
       );
     } catch (_) {

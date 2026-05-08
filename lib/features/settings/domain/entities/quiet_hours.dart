@@ -80,21 +80,37 @@ class LumiSettings extends Equatable {
     required this.quietHours,
     required this.notificationsEnabled,
     required this.hapticsEnabled,
+<<<<<<< HEAD
+=======
+    required this.appPaused,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   });
 
   final QuietHours quietHours;
   final bool notificationsEnabled;
   final bool hapticsEnabled;
+<<<<<<< HEAD
+=======
+  final bool appPaused;
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 
   LumiSettings copyWith({
     QuietHours? quietHours,
     bool? notificationsEnabled,
     bool? hapticsEnabled,
+<<<<<<< HEAD
+=======
+    bool? appPaused,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }) {
     return LumiSettings(
       quietHours: quietHours ?? this.quietHours,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
+<<<<<<< HEAD
+=======
+      appPaused: appPaused ?? this.appPaused,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     );
   }
 
@@ -103,5 +119,9 @@ class LumiSettings extends Equatable {
     quietHours,
     notificationsEnabled,
     hapticsEnabled,
+<<<<<<< HEAD
+=======
+    appPaused,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   ];
 }

@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+<<<<<<< HEAD
+=======
+import 'package:lumi/core/constants/lumi_limits.dart';
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 import 'package:lumi/core/services/preferences_service.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 
@@ -38,12 +42,20 @@ class CircleLocalDataSource {
   Future<CircleMember> addInvite({
     required String displayName,
     required int colorValue,
+<<<<<<< HEAD
+=======
+    String? relationshipLabel,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   }) async {
     final List<CircleMember> members = await getMembers();
     final CircleMember invite = CircleMember.pendingOutbound(
       id: 'invite-${DateTime.now().millisecondsSinceEpoch}',
       displayName: displayName,
       signatureColorValue: colorValue,
+<<<<<<< HEAD
+=======
+      relationshipLabel: relationshipLabel,
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     );
     final List<CircleMember> updated = <CircleMember>[invite, ...members];
     await saveMembers(updated);
@@ -96,4 +108,60 @@ class CircleLocalDataSource {
     await saveMembers(updated);
     return mutedMember;
   }
+<<<<<<< HEAD
+=======
+
+  Future<CircleMember?> memorializeMember(String memberId) async {
+    final List<CircleMember> members = await getMembers();
+    CircleMember? memorializedMember;
+    final List<CircleMember> updated = members
+        .map((CircleMember member) {
+          if (member.id != memberId) {
+            return member;
+          }
+
+          memorializedMember = member.copyWith(
+            status: CircleStatus.memorial,
+            subtitle: 'Kept in your circle for the long arc',
+          );
+          return memorializedMember!;
+        })
+        .toList(growable: false);
+
+    await saveMembers(updated);
+    return memorializedMember;
+  }
+
+  Future<void> touchMemberActivity({
+    required String memberId,
+    required bool queued,
+  }) async {
+    final DateTime now = DateTime.now();
+    final List<CircleMember> members = await getMembers();
+    final List<CircleMember> updated = members
+        .map((CircleMember member) {
+          if (member.id != memberId) {
+            return member;
+          }
+
+          final bool resetWindow =
+              member.lastInteractionAt == null ||
+              now.difference(member.lastInteractionAt!).inHours >= 24;
+
+          final int nextPaceCount =
+              (resetWindow ? 0 : member.paceCount) + 1;
+
+          return member.copyWith(
+            paceCount: nextPaceCount.clamp(0, LumiLimits.maxLumisPerPairPerDay),
+            queuedCount: queued
+                ? member.queuedCount + 1
+                : member.queuedCount.clamp(0, LumiLimits.maxLumisPerPairPerDay),
+            lastInteractionAt: now,
+          );
+        })
+        .toList(growable: false);
+
+    await saveMembers(updated);
+  }
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 }

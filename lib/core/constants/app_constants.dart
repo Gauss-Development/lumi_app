@@ -17,6 +17,22 @@ class AppConstants {
     'moon',
   ];
 
+<<<<<<< HEAD
+=======
+  static const List<String> relationshipSuggestions = <String>[
+    'Mom',
+    'Dad',
+    'Sister',
+    'Brother',
+    'Grandma',
+    'Grandpa',
+    'Partner',
+    'Child',
+    'Friend',
+    'Caregiver',
+  ];
+
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   static const List<Color> signatureColors = <Color>[
     Color(0xFFFF7F7F),
     Color(0xFFFFB347),
@@ -24,5 +40,14 @@ class AppConstants {
     Color(0xFF8FD3FF),
     Color(0xFFCDA4FF),
     Color(0xFF96F2D7),
+<<<<<<< HEAD
+=======
+    Color(0xFFFFA3C7),
+    Color(0xFFB39DDB),
+    Color(0xFF80CBC4),
+    Color(0xFFA5D6A7),
+    Color(0xFFFFCC80),
+    Color(0xFF90CAF9),
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   ];
 }

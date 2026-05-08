@@ -27,6 +27,11 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     on<_WatchRecent>(_onWatchRecent);
     on<_SendPureRequested>(_onSendPureRequested);
     on<_SendLightRequested>(_onSendLightRequested);
+<<<<<<< HEAD
+=======
+    on<_SendPulseRequested>(_onSendPulseRequested);
+    on<_SendDoodleRequested>(_onSendDoodleRequested);
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
     on<_ReactRequested>(_onReactRequested);
     on<_MarkSeenRequested>(_onMarkSeenRequested);
     on<_SaveDoodleDraftRequested>(_onSaveDoodleDraftRequested);
@@ -110,6 +115,57 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     );
   }
 
+<<<<<<< HEAD
+=======
+  Future<void> _onSendPulseRequested(
+    _SendPulseRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _sendLumiUseCase(
+      SendLumiParams.pulse(
+        senderId: event.senderId,
+        recipientId: event.memberId,
+        colorValue: event.colorValue,
+        pulsePattern: event.pulsePattern,
+      ),
+    );
+    await result.fold(
+      (Failure failure) async => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+    );
+  }
+
+  Future<void> _onSendDoodleRequested(
+    _SendDoodleRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _sendLumiUseCase(
+      SendLumiParams.doodle(
+        senderId: event.senderId,
+        recipientId: event.memberId,
+        colorValue: event.colorValue,
+        doodleStroke: event.doodleStroke,
+      ),
+    );
+    await result.fold(
+      (Failure failure) async => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+    );
+  }
+
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   Future<void> _onReactRequested(
     _ReactRequested event,
     Emitter<LumiState> emit,
@@ -185,6 +241,21 @@ sealed class LumiEvent with _$LumiEvent {
     required int colorValue,
     required double intensity,
   }) = _SendLightRequested;
+<<<<<<< HEAD
+=======
+  const factory LumiEvent.sendPulseRequested({
+    required String senderId,
+    required String memberId,
+    required int colorValue,
+    required PulsePattern pulsePattern,
+  }) = _SendPulseRequested;
+  const factory LumiEvent.sendDoodleRequested({
+    required String senderId,
+    required String memberId,
+    required int colorValue,
+    required DoodleStroke doodleStroke,
+  }) = _SendDoodleRequested;
+>>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
   const factory LumiEvent.reactRequested({
     required String memberId,
     required String lumiId,
