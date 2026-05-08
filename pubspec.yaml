@@ -87,7 +87,6 @@ flutter:
     - assets/env/.env.example
     - assets/env/.env.development
     - assets/env/.env.production
-    - assets/images/
 
 flavorizr:
   app:
