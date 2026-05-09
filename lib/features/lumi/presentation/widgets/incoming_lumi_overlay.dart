@@ -120,13 +120,14 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
   @override
   Widget build(BuildContext context) {
     final Color color = Color(widget.lumi.colorValue);
+    final EdgeInsets safe = MediaQuery.paddingOf(context);
 
     return Material(
       color: Colors.black.withValues(alpha: 0.58),
       child: Stack(
         children: <Widget>[
           Positioned(
-            top: 48,
+            top: safe.top + 8,
             right: 24,
             child: IconButton(
               onPressed: () => _markSeen(context),
@@ -187,7 +188,7 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
           Positioned(
             left: 24,
             right: 24,
-            bottom: 32,
+            bottom: safe.bottom + 16,
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

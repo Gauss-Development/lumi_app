@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/core/widgets/adaptive_scroll.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
@@ -80,13 +81,14 @@ class _PaywallBodyState extends State<_PaywallBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Align(
-            alignment: Alignment.centerRight,
+    return AdaptiveSheetBody(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Align(
+              alignment: Alignment.centerRight,
             child: IconButton(
               onPressed: () => Navigator.of(context).pop(),
               style: IconButton.styleFrom(
@@ -266,7 +268,8 @@ class _PaywallBodyState extends State<_PaywallBody> {
               color: AppColors.textFaint,
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/core/widgets/adaptive_scroll.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/loading_view.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
@@ -82,8 +83,7 @@ class _WelcomeStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return LumiScaffold(
       centered: true,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: AdaptiveScrollColumn(
         children: <Widget>[
           const SizedBox(height: 16),
           const GlowOrb(color: AppColors.peach, size: 260),
@@ -101,7 +101,6 @@ class _WelcomeStep extends StatelessWidget {
               context,
             ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 56),
           const Spacer(),
           PrimaryGlowButton(
             label: 'Begin',
@@ -142,8 +141,8 @@ class _PhoneStepState extends State<_PhoneStep> {
 
     return LumiScaffold(
       centered: true,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: AdaptiveScrollColumn(
+        reserveBottomInset: true,
         children: <Widget>[
           const GlowOrb(color: AppColors.softLavender, size: 140),
           const SizedBox(height: 32),
@@ -262,8 +261,8 @@ class _OtpStepState extends State<_OtpStep> {
   Widget build(BuildContext context) {
     return LumiScaffold(
       centered: true,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: AdaptiveScrollColumn(
+        reserveBottomInset: true,
         children: <Widget>[
           const GlowOrb(color: AppColors.mint, size: 120),
           const SizedBox(height: 32),
@@ -372,28 +371,33 @@ class _ProfileStep extends StatelessWidget {
           builder: (BuildContext context, ProfileSetupState state) {
             return LumiScaffold(
               centered: true,
-              child: ProfileSetupCard(
-                state: state,
-                onNameChanged: (String value) {
-                  context.read<ProfileSetupBloc>().add(
-                    ProfileSetupEvent.displayNameChanged(value),
-                  );
-                },
-                onAvatarStyleChanged: (String value) {
-                  context.read<ProfileSetupBloc>().add(
-                    ProfileSetupEvent.avatarStyleChanged(value),
-                  );
-                },
-                onColorSelected: (int value) {
-                  context.read<ProfileSetupBloc>().add(
-                    ProfileSetupEvent.signatureColorChanged(value, userId: userId),
-                  );
-                },
-                onSubmit: () {
-                  context.read<ProfileSetupBloc>().add(
-                    ProfileSetupEvent.submitted(userId: userId),
-                  );
-                },
+              child: AdaptiveScrollColumn(
+                reserveBottomInset: true,
+                children: <Widget>[
+                  ProfileSetupCard(
+                    state: state,
+                    onNameChanged: (String value) {
+                      context.read<ProfileSetupBloc>().add(
+                        ProfileSetupEvent.displayNameChanged(value),
+                      );
+                    },
+                    onAvatarStyleChanged: (String value) {
+                      context.read<ProfileSetupBloc>().add(
+                        ProfileSetupEvent.avatarStyleChanged(value),
+                      );
+                    },
+                    onColorSelected: (int value) {
+                      context.read<ProfileSetupBloc>().add(
+                        ProfileSetupEvent.signatureColorChanged(value, userId: userId),
+                      );
+                    },
+                    onSubmit: () {
+                      context.read<ProfileSetupBloc>().add(
+                        ProfileSetupEvent.submitted(userId: userId),
+                      );
+                    },
+                  ),
+                ],
               ),
             );
           },
@@ -410,8 +414,7 @@ class _PermissionsStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return LumiScaffold(
       centered: true,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: AdaptiveScrollColumn(
         children: <Widget>[
           const GlowOrb(color: AppColors.peach, size: 120),
           const SizedBox(height: 32),
@@ -504,8 +507,7 @@ class _NarrativeOnboardingStepState extends State<_NarrativeOnboardingStep> {
 
     return LumiScaffold(
       centered: true,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: AdaptiveScrollColumn(
         children: <Widget>[
           const SizedBox(height: 12),
           SizedBox(

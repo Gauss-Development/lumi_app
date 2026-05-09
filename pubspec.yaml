@@ -70,10 +70,7 @@ dev_dependencies:
   json_serializable: ^6.13.2
   bloc_test: ^10.0.0
   mocktail: ^1.0.5
-<<<<<<< HEAD
-=======
   flutter_flavorizr: ^2.4.2
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -91,8 +88,6 @@ flutter:
     - assets/env/.env.development
     - assets/env/.env.production
     - assets/images/
-<<<<<<< HEAD
-=======
 
 flavorizr:
   app:
@@ -115,4 +110,3 @@ flavorizr:
         applicationId: dev.gauss.lumi
       ios:
         bundleId: dev.gauss.lumi
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e

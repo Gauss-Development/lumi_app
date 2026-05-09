@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
@@ -123,15 +124,34 @@ class HomePage extends StatelessWidget {
                             ),
                             if (members.isEmpty)
                               Expanded(
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                    ),
-                                    child: CircleEmptyState(
-                                      onInviteTap: () => _showInviteSheet(context),
-                                    ),
-                                  ),
+                                child: LayoutBuilder(
+                                  builder: (
+                                    BuildContext context,
+                                    BoxConstraints constraints,
+                                  ) {
+                                    return SingleChildScrollView(
+                                      physics: const ClampingScrollPhysics(),
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minHeight: constraints.maxHeight,
+                                        ),
+                                        child: IntrinsicHeight(
+                                          child: Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 24,
+                                                vertical: 24,
+                                              ),
+                                              child: CircleEmptyState(
+                                                onInviteTap: () =>
+                                                    _showInviteSheet(context),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               )
                             else
@@ -342,7 +362,10 @@ class _ComposeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        const HapticsService().playSoftSelection();
+        onTap();
+      },
       child: Container(
         width: 64,
         height: 64,

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lumi/core/constants/app_constants.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/core/widgets/adaptive_scroll.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
@@ -77,11 +78,12 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
       ),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+        child: AdaptiveSheetBody(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -341,7 +343,8 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                       }
                     : null,
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

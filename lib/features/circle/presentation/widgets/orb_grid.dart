@@ -30,6 +30,8 @@ class OrbGrid extends StatelessWidget {
     _OrbPosition(x: 0.88, y: 0.18, size: 50),
   ];
 
+  static const double _labelReserve = 48;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -37,16 +39,22 @@ class OrbGrid extends StatelessWidget {
         return Stack(
           children: List<Widget>.generate(_positions.length, (int index) {
             final _OrbPosition position = _positions[index];
-            final CircleMember? member = index < members.length ? members[index] : null;
+            final CircleMember? member =
+                index < members.length ? members[index] : null;
             final double width = position.size;
+            final double height = width + _labelReserve;
             final double left = constraints.maxWidth * position.x - width / 2;
             final double top = constraints.maxHeight * position.y - width / 2;
+            final double maxLeft =
+                (constraints.maxWidth - width).clamp(0, double.infinity);
+            final double maxTop =
+                (constraints.maxHeight - height).clamp(0, double.infinity);
 
             return Positioned(
-              left: left.clamp(0, constraints.maxWidth - width),
-              top: top.clamp(0, constraints.maxHeight - width),
+              left: left.clamp(0, maxLeft),
+              top: top.clamp(0, maxTop),
               width: width,
-              height: width + 34,
+              height: height,
               child: MemberOrb(
                 member: member,
                 diameter: position.size,

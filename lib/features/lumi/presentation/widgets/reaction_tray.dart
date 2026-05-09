@@ -24,9 +24,11 @@ class ReactionTray extends StatelessWidget {
           .map((entry) {
             return InkWell(
               onTap: () => onSelected(entry.key),
-              borderRadius: BorderRadius.circular(18),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
+              borderRadius: BorderRadius.circular(22),
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(10),
                 child: Text(entry.value, style: const TextStyle(fontSize: 24)),
               ),
             );
