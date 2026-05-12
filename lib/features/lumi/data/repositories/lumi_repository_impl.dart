@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_local_data_source.dart';
+import 'package:lumi/features/lumi/data/datasources/lumi_remote_data_source.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/domain/repositories/lumi_repository.dart';
 import 'package:lumi/features/settings/domain/repositories/settings_repository.dart';
@@ -9,19 +10,22 @@ import 'package:lumi/features/settings/domain/repositories/settings_repository.d
 class LumiRepositoryImpl implements LumiRepository {
   LumiRepositoryImpl({
     required LumiLocalDataSource localDataSource,
+    required LumiRemoteDataSource remoteDataSource,
     required SettingsRepository settingsRepository,
   }) : _localDataSource = localDataSource,
+       _remoteDataSource = remoteDataSource,
        _settingsRepository = settingsRepository;
 
   final LumiLocalDataSource _localDataSource;
+  final LumiRemoteDataSource _remoteDataSource;
   final SettingsRepository _settingsRepository;
 
   @override
   Future<Either<Failure, List<Lumi>>> getRecentLumis({String? memberId}) async {
     try {
-      return Right(await _localDataSource.getRecentLumis(memberId: memberId));
-    } catch (_) {
-      return const Left(UnexpectedFailure('Unable to load recent Lumis.'));
+      return Right(await _remoteDataSource.getRecentLumis(memberId: memberId));
+    } catch (e) {
+      return Left(UnexpectedFailure('Unable to load recent Lumis. ($e)'));
     }
   }
 
@@ -37,25 +41,31 @@ class LumiRepositoryImpl implements LumiRepository {
   }) async {
     try {
       final settingsResult = await _settingsRepository.getSettings();
-      final settings = settingsResult.fold(
-        (_) => null,
-        (value) => value,
+      final settings = settingsResult.fold((_) => null, (value) => value);
+      final bool queued =
+          settings?.appPaused == true ||
+          (settings?.quietHours.isActiveAt(DateTime.now()) ?? false);
+      final Lumi lumi = await _remoteDataSource.sendLumi(
+        senderId: senderId,
+        senderMemberId: recipientId,
+        type: type,
+        colorValue: colorValue,
+        intensity: intensity,
+        pulsePattern: pulsePattern,
+        doodleStroke: doodleStroke,
+        queued: queued,
       );
-      return Right(
-        await _localDataSource.sendLumi(
-          senderId: senderId,
-          recipientId: recipientId,
-          type: type,
-          colorValue: colorValue,
-          intensity: intensity,
-          pulsePattern: pulsePattern,
-          doodleStroke: doodleStroke,
-          quietHours: settings?.quietHours,
-          forceQueued: settings?.appPaused ?? false,
-        ),
-      );
-    } catch (_) {
-      return const Left(UnexpectedFailure('Unable to send your Lumi.'));
+      try {
+        await _localDataSource.touchMemberActivity(
+          memberId: recipientId,
+          queued: queued,
+        );
+      } catch (_) {
+        // Activity metadata should not make an already-created Lumi look failed.
+      }
+      return Right(lumi);
+    } catch (e) {
+      return Left(UnexpectedFailure('Unable to send your Lumi. ($e)'));
     }
   }
 
@@ -66,7 +76,7 @@ class LumiRepositoryImpl implements LumiRepository {
   }) async {
     try {
       return Right(
-        await _localDataSource.reactToLumi(lumiId: lumiId, reaction: reaction),
+        await _remoteDataSource.reactToLumi(lumiId: lumiId, reaction: reaction),
       );
     } catch (_) {
       return const Left(UnexpectedFailure('Unable to react right now.'));
@@ -76,7 +86,7 @@ class LumiRepositoryImpl implements LumiRepository {
   @override
   Future<Either<Failure, Lumi>> markSeen(String lumiId) async {
     try {
-      return Right(await _localDataSource.markSeen(lumiId));
+      return Right(await _remoteDataSource.markSeen(lumiId));
     } catch (_) {
       return const Left(UnexpectedFailure('Unable to mark Lumi as seen.'));
     }

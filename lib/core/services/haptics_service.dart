@@ -11,10 +11,15 @@ class HapticsService {
     await HapticFeedback.selectionClick();
   }
 
+  Future<void> playPulseHit() async {
+    await HapticFeedback.lightImpact();
+  }
+
   Future<void> playPulsePattern(List<int> durationsMs) async {
+    await playPulseHit();
     for (final duration in durationsMs) {
-      await HapticFeedback.lightImpact();
       await Future<void>.delayed(Duration(milliseconds: duration));
+      await playPulseHit();
     }
   }
 }

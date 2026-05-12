@@ -20,13 +20,54 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> requestOtp(String phoneNumber) async {
+  Future<Either<Failure, AuthSession>> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
-      await _remoteDataSource.requestOtp(phoneNumber);
-      return const Right(unit);
+      return Right(
+        await _remoteDataSource.signInWithEmail(
+          email: email,
+          password: password,
+        ),
+      );
+    } on AuthDataSourceException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (_) {
+      return const Left(AuthFailure('Could not sign you in. Try again.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthSession>> signUpWithEmail({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    try {
+      return Right(
+        await _remoteDataSource.signUpWithEmail(
+          email: email,
+          password: password,
+          name: name,
+        ),
+      );
+    } on AuthDataSourceException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (_) {
+      return const Left(AuthFailure('Could not create your account.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthSession>> signInWithGoogle() async {
+    try {
+      return Right(await _remoteDataSource.signInWithGoogle());
+    } on AuthDataSourceException catch (e) {
+      return Left(AuthFailure(e.message));
     } catch (_) {
       return const Left(
-        AuthFailure('We could not send your Lumi sign-in code.'),
+        AuthFailure('Google sign-in did not finish. Please try again.'),
       );
     }
   }
@@ -38,20 +79,6 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(unit);
     } catch (_) {
       return const Left(AuthFailure('We could not sign you out right now.'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, AuthSession>> verifyOtp({
-    required String phoneNumber,
-    required String code,
-  }) async {
-    try {
-      return Right(
-        await _remoteDataSource.verifyOtp(phoneNumber: phoneNumber, code: code),
-      );
-    } catch (_) {
-      return const Left(AuthFailure('That code did not work. Try again.'));
     }
   }
 }

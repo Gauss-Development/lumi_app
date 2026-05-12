@@ -55,13 +55,14 @@ extension AuthEventPatterns on AuthEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _OtpRequested value)?  otpRequested,TResult Function( _OtpVerified value)?  otpVerified,TResult Function( _SignedOut value)?  signedOut,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _SignInRequested value)?  signInRequested,TResult Function( _SignUpRequested value)?  signUpRequested,TResult Function( _GoogleSignInRequested value)?  googleSignInRequested,TResult Function( _SignedOut value)?  signedOut,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started(_that);case _OtpRequested() when otpRequested != null:
-return otpRequested(_that);case _OtpVerified() when otpVerified != null:
-return otpVerified(_that);case _SignedOut() when signedOut != null:
+return started(_that);case _SignInRequested() when signInRequested != null:
+return signInRequested(_that);case _SignUpRequested() when signUpRequested != null:
+return signUpRequested(_that);case _GoogleSignInRequested() when googleSignInRequested != null:
+return googleSignInRequested(_that);case _SignedOut() when signedOut != null:
 return signedOut(_that);case _:
   return orElse();
 
@@ -80,17 +81,15 @@ return signedOut(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _OtpRequested value)  otpRequested,required TResult Function( _OtpVerified value)  otpVerified,required TResult Function( _SignedOut value)  signedOut,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _SignInRequested value)  signInRequested,required TResult Function( _SignUpRequested value)  signUpRequested,required TResult Function( _GoogleSignInRequested value)  googleSignInRequested,required TResult Function( _SignedOut value)  signedOut,}){
 final _that = this;
 switch (_that) {
 case _Started():
-return started(_that);case _OtpRequested():
-return otpRequested(_that);case _OtpVerified():
-return otpVerified(_that);case _SignedOut():
-return signedOut(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
+return started(_that);case _SignInRequested():
+return signInRequested(_that);case _SignUpRequested():
+return signUpRequested(_that);case _GoogleSignInRequested():
+return googleSignInRequested(_that);case _SignedOut():
+return signedOut(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -104,13 +103,14 @@ return signedOut(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _OtpRequested value)?  otpRequested,TResult? Function( _OtpVerified value)?  otpVerified,TResult? Function( _SignedOut value)?  signedOut,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _SignInRequested value)?  signInRequested,TResult? Function( _SignUpRequested value)?  signUpRequested,TResult? Function( _GoogleSignInRequested value)?  googleSignInRequested,TResult? Function( _SignedOut value)?  signedOut,}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started(_that);case _OtpRequested() when otpRequested != null:
-return otpRequested(_that);case _OtpVerified() when otpVerified != null:
-return otpVerified(_that);case _SignedOut() when signedOut != null:
+return started(_that);case _SignInRequested() when signInRequested != null:
+return signInRequested(_that);case _SignUpRequested() when signUpRequested != null:
+return signUpRequested(_that);case _GoogleSignInRequested() when googleSignInRequested != null:
+return googleSignInRequested(_that);case _SignedOut() when signedOut != null:
 return signedOut(_that);case _:
   return null;
 
@@ -128,12 +128,13 @@ return signedOut(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function( String phoneNumber)?  otpRequested,TResult Function( String phoneNumber,  String code)?  otpVerified,TResult Function()?  signedOut,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function( String email,  String password)?  signInRequested,TResult Function( String email,  String password,  String name)?  signUpRequested,TResult Function()?  googleSignInRequested,TResult Function()?  signedOut,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started();case _OtpRequested() when otpRequested != null:
-return otpRequested(_that.phoneNumber);case _OtpVerified() when otpVerified != null:
-return otpVerified(_that.phoneNumber,_that.code);case _SignedOut() when signedOut != null:
+return started();case _SignInRequested() when signInRequested != null:
+return signInRequested(_that.email,_that.password);case _SignUpRequested() when signUpRequested != null:
+return signUpRequested(_that.email,_that.password,_that.name);case _GoogleSignInRequested() when googleSignInRequested != null:
+return googleSignInRequested();case _SignedOut() when signedOut != null:
 return signedOut();case _:
   return orElse();
 
@@ -152,16 +153,14 @@ return signedOut();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function( String phoneNumber)  otpRequested,required TResult Function( String phoneNumber,  String code)  otpVerified,required TResult Function()  signedOut,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function( String email,  String password)  signInRequested,required TResult Function( String email,  String password,  String name)  signUpRequested,required TResult Function()  googleSignInRequested,required TResult Function()  signedOut,}) {final _that = this;
 switch (_that) {
 case _Started():
-return started();case _OtpRequested():
-return otpRequested(_that.phoneNumber);case _OtpVerified():
-return otpVerified(_that.phoneNumber,_that.code);case _SignedOut():
-return signedOut();case _:
-  throw StateError('Unexpected subclass');
-
-}
+return started();case _SignInRequested():
+return signInRequested(_that.email,_that.password);case _SignUpRequested():
+return signUpRequested(_that.email,_that.password,_that.name);case _GoogleSignInRequested():
+return googleSignInRequested();case _SignedOut():
+return signedOut();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -175,12 +174,13 @@ return signedOut();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function( String phoneNumber)?  otpRequested,TResult? Function( String phoneNumber,  String code)?  otpVerified,TResult? Function()?  signedOut,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function( String email,  String password)?  signInRequested,TResult? Function( String email,  String password,  String name)?  signUpRequested,TResult? Function()?  googleSignInRequested,TResult? Function()?  signedOut,}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started();case _OtpRequested() when otpRequested != null:
-return otpRequested(_that.phoneNumber);case _OtpVerified() when otpVerified != null:
-return otpVerified(_that.phoneNumber,_that.code);case _SignedOut() when signedOut != null:
+return started();case _SignInRequested() when signInRequested != null:
+return signInRequested(_that.email,_that.password);case _SignUpRequested() when signUpRequested != null:
+return signUpRequested(_that.email,_that.password,_that.name);case _GoogleSignInRequested() when googleSignInRequested != null:
+return googleSignInRequested();case _SignedOut() when signedOut != null:
 return signedOut();case _:
   return null;
 
@@ -224,43 +224,44 @@ String toString() {
 /// @nodoc
 
 
-class _OtpRequested implements AuthEvent {
-  const _OtpRequested(this.phoneNumber);
+class _SignInRequested implements AuthEvent {
+  const _SignInRequested({required this.email, required this.password});
   
 
- final  String phoneNumber;
+ final  String email;
+ final  String password;
 
 /// Create a copy of AuthEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$OtpRequestedCopyWith<_OtpRequested> get copyWith => __$OtpRequestedCopyWithImpl<_OtpRequested>(this, _$identity);
+_$SignInRequestedCopyWith<_SignInRequested> get copyWith => __$SignInRequestedCopyWithImpl<_SignInRequested>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OtpRequested&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SignInRequested&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,phoneNumber);
+int get hashCode => Object.hash(runtimeType,email,password);
 
 @override
 String toString() {
-  return 'AuthEvent.otpRequested(phoneNumber: $phoneNumber)';
+  return 'AuthEvent.signInRequested(email: $email, password: $password)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$OtpRequestedCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
-  factory _$OtpRequestedCopyWith(_OtpRequested value, $Res Function(_OtpRequested) _then) = __$OtpRequestedCopyWithImpl;
+abstract mixin class _$SignInRequestedCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
+  factory _$SignInRequestedCopyWith(_SignInRequested value, $Res Function(_SignInRequested) _then) = __$SignInRequestedCopyWithImpl;
 @useResult
 $Res call({
- String phoneNumber
+ String email, String password
 });
 
 
@@ -268,18 +269,19 @@ $Res call({
 
 }
 /// @nodoc
-class __$OtpRequestedCopyWithImpl<$Res>
-    implements _$OtpRequestedCopyWith<$Res> {
-  __$OtpRequestedCopyWithImpl(this._self, this._then);
+class __$SignInRequestedCopyWithImpl<$Res>
+    implements _$SignInRequestedCopyWith<$Res> {
+  __$SignInRequestedCopyWithImpl(this._self, this._then);
 
-  final _OtpRequested _self;
-  final $Res Function(_OtpRequested) _then;
+  final _SignInRequested _self;
+  final $Res Function(_SignInRequested) _then;
 
 /// Create a copy of AuthEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? phoneNumber = null,}) {
-  return _then(_OtpRequested(
-null == phoneNumber ? _self.phoneNumber : phoneNumber // ignore: cast_nullable_to_non_nullable
+@pragma('vm:prefer-inline') $Res call({Object? email = null,Object? password = null,}) {
+  return _then(_SignInRequested(
+email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -290,44 +292,45 @@ as String,
 /// @nodoc
 
 
-class _OtpVerified implements AuthEvent {
-  const _OtpVerified({required this.phoneNumber, required this.code});
+class _SignUpRequested implements AuthEvent {
+  const _SignUpRequested({required this.email, required this.password, required this.name});
   
 
- final  String phoneNumber;
- final  String code;
+ final  String email;
+ final  String password;
+ final  String name;
 
 /// Create a copy of AuthEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$OtpVerifiedCopyWith<_OtpVerified> get copyWith => __$OtpVerifiedCopyWithImpl<_OtpVerified>(this, _$identity);
+_$SignUpRequestedCopyWith<_SignUpRequested> get copyWith => __$SignUpRequestedCopyWithImpl<_SignUpRequested>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OtpVerified&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.code, code) || other.code == code));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SignUpRequested&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password)&&(identical(other.name, name) || other.name == name));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,phoneNumber,code);
+int get hashCode => Object.hash(runtimeType,email,password,name);
 
 @override
 String toString() {
-  return 'AuthEvent.otpVerified(phoneNumber: $phoneNumber, code: $code)';
+  return 'AuthEvent.signUpRequested(email: $email, password: $password, name: $name)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$OtpVerifiedCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
-  factory _$OtpVerifiedCopyWith(_OtpVerified value, $Res Function(_OtpVerified) _then) = __$OtpVerifiedCopyWithImpl;
+abstract mixin class _$SignUpRequestedCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
+  factory _$SignUpRequestedCopyWith(_SignUpRequested value, $Res Function(_SignUpRequested) _then) = __$SignUpRequestedCopyWithImpl;
 @useResult
 $Res call({
- String phoneNumber, String code
+ String email, String password, String name
 });
 
 
@@ -335,25 +338,58 @@ $Res call({
 
 }
 /// @nodoc
-class __$OtpVerifiedCopyWithImpl<$Res>
-    implements _$OtpVerifiedCopyWith<$Res> {
-  __$OtpVerifiedCopyWithImpl(this._self, this._then);
+class __$SignUpRequestedCopyWithImpl<$Res>
+    implements _$SignUpRequestedCopyWith<$Res> {
+  __$SignUpRequestedCopyWithImpl(this._self, this._then);
 
-  final _OtpVerified _self;
-  final $Res Function(_OtpVerified) _then;
+  final _SignUpRequested _self;
+  final $Res Function(_SignUpRequested) _then;
 
 /// Create a copy of AuthEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? phoneNumber = null,Object? code = null,}) {
-  return _then(_OtpVerified(
-phoneNumber: null == phoneNumber ? _self.phoneNumber : phoneNumber // ignore: cast_nullable_to_non_nullable
-as String,code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
+@pragma('vm:prefer-inline') $Res call({Object? email = null,Object? password = null,Object? name = null,}) {
+  return _then(_SignUpRequested(
+email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
 
 
 }
+
+/// @nodoc
+
+
+class _GoogleSignInRequested implements AuthEvent {
+  const _GoogleSignInRequested();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GoogleSignInRequested);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'AuthEvent.googleSignInRequested()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 
@@ -431,14 +467,13 @@ extension AuthStatePatterns on AuthState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Unauthenticated value)?  unauthenticated,TResult Function( _CodeSent value)?  codeSent,TResult Function( _Authenticated value)?  authenticated,TResult Function( _Failure value)?  failure,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Unauthenticated value)?  unauthenticated,TResult Function( _Authenticated value)?  authenticated,TResult Function( _Failure value)?  failure,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Unauthenticated() when unauthenticated != null:
-return unauthenticated(_that);case _CodeSent() when codeSent != null:
-return codeSent(_that);case _Authenticated() when authenticated != null:
+return unauthenticated(_that);case _Authenticated() when authenticated != null:
 return authenticated(_that);case _Failure() when failure != null:
 return failure(_that);case _:
   return orElse();
@@ -458,19 +493,15 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Unauthenticated value)  unauthenticated,required TResult Function( _CodeSent value)  codeSent,required TResult Function( _Authenticated value)  authenticated,required TResult Function( _Failure value)  failure,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Unauthenticated value)  unauthenticated,required TResult Function( _Authenticated value)  authenticated,required TResult Function( _Failure value)  failure,}){
 final _that = this;
 switch (_that) {
 case _Initial():
 return initial(_that);case _Loading():
 return loading(_that);case _Unauthenticated():
-return unauthenticated(_that);case _CodeSent():
-return codeSent(_that);case _Authenticated():
+return unauthenticated(_that);case _Authenticated():
 return authenticated(_that);case _Failure():
-return failure(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
+return failure(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -484,14 +515,13 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Unauthenticated value)?  unauthenticated,TResult? Function( _CodeSent value)?  codeSent,TResult? Function( _Authenticated value)?  authenticated,TResult? Function( _Failure value)?  failure,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Unauthenticated value)?  unauthenticated,TResult? Function( _Authenticated value)?  authenticated,TResult? Function( _Failure value)?  failure,}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Unauthenticated() when unauthenticated != null:
-return unauthenticated(_that);case _CodeSent() when codeSent != null:
-return codeSent(_that);case _Authenticated() when authenticated != null:
+return unauthenticated(_that);case _Authenticated() when authenticated != null:
 return authenticated(_that);case _Failure() when failure != null:
 return failure(_that);case _:
   return null;
@@ -510,13 +540,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( String? message)?  unauthenticated,TResult Function( String phoneNumber)?  codeSent,TResult Function( AuthSession session)?  authenticated,TResult Function( String message)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( String? message)?  unauthenticated,TResult Function( AuthSession session)?  authenticated,TResult Function( String message)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Unauthenticated() when unauthenticated != null:
-return unauthenticated(_that.message);case _CodeSent() when codeSent != null:
-return codeSent(_that.phoneNumber);case _Authenticated() when authenticated != null:
+return unauthenticated(_that.message);case _Authenticated() when authenticated != null:
 return authenticated(_that.session);case _Failure() when failure != null:
 return failure(_that.message);case _:
   return orElse();
@@ -536,18 +565,14 @@ return failure(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( String? message)  unauthenticated,required TResult Function( String phoneNumber)  codeSent,required TResult Function( AuthSession session)  authenticated,required TResult Function( String message)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( String? message)  unauthenticated,required TResult Function( AuthSession session)  authenticated,required TResult Function( String message)  failure,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Unauthenticated():
-return unauthenticated(_that.message);case _CodeSent():
-return codeSent(_that.phoneNumber);case _Authenticated():
+return unauthenticated(_that.message);case _Authenticated():
 return authenticated(_that.session);case _Failure():
-return failure(_that.message);case _:
-  throw StateError('Unexpected subclass');
-
-}
+return failure(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -561,13 +586,12 @@ return failure(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( String? message)?  unauthenticated,TResult? Function( String phoneNumber)?  codeSent,TResult? Function( AuthSession session)?  authenticated,TResult? Function( String message)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( String? message)?  unauthenticated,TResult? Function( AuthSession session)?  authenticated,TResult? Function( String message)?  failure,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Unauthenticated() when unauthenticated != null:
-return unauthenticated(_that.message);case _CodeSent() when codeSent != null:
-return codeSent(_that.phoneNumber);case _Authenticated() when authenticated != null:
+return unauthenticated(_that.message);case _Authenticated() when authenticated != null:
 return authenticated(_that.session);case _Failure() when failure != null:
 return failure(_that.message);case _:
   return null;
@@ -701,72 +725,6 @@ class __$UnauthenticatedCopyWithImpl<$Res>
   return _then(_Unauthenticated(
 freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String?,
-  ));
-}
-
-
-}
-
-/// @nodoc
-
-
-class _CodeSent implements AuthState {
-  const _CodeSent(this.phoneNumber);
-  
-
- final  String phoneNumber;
-
-/// Create a copy of AuthState
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$CodeSentCopyWith<_CodeSent> get copyWith => __$CodeSentCopyWithImpl<_CodeSent>(this, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CodeSent&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,phoneNumber);
-
-@override
-String toString() {
-  return 'AuthState.codeSent(phoneNumber: $phoneNumber)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$CodeSentCopyWith<$Res> implements $AuthStateCopyWith<$Res> {
-  factory _$CodeSentCopyWith(_CodeSent value, $Res Function(_CodeSent) _then) = __$CodeSentCopyWithImpl;
-@useResult
-$Res call({
- String phoneNumber
-});
-
-
-
-
-}
-/// @nodoc
-class __$CodeSentCopyWithImpl<$Res>
-    implements _$CodeSentCopyWith<$Res> {
-  __$CodeSentCopyWithImpl(this._self, this._then);
-
-  final _CodeSent _self;
-  final $Res Function(_CodeSent) _then;
-
-/// Create a copy of AuthState
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? phoneNumber = null,}) {
-  return _then(_CodeSent(
-null == phoneNumber ? _self.phoneNumber : phoneNumber // ignore: cast_nullable_to_non_nullable
-as String,
   ));
 }
 

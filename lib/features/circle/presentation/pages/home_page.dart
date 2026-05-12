@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
-import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/circle/presentation/widgets/circle_empty_state.dart';
@@ -15,7 +15,6 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
-import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
@@ -28,17 +27,70 @@ class HomePage extends StatelessWidget {
     return MultiBlocListener(
       listeners: <BlocListener<dynamic, dynamic>>[
         BlocListener<CircleBloc, CircleState>(
-          listener: (BuildContext context, CircleState state) {
-            final bool shouldShow = state.maybeWhen(
-              loaded: (_, _, _, bool showUpgradePrompt) => showUpgradePrompt,
+          listenWhen: (CircleState prev, CircleState curr) {
+            final bool prevShown = prev.maybeMap(
+              loaded: (loaded) => loaded.showUpgradePrompt,
               orElse: () => false,
             );
-            if (shouldShow) {
-              PaywallSheet.show(context);
-              context.read<CircleBloc>().add(
-                const CircleEvent.dismissUpgradePrompt(),
-              );
-            }
+            final bool currShown = curr.maybeMap(
+              loaded: (loaded) => loaded.showUpgradePrompt,
+              orElse: () => false,
+            );
+            return !prevShown && currShown;
+          },
+          listener: (BuildContext context, CircleState state) {
+            PaywallSheet.show(context);
+            context.read<CircleBloc>().add(
+              const CircleEvent.dismissUpgradePrompt(),
+            );
+          },
+        ),
+        BlocListener<CircleBloc, CircleState>(
+          listenWhen: (CircleState prev, CircleState curr) {
+            final prevFailure = prev.maybeMap(
+              loaded: (loaded) => loaded.transientFailure,
+              orElse: () => null,
+            );
+            final currFailure = curr.maybeMap(
+              loaded: (loaded) => loaded.transientFailure,
+              orElse: () => null,
+            );
+            return currFailure != null && currFailure != prevFailure;
+          },
+          listener: (BuildContext context, CircleState state) {
+            state.mapOrNull(
+              loaded: (loaded) {
+                final transient = loaded.transientFailure;
+                if (transient == null) return;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text(transient.message)));
+              },
+            );
+          },
+        ),
+        BlocListener<LumiBloc, LumiState>(
+          listenWhen: (LumiState prev, LumiState curr) {
+            final Failure? prevFailure = prev.maybeMap(
+              failure: (failure) => failure.failure,
+              orElse: () => null,
+            );
+            final Failure? currFailure = curr.maybeMap(
+              failure: (failure) => failure.failure,
+              orElse: () => null,
+            );
+            return currFailure != null && currFailure != prevFailure;
+          },
+          listener: (BuildContext context, LumiState state) {
+            state.mapOrNull(
+              failure: (failureState) {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(content: Text(failureState.failure.message)),
+                  );
+              },
+            );
           },
         ),
       ],
@@ -49,15 +101,15 @@ class HomePage extends StatelessWidget {
             loading: () => const LumiScaffold(
               child: Center(child: CircularProgressIndicator()),
             ),
-            failure: (failure) => LumiScaffold(
-              child: Center(child: Text(failure.message)),
-            ),
+            failure: (failure) =>
+                LumiScaffold(child: Center(child: Text(failure.message))),
             loaded:
                 (
                   List<CircleMember> members,
                   int availableSlots,
-                  String latestInviteLink,
+                  pendingInvitation,
                   bool showUpgradePrompt,
+                  transientFailure,
                 ) {
                   final List<CircleMember> activeMembers = members
                       .where((CircleMember member) => member.isActive)
@@ -89,11 +141,12 @@ class HomePage extends StatelessWidget {
                                     children: <Widget>[
                                       Text(
                                         'Your circle',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.labelSmall?.copyWith(
-                                          color: AppColors.textFaint,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: AppColors.textFaint,
+                                            ),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -125,33 +178,38 @@ class HomePage extends StatelessWidget {
                             if (members.isEmpty)
                               Expanded(
                                 child: LayoutBuilder(
-                                  builder: (
-                                    BuildContext context,
-                                    BoxConstraints constraints,
-                                  ) {
-                                    return SingleChildScrollView(
-                                      physics: const ClampingScrollPhysics(),
-                                      child: ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          minHeight: constraints.maxHeight,
-                                        ),
-                                        child: IntrinsicHeight(
-                                          child: Center(
-                                            child: Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 24,
-                                                vertical: 24,
-                                              ),
-                                              child: CircleEmptyState(
-                                                onInviteTap: () =>
-                                                    _showInviteSheet(context),
+                                  builder:
+                                      (
+                                        BuildContext context,
+                                        BoxConstraints constraints,
+                                      ) {
+                                        return SingleChildScrollView(
+                                          physics:
+                                              const ClampingScrollPhysics(),
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              minHeight: constraints.maxHeight,
+                                            ),
+                                            child: IntrinsicHeight(
+                                              child: Center(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 24,
+                                                        vertical: 24,
+                                                      ),
+                                                  child: CircleEmptyState(
+                                                    onInviteTap: () =>
+                                                        _showInviteSheet(
+                                                          context,
+                                                        ),
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                        );
+                                      },
                                 ),
                               )
                             else
@@ -180,24 +238,7 @@ class HomePage extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                            if (activeMembers.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: FilledButton.tonal(
-                                  onPressed: () => _sendMorningLight(
-                                    context,
-                                    activeMembers,
-                                  ),
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: Colors.white.withValues(
-                                      alpha: 0.06,
-                                    ),
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text('Morning Light'),
-                                ),
-                              ),
-                            if (latestInviteLink.isNotEmpty)
+                            if (pendingInvitation != null)
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                   24,
@@ -206,7 +247,7 @@ class HomePage extends StatelessWidget {
                                   16,
                                 ),
                                 child: Text(
-                                  latestInviteLink,
+                                  'Invite code · ${pendingInvitation.code}',
                                   textAlign: TextAlign.center,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(color: AppColors.textFaint),
@@ -258,25 +299,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  void _sendMorningLight(BuildContext context, List<CircleMember> members) {
-    final String senderId = context.read<AuthBloc>().state.maybeWhen(
-      authenticated: (session) => session.userId,
-      orElse: () => 'local-user',
-    );
-    final int colorValue =
-        context.read<ProfileSetupBloc>().state.signatureColorValue;
-
-    for (final CircleMember member in members.take(2)) {
-      context.read<LumiBloc>().add(
-        LumiEvent.sendPureRequested(
-          senderId: senderId,
-          memberId: member.id,
-          colorValue: colorValue,
-        ),
-      );
-    }
-  }
-
   void _showInviteSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
@@ -306,12 +328,6 @@ class HomePage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => MemberDetailSheet(
         member: member,
-        onActivate: () {
-          Navigator.of(context).pop();
-          context.read<CircleBloc>().add(
-            CircleEvent.memberActivated(memberId: member.id),
-          );
-        },
         onMute: () {
           Navigator.of(context).pop();
           context.read<CircleBloc>().add(
@@ -325,6 +341,12 @@ class HomePage extends StatelessWidget {
           Navigator.of(context).pop();
           context.read<CircleBloc>().add(
             CircleEvent.memberMemorialized(memberId: member.id),
+          );
+        },
+        onRemove: () {
+          Navigator.of(context).pop();
+          context.read<CircleBloc>().add(
+            CircleEvent.memberRemoved(memberId: member.id),
           );
         },
       ),
@@ -372,10 +394,7 @@ class _ComposeButton extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
-            colors: <Color>[
-              AppColors.peach,
-              AppColors.softLavender,
-            ],
+            colors: <Color>[AppColors.peach, AppColors.softLavender],
           ),
           boxShadow: <BoxShadow>[
             BoxShadow(

@@ -55,17 +55,18 @@ extension CircleEventPatterns on CircleEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _InviteRequested value)?  inviteRequested,TResult Function( _InviteLinkRequested value)?  inviteLinkRequested,TResult Function( _MemberActivated value)?  memberActivated,TResult Function( _MemberMuted value)?  memberMuted,TResult Function( _MemberMemorialized value)?  memberMemorialized,TResult Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _InvitationRequested value)?  invitationRequested,TResult Function( _InviteCodeAccepted value)?  inviteCodeAccepted,TResult Function( _MemberMuted value)?  memberMuted,TResult Function( _MemberMemorialized value)?  memberMemorialized,TResult Function( _MemberRemoved value)?  memberRemoved,TResult Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,TResult Function( _PendingInvitationDismissed value)?  pendingInvitationDismissed,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
-return loadRequested(_that);case _InviteRequested() when inviteRequested != null:
-return inviteRequested(_that);case _InviteLinkRequested() when inviteLinkRequested != null:
-return inviteLinkRequested(_that);case _MemberActivated() when memberActivated != null:
-return memberActivated(_that);case _MemberMuted() when memberMuted != null:
+return loadRequested(_that);case _InvitationRequested() when invitationRequested != null:
+return invitationRequested(_that);case _InviteCodeAccepted() when inviteCodeAccepted != null:
+return inviteCodeAccepted(_that);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that);case _MemberMemorialized() when memberMemorialized != null:
-return memberMemorialized(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt(_that);case _:
+return memberMemorialized(_that);case _MemberRemoved() when memberRemoved != null:
+return memberRemoved(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
+return dismissUpgradePrompt(_that);case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return pendingInvitationDismissed(_that);case _:
   return orElse();
 
 }
@@ -83,17 +84,18 @@ return dismissUpgradePrompt(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _InviteRequested value)  inviteRequested,required TResult Function( _InviteLinkRequested value)  inviteLinkRequested,required TResult Function( _MemberActivated value)  memberActivated,required TResult Function( _MemberMuted value)  memberMuted,required TResult Function( _MemberMemorialized value)  memberMemorialized,required TResult Function( _DismissUpgradePrompt value)  dismissUpgradePrompt,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _InvitationRequested value)  invitationRequested,required TResult Function( _InviteCodeAccepted value)  inviteCodeAccepted,required TResult Function( _MemberMuted value)  memberMuted,required TResult Function( _MemberMemorialized value)  memberMemorialized,required TResult Function( _MemberRemoved value)  memberRemoved,required TResult Function( _DismissUpgradePrompt value)  dismissUpgradePrompt,required TResult Function( _PendingInvitationDismissed value)  pendingInvitationDismissed,}){
 final _that = this;
 switch (_that) {
 case _LoadRequested():
-return loadRequested(_that);case _InviteRequested():
-return inviteRequested(_that);case _InviteLinkRequested():
-return inviteLinkRequested(_that);case _MemberActivated():
-return memberActivated(_that);case _MemberMuted():
+return loadRequested(_that);case _InvitationRequested():
+return invitationRequested(_that);case _InviteCodeAccepted():
+return inviteCodeAccepted(_that);case _MemberMuted():
 return memberMuted(_that);case _MemberMemorialized():
-return memberMemorialized(_that);case _DismissUpgradePrompt():
-return dismissUpgradePrompt(_that);case _:
+return memberMemorialized(_that);case _MemberRemoved():
+return memberRemoved(_that);case _DismissUpgradePrompt():
+return dismissUpgradePrompt(_that);case _PendingInvitationDismissed():
+return pendingInvitationDismissed(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -110,17 +112,18 @@ return dismissUpgradePrompt(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _InviteRequested value)?  inviteRequested,TResult? Function( _InviteLinkRequested value)?  inviteLinkRequested,TResult? Function( _MemberActivated value)?  memberActivated,TResult? Function( _MemberMuted value)?  memberMuted,TResult? Function( _MemberMemorialized value)?  memberMemorialized,TResult? Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _InvitationRequested value)?  invitationRequested,TResult? Function( _InviteCodeAccepted value)?  inviteCodeAccepted,TResult? Function( _MemberMuted value)?  memberMuted,TResult? Function( _MemberMemorialized value)?  memberMemorialized,TResult? Function( _MemberRemoved value)?  memberRemoved,TResult? Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,TResult? Function( _PendingInvitationDismissed value)?  pendingInvitationDismissed,}){
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
-return loadRequested(_that);case _InviteRequested() when inviteRequested != null:
-return inviteRequested(_that);case _InviteLinkRequested() when inviteLinkRequested != null:
-return inviteLinkRequested(_that);case _MemberActivated() when memberActivated != null:
-return memberActivated(_that);case _MemberMuted() when memberMuted != null:
+return loadRequested(_that);case _InvitationRequested() when invitationRequested != null:
+return invitationRequested(_that);case _InviteCodeAccepted() when inviteCodeAccepted != null:
+return inviteCodeAccepted(_that);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that);case _MemberMemorialized() when memberMemorialized != null:
-return memberMemorialized(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt(_that);case _:
+return memberMemorialized(_that);case _MemberRemoved() when memberRemoved != null:
+return memberRemoved(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
+return dismissUpgradePrompt(_that);case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return pendingInvitationDismissed(_that);case _:
   return null;
 
 }
@@ -137,16 +140,17 @@ return dismissUpgradePrompt(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String name,  String? relationshipLabel)?  inviteRequested,TResult Function( String name)?  inviteLinkRequested,TResult Function( String memberId)?  memberActivated,TResult Function( String memberId,  Duration duration)?  memberMuted,TResult Function( String memberId)?  memberMemorialized,TResult Function()?  dismissUpgradePrompt,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String label,  String? relationshipLabel)?  invitationRequested,TResult Function( String code)?  inviteCodeAccepted,TResult Function( String memberId,  Duration duration)?  memberMuted,TResult Function( String memberId)?  memberMemorialized,TResult Function( String memberId)?  memberRemoved,TResult Function()?  dismissUpgradePrompt,TResult Function()?  pendingInvitationDismissed,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
-return loadRequested();case _InviteRequested() when inviteRequested != null:
-return inviteRequested(_that.name,_that.relationshipLabel);case _InviteLinkRequested() when inviteLinkRequested != null:
-return inviteLinkRequested(_that.name);case _MemberActivated() when memberActivated != null:
-return memberActivated(_that.memberId);case _MemberMuted() when memberMuted != null:
+return loadRequested();case _InvitationRequested() when invitationRequested != null:
+return invitationRequested(_that.label,_that.relationshipLabel);case _InviteCodeAccepted() when inviteCodeAccepted != null:
+return inviteCodeAccepted(_that.code);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized() when memberMemorialized != null:
-return memberMemorialized(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt();case _:
+return memberMemorialized(_that.memberId);case _MemberRemoved() when memberRemoved != null:
+return memberRemoved(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
+return dismissUpgradePrompt();case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return pendingInvitationDismissed();case _:
   return orElse();
 
 }
@@ -164,16 +168,17 @@ return dismissUpgradePrompt();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String name,  String? relationshipLabel)  inviteRequested,required TResult Function( String name)  inviteLinkRequested,required TResult Function( String memberId)  memberActivated,required TResult Function( String memberId,  Duration duration)  memberMuted,required TResult Function( String memberId)  memberMemorialized,required TResult Function()  dismissUpgradePrompt,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String label,  String? relationshipLabel)  invitationRequested,required TResult Function( String code)  inviteCodeAccepted,required TResult Function( String memberId,  Duration duration)  memberMuted,required TResult Function( String memberId)  memberMemorialized,required TResult Function( String memberId)  memberRemoved,required TResult Function()  dismissUpgradePrompt,required TResult Function()  pendingInvitationDismissed,}) {final _that = this;
 switch (_that) {
 case _LoadRequested():
-return loadRequested();case _InviteRequested():
-return inviteRequested(_that.name,_that.relationshipLabel);case _InviteLinkRequested():
-return inviteLinkRequested(_that.name);case _MemberActivated():
-return memberActivated(_that.memberId);case _MemberMuted():
+return loadRequested();case _InvitationRequested():
+return invitationRequested(_that.label,_that.relationshipLabel);case _InviteCodeAccepted():
+return inviteCodeAccepted(_that.code);case _MemberMuted():
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized():
-return memberMemorialized(_that.memberId);case _DismissUpgradePrompt():
-return dismissUpgradePrompt();case _:
+return memberMemorialized(_that.memberId);case _MemberRemoved():
+return memberRemoved(_that.memberId);case _DismissUpgradePrompt():
+return dismissUpgradePrompt();case _PendingInvitationDismissed():
+return pendingInvitationDismissed();case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -190,16 +195,17 @@ return dismissUpgradePrompt();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String name,  String? relationshipLabel)?  inviteRequested,TResult? Function( String name)?  inviteLinkRequested,TResult? Function( String memberId)?  memberActivated,TResult? Function( String memberId,  Duration duration)?  memberMuted,TResult? Function( String memberId)?  memberMemorialized,TResult? Function()?  dismissUpgradePrompt,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String label,  String? relationshipLabel)?  invitationRequested,TResult? Function( String code)?  inviteCodeAccepted,TResult? Function( String memberId,  Duration duration)?  memberMuted,TResult? Function( String memberId)?  memberMemorialized,TResult? Function( String memberId)?  memberRemoved,TResult? Function()?  dismissUpgradePrompt,TResult? Function()?  pendingInvitationDismissed,}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
-return loadRequested();case _InviteRequested() when inviteRequested != null:
-return inviteRequested(_that.name,_that.relationshipLabel);case _InviteLinkRequested() when inviteLinkRequested != null:
-return inviteLinkRequested(_that.name);case _MemberActivated() when memberActivated != null:
-return memberActivated(_that.memberId);case _MemberMuted() when memberMuted != null:
+return loadRequested();case _InvitationRequested() when invitationRequested != null:
+return invitationRequested(_that.label,_that.relationshipLabel);case _InviteCodeAccepted() when inviteCodeAccepted != null:
+return inviteCodeAccepted(_that.code);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized() when memberMemorialized != null:
-return memberMemorialized(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt();case _:
+return memberMemorialized(_that.memberId);case _MemberRemoved() when memberRemoved != null:
+return memberRemoved(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
+return dismissUpgradePrompt();case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return pendingInvitationDismissed();case _:
   return null;
 
 }
@@ -242,44 +248,44 @@ String toString() {
 /// @nodoc
 
 
-class _InviteRequested implements CircleEvent {
-  const _InviteRequested({required this.name, this.relationshipLabel});
+class _InvitationRequested implements CircleEvent {
+  const _InvitationRequested({required this.label, this.relationshipLabel});
   
 
- final  String name;
+ final  String label;
  final  String? relationshipLabel;
 
 /// Create a copy of CircleEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$InviteRequestedCopyWith<_InviteRequested> get copyWith => __$InviteRequestedCopyWithImpl<_InviteRequested>(this, _$identity);
+_$InvitationRequestedCopyWith<_InvitationRequested> get copyWith => __$InvitationRequestedCopyWithImpl<_InvitationRequested>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InviteRequested&&(identical(other.name, name) || other.name == name)&&(identical(other.relationshipLabel, relationshipLabel) || other.relationshipLabel == relationshipLabel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InvitationRequested&&(identical(other.label, label) || other.label == label)&&(identical(other.relationshipLabel, relationshipLabel) || other.relationshipLabel == relationshipLabel));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,relationshipLabel);
+int get hashCode => Object.hash(runtimeType,label,relationshipLabel);
 
 @override
 String toString() {
-  return 'CircleEvent.inviteRequested(name: $name, relationshipLabel: $relationshipLabel)';
+  return 'CircleEvent.invitationRequested(label: $label, relationshipLabel: $relationshipLabel)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$InviteRequestedCopyWith<$Res> implements $CircleEventCopyWith<$Res> {
-  factory _$InviteRequestedCopyWith(_InviteRequested value, $Res Function(_InviteRequested) _then) = __$InviteRequestedCopyWithImpl;
+abstract mixin class _$InvitationRequestedCopyWith<$Res> implements $CircleEventCopyWith<$Res> {
+  factory _$InvitationRequestedCopyWith(_InvitationRequested value, $Res Function(_InvitationRequested) _then) = __$InvitationRequestedCopyWithImpl;
 @useResult
 $Res call({
- String name, String? relationshipLabel
+ String label, String? relationshipLabel
 });
 
 
@@ -287,18 +293,18 @@ $Res call({
 
 }
 /// @nodoc
-class __$InviteRequestedCopyWithImpl<$Res>
-    implements _$InviteRequestedCopyWith<$Res> {
-  __$InviteRequestedCopyWithImpl(this._self, this._then);
+class __$InvitationRequestedCopyWithImpl<$Res>
+    implements _$InvitationRequestedCopyWith<$Res> {
+  __$InvitationRequestedCopyWithImpl(this._self, this._then);
 
-  final _InviteRequested _self;
-  final $Res Function(_InviteRequested) _then;
+  final _InvitationRequested _self;
+  final $Res Function(_InvitationRequested) _then;
 
 /// Create a copy of CircleEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? name = null,Object? relationshipLabel = freezed,}) {
-  return _then(_InviteRequested(
-name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+@pragma('vm:prefer-inline') $Res call({Object? label = null,Object? relationshipLabel = freezed,}) {
+  return _then(_InvitationRequested(
+label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,relationshipLabel: freezed == relationshipLabel ? _self.relationshipLabel : relationshipLabel // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -310,43 +316,43 @@ as String?,
 /// @nodoc
 
 
-class _InviteLinkRequested implements CircleEvent {
-  const _InviteLinkRequested({required this.name});
+class _InviteCodeAccepted implements CircleEvent {
+  const _InviteCodeAccepted({required this.code});
   
 
- final  String name;
+ final  String code;
 
 /// Create a copy of CircleEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$InviteLinkRequestedCopyWith<_InviteLinkRequested> get copyWith => __$InviteLinkRequestedCopyWithImpl<_InviteLinkRequested>(this, _$identity);
+_$InviteCodeAcceptedCopyWith<_InviteCodeAccepted> get copyWith => __$InviteCodeAcceptedCopyWithImpl<_InviteCodeAccepted>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InviteLinkRequested&&(identical(other.name, name) || other.name == name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InviteCodeAccepted&&(identical(other.code, code) || other.code == code));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name);
+int get hashCode => Object.hash(runtimeType,code);
 
 @override
 String toString() {
-  return 'CircleEvent.inviteLinkRequested(name: $name)';
+  return 'CircleEvent.inviteCodeAccepted(code: $code)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$InviteLinkRequestedCopyWith<$Res> implements $CircleEventCopyWith<$Res> {
-  factory _$InviteLinkRequestedCopyWith(_InviteLinkRequested value, $Res Function(_InviteLinkRequested) _then) = __$InviteLinkRequestedCopyWithImpl;
+abstract mixin class _$InviteCodeAcceptedCopyWith<$Res> implements $CircleEventCopyWith<$Res> {
+  factory _$InviteCodeAcceptedCopyWith(_InviteCodeAccepted value, $Res Function(_InviteCodeAccepted) _then) = __$InviteCodeAcceptedCopyWithImpl;
 @useResult
 $Res call({
- String name
+ String code
 });
 
 
@@ -354,84 +360,18 @@ $Res call({
 
 }
 /// @nodoc
-class __$InviteLinkRequestedCopyWithImpl<$Res>
-    implements _$InviteLinkRequestedCopyWith<$Res> {
-  __$InviteLinkRequestedCopyWithImpl(this._self, this._then);
+class __$InviteCodeAcceptedCopyWithImpl<$Res>
+    implements _$InviteCodeAcceptedCopyWith<$Res> {
+  __$InviteCodeAcceptedCopyWithImpl(this._self, this._then);
 
-  final _InviteLinkRequested _self;
-  final $Res Function(_InviteLinkRequested) _then;
-
-/// Create a copy of CircleEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? name = null,}) {
-  return _then(_InviteLinkRequested(
-name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-
-}
-
-/// @nodoc
-
-
-class _MemberActivated implements CircleEvent {
-  const _MemberActivated({required this.memberId});
-  
-
- final  String memberId;
+  final _InviteCodeAccepted _self;
+  final $Res Function(_InviteCodeAccepted) _then;
 
 /// Create a copy of CircleEvent
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$MemberActivatedCopyWith<_MemberActivated> get copyWith => __$MemberActivatedCopyWithImpl<_MemberActivated>(this, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemberActivated&&(identical(other.memberId, memberId) || other.memberId == memberId));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,memberId);
-
-@override
-String toString() {
-  return 'CircleEvent.memberActivated(memberId: $memberId)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$MemberActivatedCopyWith<$Res> implements $CircleEventCopyWith<$Res> {
-  factory _$MemberActivatedCopyWith(_MemberActivated value, $Res Function(_MemberActivated) _then) = __$MemberActivatedCopyWithImpl;
-@useResult
-$Res call({
- String memberId
-});
-
-
-
-
-}
-/// @nodoc
-class __$MemberActivatedCopyWithImpl<$Res>
-    implements _$MemberActivatedCopyWith<$Res> {
-  __$MemberActivatedCopyWithImpl(this._self, this._then);
-
-  final _MemberActivated _self;
-  final $Res Function(_MemberActivated) _then;
-
-/// Create a copy of CircleEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? memberId = null,}) {
-  return _then(_MemberActivated(
-memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_to_non_nullable
+@pragma('vm:prefer-inline') $Res call({Object? code = null,}) {
+  return _then(_InviteCodeAccepted(
+code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -576,6 +516,72 @@ as String,
 /// @nodoc
 
 
+class _MemberRemoved implements CircleEvent {
+  const _MemberRemoved({required this.memberId});
+  
+
+ final  String memberId;
+
+/// Create a copy of CircleEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MemberRemovedCopyWith<_MemberRemoved> get copyWith => __$MemberRemovedCopyWithImpl<_MemberRemoved>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemberRemoved&&(identical(other.memberId, memberId) || other.memberId == memberId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,memberId);
+
+@override
+String toString() {
+  return 'CircleEvent.memberRemoved(memberId: $memberId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MemberRemovedCopyWith<$Res> implements $CircleEventCopyWith<$Res> {
+  factory _$MemberRemovedCopyWith(_MemberRemoved value, $Res Function(_MemberRemoved) _then) = __$MemberRemovedCopyWithImpl;
+@useResult
+$Res call({
+ String memberId
+});
+
+
+
+
+}
+/// @nodoc
+class __$MemberRemovedCopyWithImpl<$Res>
+    implements _$MemberRemovedCopyWith<$Res> {
+  __$MemberRemovedCopyWithImpl(this._self, this._then);
+
+  final _MemberRemoved _self;
+  final $Res Function(_MemberRemoved) _then;
+
+/// Create a copy of CircleEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? memberId = null,}) {
+  return _then(_MemberRemoved(
+memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
 class _DismissUpgradePrompt implements CircleEvent {
   const _DismissUpgradePrompt();
   
@@ -597,6 +603,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'CircleEvent.dismissUpgradePrompt()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class _PendingInvitationDismissed implements CircleEvent {
+  const _PendingInvitationDismissed();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PendingInvitationDismissed);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'CircleEvent.pendingInvitationDismissed()';
 }
 
 
@@ -722,12 +760,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<CircleMember> members,  int availableSlots,  String latestInviteLink,  bool showUpgradePrompt)?  loaded,TResult Function( Failure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<CircleMember> members,  int availableSlots,  Invitation? pendingInvitation,  bool showUpgradePrompt,  Failure? transientFailure)?  loaded,TResult Function( Failure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.members,_that.availableSlots,_that.latestInviteLink,_that.showUpgradePrompt);case _Failure() when failure != null:
+return loaded(_that.members,_that.availableSlots,_that.pendingInvitation,_that.showUpgradePrompt,_that.transientFailure);case _Failure() when failure != null:
 return failure(_that.failure);case _:
   return orElse();
 
@@ -746,12 +784,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<CircleMember> members,  int availableSlots,  String latestInviteLink,  bool showUpgradePrompt)  loaded,required TResult Function( Failure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<CircleMember> members,  int availableSlots,  Invitation? pendingInvitation,  bool showUpgradePrompt,  Failure? transientFailure)  loaded,required TResult Function( Failure failure)  failure,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.members,_that.availableSlots,_that.latestInviteLink,_that.showUpgradePrompt);case _Failure():
+return loaded(_that.members,_that.availableSlots,_that.pendingInvitation,_that.showUpgradePrompt,_that.transientFailure);case _Failure():
 return failure(_that.failure);case _:
   throw StateError('Unexpected subclass');
 
@@ -769,12 +807,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<CircleMember> members,  int availableSlots,  String latestInviteLink,  bool showUpgradePrompt)?  loaded,TResult? Function( Failure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<CircleMember> members,  int availableSlots,  Invitation? pendingInvitation,  bool showUpgradePrompt,  Failure? transientFailure)?  loaded,TResult? Function( Failure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.members,_that.availableSlots,_that.latestInviteLink,_that.showUpgradePrompt);case _Failure() when failure != null:
+return loaded(_that.members,_that.availableSlots,_that.pendingInvitation,_that.showUpgradePrompt,_that.transientFailure);case _Failure() when failure != null:
 return failure(_that.failure);case _:
   return null;
 
@@ -851,7 +889,7 @@ String toString() {
 
 
 class _Loaded implements CircleState {
-  const _Loaded({required final  List<CircleMember> members, required this.availableSlots, this.latestInviteLink = '', this.showUpgradePrompt = false}): _members = members;
+  const _Loaded({required final  List<CircleMember> members, required this.availableSlots, this.pendingInvitation, this.showUpgradePrompt = false, this.transientFailure}): _members = members;
   
 
  final  List<CircleMember> _members;
@@ -862,8 +900,9 @@ class _Loaded implements CircleState {
 }
 
  final  int availableSlots;
-@JsonKey() final  String latestInviteLink;
+ final  Invitation? pendingInvitation;
 @JsonKey() final  bool showUpgradePrompt;
+ final  Failure? transientFailure;
 
 /// Create a copy of CircleState
 /// with the given fields replaced by the non-null parameter values.
@@ -875,16 +914,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._members, _members)&&(identical(other.availableSlots, availableSlots) || other.availableSlots == availableSlots)&&(identical(other.latestInviteLink, latestInviteLink) || other.latestInviteLink == latestInviteLink)&&(identical(other.showUpgradePrompt, showUpgradePrompt) || other.showUpgradePrompt == showUpgradePrompt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._members, _members)&&(identical(other.availableSlots, availableSlots) || other.availableSlots == availableSlots)&&(identical(other.pendingInvitation, pendingInvitation) || other.pendingInvitation == pendingInvitation)&&(identical(other.showUpgradePrompt, showUpgradePrompt) || other.showUpgradePrompt == showUpgradePrompt)&&(identical(other.transientFailure, transientFailure) || other.transientFailure == transientFailure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_members),availableSlots,latestInviteLink,showUpgradePrompt);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_members),availableSlots,pendingInvitation,showUpgradePrompt,transientFailure);
 
 @override
 String toString() {
-  return 'CircleState.loaded(members: $members, availableSlots: $availableSlots, latestInviteLink: $latestInviteLink, showUpgradePrompt: $showUpgradePrompt)';
+  return 'CircleState.loaded(members: $members, availableSlots: $availableSlots, pendingInvitation: $pendingInvitation, showUpgradePrompt: $showUpgradePrompt, transientFailure: $transientFailure)';
 }
 
 
@@ -895,7 +934,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $CircleStateCopyWith<$Res
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- List<CircleMember> members, int availableSlots, String latestInviteLink, bool showUpgradePrompt
+ List<CircleMember> members, int availableSlots, Invitation? pendingInvitation, bool showUpgradePrompt, Failure? transientFailure
 });
 
 
@@ -912,13 +951,14 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of CircleState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? members = null,Object? availableSlots = null,Object? latestInviteLink = null,Object? showUpgradePrompt = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? members = null,Object? availableSlots = null,Object? pendingInvitation = freezed,Object? showUpgradePrompt = null,Object? transientFailure = freezed,}) {
   return _then(_Loaded(
 members: null == members ? _self._members : members // ignore: cast_nullable_to_non_nullable
 as List<CircleMember>,availableSlots: null == availableSlots ? _self.availableSlots : availableSlots // ignore: cast_nullable_to_non_nullable
-as int,latestInviteLink: null == latestInviteLink ? _self.latestInviteLink : latestInviteLink // ignore: cast_nullable_to_non_nullable
-as String,showUpgradePrompt: null == showUpgradePrompt ? _self.showUpgradePrompt : showUpgradePrompt // ignore: cast_nullable_to_non_nullable
-as bool,
+as int,pendingInvitation: freezed == pendingInvitation ? _self.pendingInvitation : pendingInvitation // ignore: cast_nullable_to_non_nullable
+as Invitation?,showUpgradePrompt: null == showUpgradePrompt ? _self.showUpgradePrompt : showUpgradePrompt // ignore: cast_nullable_to_non_nullable
+as bool,transientFailure: freezed == transientFailure ? _self.transientFailure : transientFailure // ignore: cast_nullable_to_non_nullable
+as Failure?,
   ));
 }
 

@@ -8,7 +8,7 @@
     <application
         android:label="${appName}"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="false">
         <activity
             android:name="dev.gauss.lumi.MainActivity"
@@ -33,6 +33,13 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="es.antonborri.home_widget.action.LAUNCH" />
+            </intent-filter>
+            <!-- Appwrite OAuth callback. Scheme = "appwrite-callback-{projectId}". -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="appwrite-callback-69ff68eb0033441e4041" />
             </intent-filter>
         </activity>
         <receiver

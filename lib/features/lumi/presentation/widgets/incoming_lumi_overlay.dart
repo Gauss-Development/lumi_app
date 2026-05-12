@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:lumi/core/constants/app_constants.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
-import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
-import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
+import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
 import 'package:lumi/features/shelf/domain/entities/kept_lumi.dart';
 import 'package:lumi/features/shelf/presentation/bloc/shelf_bloc.dart';
 import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
@@ -27,6 +26,7 @@ class IncomingLumiOverlay extends StatefulWidget {
 
 class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
   final HapticsService _hapticsService = const HapticsService();
+  bool _pulseActive = false;
 
   @override
   void initState() {
@@ -37,9 +37,7 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
   Future<void> _playLumi() async {
     switch (widget.lumi.type) {
       case LumiType.pulse:
-        await _hapticsService.playPulsePattern(
-          widget.lumi.pulsePattern?.beats ?? const <int>[180, 220],
-        );
+        await _playPulsePattern(widget.lumi.pulsePattern?.beats);
       case LumiType.pure:
       case LumiType.light:
       case LumiType.doodle:
@@ -47,15 +45,32 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
     }
   }
 
+  Future<void> _playPulsePattern(List<int>? beats) async {
+    final List<int> intervals = beats == null || beats.isEmpty
+        ? const <int>[180, 220]
+        : beats;
+    await _playPulseHit();
+    for (final int interval in intervals) {
+      await Future<void>.delayed(
+        Duration(milliseconds: interval.clamp(80, 1600)),
+      );
+      await _playPulseHit();
+    }
+  }
+
+  Future<void> _playPulseHit() async {
+    if (!mounted) return;
+    setState(() => _pulseActive = true);
+    await _hapticsService.playPulseHit();
+    await Future<void>.delayed(const Duration(milliseconds: 90));
+    if (!mounted) return;
+    setState(() => _pulseActive = false);
+  }
+
   String _senderName(BuildContext context) {
-    return context.read<CircleBloc>().state.maybeWhen(
-      loaded: (
-        members,
-        availableSlots,
-        latestInviteLink,
-        showUpgradePrompt,
-      ) {
-        for (final member in members) {
+    return context.read<CircleBloc>().state.maybeMap(
+      loaded: (loaded) {
+        for (final member in loaded.members) {
           if (member.id == widget.lumi.memberId) {
             return member.displayName;
           }
@@ -75,29 +90,46 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
     );
   }
 
-  void _glowBack(BuildContext context) {
-    final String senderId = context.read<AuthBloc>().state.maybeWhen(
-      authenticated: (session) => session.userId,
-      orElse: () => 'local-user',
+  CircleMember? _senderMember(BuildContext context) {
+    return context.read<CircleBloc>().state.maybeMap(
+      loaded: (loaded) {
+        for (final member in loaded.members) {
+          if (member.id == widget.lumi.memberId) {
+            return member;
+          }
+        }
+        return null;
+      },
+      orElse: () => null,
     );
-    final int colorValue = context.read<ProfileSetupBloc>().state.signatureColorValue == 0
-        ? AppConstants.signatureColors.first.toARGB32()
-        : context.read<ProfileSetupBloc>().state.signatureColorValue;
-    context.read<LumiBloc>().add(
-      LumiEvent.sendPureRequested(
-        senderId: senderId,
-        memberId: widget.lumi.memberId,
-        colorValue: colorValue,
-      ),
+  }
+
+  Future<void> _reply(BuildContext context) async {
+    final CircleMember? member = _senderMember(context);
+    if (member == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Unable to find this circle member.')),
+        );
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LumiComposerSheet(member: member),
     );
-    _markSeen(context);
+    if (context.mounted) {
+      _markSeen(context);
+    }
   }
 
   void _keepOnShelf(BuildContext context) {
-    final EntitlementStatus? status = context.read<SubscriptionBloc>().state.maybeWhen(
-      loaded: (status, plans) => status,
-      orElse: () => null,
-    );
+    final EntitlementStatus? status = context
+        .read<SubscriptionBloc>()
+        .state
+        .maybeWhen(loaded: (status, plans) => status, orElse: () => null);
     if (status == null || !status.isActive) {
       PaywallSheet.show(context);
       return;
@@ -159,19 +191,24 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
                   const SizedBox(height: 36),
-                  GlowOrb(
-                    color: color,
-                    size: 300,
-                    intensity: 1.05,
-                    child: widget.lumi.type == LumiType.doodle
-                        ? CustomPaint(
-                            size: const Size(220, 220),
-                            painter: _DoodlePreviewPainter(
-                              stroke: widget.lumi.doodleStroke,
-                              color: color,
-                            ),
-                          )
-                        : null,
+                  AnimatedScale(
+                    scale: _pulseActive ? 1.08 : 1,
+                    duration: const Duration(milliseconds: 90),
+                    curve: Curves.easeOut,
+                    child: GlowOrb(
+                      color: color,
+                      size: 300,
+                      intensity: _pulseActive ? 1.22 : 1.05,
+                      child: widget.lumi.type == LumiType.doodle
+                          ? CustomPaint(
+                              size: const Size(220, 220),
+                              painter: _DoodlePreviewPainter(
+                                stroke: widget.lumi.doodleStroke,
+                                color: color,
+                              ),
+                            )
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 36),
                   Text(
@@ -200,13 +237,13 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
                 children: <Widget>[
                   Expanded(
                     child: TextButton.icon(
-                      onPressed: () => _glowBack(context),
+                      onPressed: () => _reply(context),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.white.withValues(alpha: 0.75),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      icon: const Icon(Icons.wb_incandescent_outlined, size: 16),
-                      label: const Text('Glow back'),
+                      icon: const Icon(Icons.reply_rounded, size: 16),
+                      label: const Text('Reply'),
                     ),
                   ),
                   Container(
@@ -221,7 +258,10 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
                         foregroundColor: color,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      icon: const Icon(Icons.bookmark_outline_rounded, size: 16),
+                      icon: const Icon(
+                        Icons.bookmark_outline_rounded,
+                        size: 16,
+                      ),
                       label: const Text('Keep on shelf'),
                     ),
                   ),
@@ -236,10 +276,14 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
 
   String _bodyCopy(LumiType type) {
     return switch (type) {
-      LumiType.pulse => 'A pulse from someone you love. Sit with the rhythm for a moment.',
-      LumiType.doodle => 'A small mark, sent without words. Hold it as long as you like.',
-      LumiType.light => 'A feeling arrived softly. No words needed — just presence.',
-      LumiType.pure => 'Thinking of you. No words needed — sit with it as long as you like.',
+      LumiType.pulse =>
+        'A pulse from someone you love. Sit with the rhythm for a moment.',
+      LumiType.doodle =>
+        'A small mark, sent without words. Hold it as long as you like.',
+      LumiType.light =>
+        'A feeling arrived softly. No words needed — just presence.',
+      LumiType.pure =>
+        'Thinking of you. No words needed — sit with it as long as you like.',
     };
   }
 }

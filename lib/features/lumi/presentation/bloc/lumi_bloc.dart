@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -32,6 +34,18 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     on<_ReactRequested>(_onReactRequested);
     on<_MarkSeenRequested>(_onMarkSeenRequested);
     on<_SaveDoodleDraftRequested>(_onSaveDoodleDraftRequested);
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (isClosed) {
+        return;
+      }
+      final bool isLoading = state.maybeMap(
+        loading: (_) => true,
+        orElse: () => false,
+      );
+      if (!isLoading) {
+        add(LumiEvent.watchRecent(memberId: state.currentMemberId));
+      }
+    });
   }
 
   final GetRecentLumisUseCase _getRecentLumisUseCase;
@@ -39,17 +53,25 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
   final ReactToLumiUseCase _reactToLumiUseCase;
   final MarkLumiSeenUseCase _markLumiSeenUseCase;
   final SaveDoodleDraftUseCase _saveDoodleDraftUseCase;
+  Timer? _pollTimer;
 
   Future<void> _onWatchRecent(
     _WatchRecent event,
     Emitter<LumiState> emit,
   ) async {
-    emit(
-      LumiState.loading(
-        selectedMemberId: event.memberId,
-        recentLumis: state.recentLumis,
-      ),
+    final bool hasLoadedOnce = state.maybeMap(
+      loaded: (_) => true,
+      failure: (_) => state.recentLumis.isNotEmpty,
+      orElse: () => false,
     );
+    if (!hasLoadedOnce) {
+      emit(
+        LumiState.loading(
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      );
+    }
     final result = await _getRecentLumisUseCase(memberId: event.memberId);
     result.fold(
       (Failure failure) => emit(
@@ -218,6 +240,12 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
         ),
       ),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _pollTimer?.cancel();
+    return super.close();
   }
 }
 

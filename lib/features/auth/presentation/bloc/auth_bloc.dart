@@ -3,32 +3,37 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
 import 'package:lumi/features/auth/domain/usecases/get_current_session_usecase.dart';
-import 'package:lumi/features/auth/domain/usecases/request_otp_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_out_usecase.dart';
-import 'package:lumi/features/auth/domain/usecases/verify_otp_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_up_with_email_usecase.dart';
 
 part 'auth_bloc.freezed.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     required GetCurrentSessionUseCase getCurrentSessionUseCase,
-    required RequestOtpUseCase requestOtpUseCase,
-    required VerifyOtpUseCase verifyOtpUseCase,
+    required SignInWithEmailUseCase signInWithEmailUseCase,
+    required SignUpWithEmailUseCase signUpWithEmailUseCase,
+    required SignInWithGoogleUseCase signInWithGoogleUseCase,
     required SignOutUseCase signOutUseCase,
   }) : _getCurrentSessionUseCase = getCurrentSessionUseCase,
-       _requestOtpUseCase = requestOtpUseCase,
-       _verifyOtpUseCase = verifyOtpUseCase,
+       _signInWithEmailUseCase = signInWithEmailUseCase,
+       _signUpWithEmailUseCase = signUpWithEmailUseCase,
+       _signInWithGoogleUseCase = signInWithGoogleUseCase,
        _signOutUseCase = signOutUseCase,
        super(const AuthState.initial()) {
     on<_Started>(_onStarted);
-    on<_OtpRequested>(_onOtpRequested);
-    on<_OtpVerified>(_onOtpVerified);
+    on<_SignInRequested>(_onSignInRequested);
+    on<_SignUpRequested>(_onSignUpRequested);
+    on<_GoogleSignInRequested>(_onGoogleSignInRequested);
     on<_SignedOut>(_onSignedOut);
   }
 
   final GetCurrentSessionUseCase _getCurrentSessionUseCase;
-  final RequestOtpUseCase _requestOtpUseCase;
-  final VerifyOtpUseCase _verifyOtpUseCase;
+  final SignInWithEmailUseCase _signInWithEmailUseCase;
+  final SignUpWithEmailUseCase _signUpWithEmailUseCase;
+  final SignInWithGoogleUseCase _signInWithGoogleUseCase;
   final SignOutUseCase _signOutUseCase;
 
   Future<void> _onStarted(_Started event, Emitter<AuthState> emit) async {
@@ -42,27 +47,43 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  Future<void> _onOtpRequested(
-    _OtpRequested event,
+  Future<void> _onSignInRequested(
+    _SignInRequested event,
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
-    final result = await _requestOtpUseCase(event.phoneNumber);
+    final result = await _signInWithEmailUseCase(
+      email: event.email,
+      password: event.password,
+    );
     result.fold(
       (failure) => emit(AuthState.failure(failure.message)),
-      (_) => emit(AuthState.codeSent(event.phoneNumber)),
+      (session) => emit(AuthState.authenticated(session)),
     );
   }
 
-  Future<void> _onOtpVerified(
-    _OtpVerified event,
+  Future<void> _onSignUpRequested(
+    _SignUpRequested event,
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
-    final result = await _verifyOtpUseCase(
-      phoneNumber: event.phoneNumber,
-      code: event.code,
+    final result = await _signUpWithEmailUseCase(
+      email: event.email,
+      password: event.password,
+      name: event.name,
     );
+    result.fold(
+      (failure) => emit(AuthState.failure(failure.message)),
+      (session) => emit(AuthState.authenticated(session)),
+    );
+  }
+
+  Future<void> _onGoogleSignInRequested(
+    _GoogleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthState.loading());
+    final result = await _signInWithGoogleUseCase();
     result.fold(
       (failure) => emit(AuthState.failure(failure.message)),
       (session) => emit(AuthState.authenticated(session)),
@@ -80,22 +101,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 }
 
 @freezed
-class AuthEvent with _$AuthEvent {
+sealed class AuthEvent with _$AuthEvent {
   const factory AuthEvent.started() = _Started;
-  const factory AuthEvent.otpRequested(String phoneNumber) = _OtpRequested;
-  const factory AuthEvent.otpVerified({
-    required String phoneNumber,
-    required String code,
-  }) = _OtpVerified;
+  const factory AuthEvent.signInRequested({
+    required String email,
+    required String password,
+  }) = _SignInRequested;
+  const factory AuthEvent.signUpRequested({
+    required String email,
+    required String password,
+    required String name,
+  }) = _SignUpRequested;
+  const factory AuthEvent.googleSignInRequested() = _GoogleSignInRequested;
   const factory AuthEvent.signedOut() = _SignedOut;
 }
 
 @freezed
-class AuthState with _$AuthState {
+sealed class AuthState with _$AuthState {
   const factory AuthState.initial() = _Initial;
   const factory AuthState.loading() = _Loading;
   const factory AuthState.unauthenticated([String? message]) = _Unauthenticated;
-  const factory AuthState.codeSent(String phoneNumber) = _CodeSent;
   const factory AuthState.authenticated(AuthSession session) = _Authenticated;
   const factory AuthState.failure(String message) = _Failure;
 }

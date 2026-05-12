@@ -7,7 +7,6 @@ class AppConstants {
   static const String tagline = 'A little light for someone you love.';
   static const String defaultAvatarId = 'generated_sun';
   static const String defaultInviteBaseUrl = 'https://lumi.family/invite';
-  static const Duration demoReactionDelay = Duration(seconds: 4);
 
   static const List<String> allowedReactions = <String>[
     'heart',

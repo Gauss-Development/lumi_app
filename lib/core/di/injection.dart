@@ -5,7 +5,6 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:lumi/core/config/environment_config.dart';
-import 'package:lumi/core/network/supabase_client_provider.dart';
 import 'package:lumi/core/services/encryption_service.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/notification_service.dart';
@@ -17,22 +16,24 @@ import 'package:lumi/features/auth/data/datasources/auth_remote_data_source.dart
 import 'package:lumi/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:lumi/features/auth/domain/repositories/auth_repository.dart';
 import 'package:lumi/features/auth/domain/usecases/get_current_session_usecase.dart';
-import 'package:lumi/features/auth/domain/usecases/request_otp_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_out_usecase.dart';
-import 'package:lumi/features/auth/domain/usecases/verify_otp_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_up_with_email_usecase.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:lumi/features/circle/data/datasources/circle_local_data_source.dart';
+import 'package:lumi/features/circle/data/datasources/circle_remote_data_source.dart';
 import 'package:lumi/features/circle/data/repositories/circle_repository_impl.dart';
 import 'package:lumi/features/circle/domain/repositories/circle_repository.dart';
-import 'package:lumi/features/circle/domain/usecases/accept_invite_usecase.dart';
-import 'package:lumi/features/circle/domain/usecases/create_invite_link_usecase.dart';
+import 'package:lumi/features/circle/domain/usecases/accept_invitation_usecase.dart';
+import 'package:lumi/features/circle/domain/usecases/create_invitation_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_available_slots_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/get_circle_members_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/memorialize_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/mute_member_usecase.dart';
-import 'package:lumi/features/circle/domain/usecases/send_invite_usecase.dart';
+import 'package:lumi/features/circle/domain/usecases/remove_member_usecase.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_local_data_source.dart';
+import 'package:lumi/features/lumi/data/datasources/lumi_remote_data_source.dart';
 import 'package:lumi/features/lumi/data/repositories/lumi_repository_impl.dart';
 import 'package:lumi/features/lumi/domain/repositories/lumi_repository.dart';
 import 'package:lumi/features/lumi/domain/usecases/get_recent_lumis_usecase.dart';
@@ -84,7 +85,6 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<PreferencesService>(
     () => PreferencesService(sharedPreferences),
   );
-  sl.registerLazySingleton<SupabaseClientProvider>(SupabaseClientProvider.new);
   sl.registerLazySingleton<FlutterSecureStorage>(FlutterSecureStorage.new);
   sl.registerLazySingleton<SecureKeyStore>(
     () => SecureKeyStore(storage: sl<FlutterSecureStorage>()),
@@ -104,13 +104,7 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   await sl<NotificationService>().initialize();
   await sl<RevenueCatService>().initialize();
 
-  sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(
-      config: sl<EnvironmentConfig>(),
-      preferencesService: sl<PreferencesService>(),
-      supabaseClientProvider: sl<SupabaseClientProvider>(),
-    ),
-  );
+  sl.registerLazySingleton<AuthRemoteDataSource>(AuthRemoteDataSourceImpl.new);
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(sl<AuthRemoteDataSource>()),
   );
@@ -139,26 +133,26 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
     ),
   );
 
-  sl.registerLazySingleton<LumiLocalDataSource>(
-    () => LumiLocalDataSource(
-      sl<PreferencesService>(),
-      sl<CircleLocalDataSource>(),
-    ),
-  );
-  sl.registerLazySingleton<LumiRepository>(
-    () => LumiRepositoryImpl(
-      localDataSource: sl<LumiLocalDataSource>(),
-      settingsRepository: sl<SettingsRepository>(),
+  sl.registerLazySingleton<CircleRemoteDataSource>(CircleRemoteDataSource.new);
+  sl.registerLazySingleton<CircleRepository>(
+    () => CircleRepositoryImpl(
+      remoteDataSource: sl<CircleRemoteDataSource>(),
+      subscriptionRepository: sl<SubscriptionRepository>(),
     ),
   );
 
-  sl.registerLazySingleton<CircleLocalDataSource>(
-    () => CircleLocalDataSource(sl<PreferencesService>()),
+  sl.registerLazySingleton<LumiLocalDataSource>(
+    () => LumiLocalDataSource(
+      sl<PreferencesService>(),
+      sl<CircleRemoteDataSource>(),
+    ),
   );
-  sl.registerLazySingleton<CircleRepository>(
-    () => CircleRepositoryImpl(
-      localDataSource: sl<CircleLocalDataSource>(),
-      subscriptionRepository: sl<SubscriptionRepository>(),
+  sl.registerLazySingleton<LumiRemoteDataSource>(LumiRemoteDataSource.new);
+  sl.registerLazySingleton<LumiRepository>(
+    () => LumiRepositoryImpl(
+      localDataSource: sl<LumiLocalDataSource>(),
+      remoteDataSource: sl<LumiRemoteDataSource>(),
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
 
@@ -169,14 +163,17 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
     () => ShelfRepositoryImpl(sl<ShelfLocalDataSource>()),
   );
 
-  sl.registerLazySingleton<RequestOtpUseCase>(
-    () => RequestOtpUseCase(sl<AuthRepository>()),
-  );
-  sl.registerLazySingleton<VerifyOtpUseCase>(
-    () => VerifyOtpUseCase(sl<AuthRepository>()),
-  );
   sl.registerLazySingleton<GetCurrentSessionUseCase>(
     () => GetCurrentSessionUseCase(sl<AuthRepository>()),
+  );
+  sl.registerLazySingleton<SignInWithEmailUseCase>(
+    () => SignInWithEmailUseCase(sl<AuthRepository>()),
+  );
+  sl.registerLazySingleton<SignUpWithEmailUseCase>(
+    () => SignUpWithEmailUseCase(sl<AuthRepository>()),
+  );
+  sl.registerLazySingleton<SignInWithGoogleUseCase>(
+    () => SignInWithGoogleUseCase(sl<AuthRepository>()),
   );
   sl.registerLazySingleton<SignOutUseCase>(
     () => SignOutUseCase(sl<AuthRepository>()),
@@ -218,20 +215,20 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<GetCircleMembersUseCase>(
     () => GetCircleMembersUseCase(sl<CircleRepository>()),
   );
-  sl.registerLazySingleton<SendInviteUseCase>(
-    () => SendInviteUseCase(sl<CircleRepository>()),
+  sl.registerLazySingleton<CreateInvitationUseCase>(
+    () => CreateInvitationUseCase(sl<CircleRepository>()),
   );
-  sl.registerLazySingleton<CreateInviteLinkUseCase>(
-    () => CreateInviteLinkUseCase(sl<CircleRepository>()),
-  );
-  sl.registerLazySingleton<AcceptInviteUseCase>(
-    () => AcceptInviteUseCase(sl<CircleRepository>()),
+  sl.registerLazySingleton<AcceptInvitationUseCase>(
+    () => AcceptInvitationUseCase(sl<CircleRepository>()),
   );
   sl.registerLazySingleton<MuteMemberUseCase>(
     () => MuteMemberUseCase(sl<CircleRepository>()),
   );
   sl.registerLazySingleton<MemorializeMemberUseCase>(
     () => MemorializeMemberUseCase(sl<CircleRepository>()),
+  );
+  sl.registerLazySingleton<RemoveMemberUseCase>(
+    () => RemoveMemberUseCase(sl<CircleRepository>()),
   );
   sl.registerLazySingleton<GetAvailableSlotsUseCase>(
     () => GetAvailableSlotsUseCase(sl<CircleRepository>()),
@@ -266,8 +263,9 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(
       getCurrentSessionUseCase: sl<GetCurrentSessionUseCase>(),
-      requestOtpUseCase: sl<RequestOtpUseCase>(),
-      verifyOtpUseCase: sl<VerifyOtpUseCase>(),
+      signInWithEmailUseCase: sl<SignInWithEmailUseCase>(),
+      signUpWithEmailUseCase: sl<SignUpWithEmailUseCase>(),
+      signInWithGoogleUseCase: sl<SignInWithGoogleUseCase>(),
       signOutUseCase: sl<SignOutUseCase>(),
     ),
   );
@@ -284,11 +282,11 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerFactory<CircleBloc>(
     () => CircleBloc(
       getCircleMembersUseCase: sl<GetCircleMembersUseCase>(),
-      sendInviteUseCase: sl<SendInviteUseCase>(),
-      createInviteLinkUseCase: sl<CreateInviteLinkUseCase>(),
-      acceptInviteUseCase: sl<AcceptInviteUseCase>(),
+      createInvitationUseCase: sl<CreateInvitationUseCase>(),
+      acceptInvitationUseCase: sl<AcceptInvitationUseCase>(),
       muteMemberUseCase: sl<MuteMemberUseCase>(),
       memorializeMemberUseCase: sl<MemorializeMemberUseCase>(),
+      removeMemberUseCase: sl<RemoveMemberUseCase>(),
       getAvailableSlotsUseCase: sl<GetAvailableSlotsUseCase>(),
     ),
   );

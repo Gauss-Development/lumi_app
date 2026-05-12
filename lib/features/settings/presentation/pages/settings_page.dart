@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
+import 'package:lumi/features/auth/domain/entities/auth_session.dart';
+import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
@@ -37,41 +40,7 @@ class SettingsPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 28),
-              Column(
-                children: <Widget>[
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: <Color>[
-                          Colors.white.withValues(alpha: 0.82),
-                          AppColors.softLavender,
-                          AppColors.softLavender.withValues(alpha: 0.35),
-                          Colors.transparent,
-                        ],
-                        stops: const <double>[0, 0.22, 0.6, 1],
-                      ),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: AppColors.softLavender.withValues(alpha: 0.4),
-                          blurRadius: 40,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Ava', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Lavender · +1 (415) ••• 4321',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textFaint,
-                    ),
-                  ),
-                ],
-              ),
+              const _ProfileHeader(),
               const SizedBox(height: 32),
               const _SectionTitle(title: 'Presence'),
               _SettingsGroup(
@@ -146,10 +115,13 @@ class SettingsPage extends StatelessWidget {
                     title: 'Invite family',
                     description: 'Grow your circle gently',
                   ),
-                  const _SettingsTile(
+                  _SettingsTile(
                     icon: Icons.logout_rounded,
                     title: 'Sign out',
                     description: 'Leave for now',
+                    onTap: () => context.read<AuthBloc>().add(
+                      const AuthEvent.signedOut(),
+                    ),
                   ),
                 ],
               ),
@@ -263,6 +235,101 @@ class _SettingsTile extends StatelessWidget {
             if (trailing case final Widget trailingWidget) trailingWidget,
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final AuthState authState = context.watch<AuthBloc>().state;
+    final ProfileSetupState profileState = context.watch<ProfileSetupBloc>().state;
+
+    final AuthSession? session = authState.maybeWhen(
+      authenticated: (AuthSession s) => s,
+      orElse: () => null,
+    );
+
+    final String displayName = _resolveName(profileState, session);
+    final String secondary = session?.email ?? '';
+    final Color glowColor = Color(profileState.signatureColorValue);
+
+    return Column(
+      children: <Widget>[
+        _AvatarOrb(photoUrl: session?.photoUrl, glowColor: glowColor),
+        const SizedBox(height: 16),
+        Text(
+          displayName,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        if (secondary.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 4),
+          Text(
+            secondary,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textFaint,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _resolveName(ProfileSetupState profile, AuthSession? session) {
+    if (profile.displayName.trim().isNotEmpty) {
+      return profile.displayName.trim();
+    }
+    if (session != null && session.name.trim().isNotEmpty) {
+      return session.name.trim();
+    }
+    if (session != null && session.email.isNotEmpty) {
+      final String email = session.email;
+      final int at = email.indexOf('@');
+      return at > 0 ? email.substring(0, at) : email;
+    }
+    return 'You';
+  }
+}
+
+class _AvatarOrb extends StatelessWidget {
+  const _AvatarOrb({required this.photoUrl, required this.glowColor});
+
+  final String? photoUrl;
+  final Color glowColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: photoUrl == null
+            ? RadialGradient(
+                colors: <Color>[
+                  Colors.white.withValues(alpha: 0.82),
+                  glowColor,
+                  glowColor.withValues(alpha: 0.35),
+                  Colors.transparent,
+                ],
+                stops: const <double>[0, 0.22, 0.6, 1],
+              )
+            : null,
+        image: photoUrl != null
+            ? DecorationImage(
+                image: NetworkImage(photoUrl!),
+                fit: BoxFit.cover,
+              )
+            : null,
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: glowColor.withValues(alpha: 0.4),
+            blurRadius: 40,
+          ),
+        ],
       ),
     );
   }

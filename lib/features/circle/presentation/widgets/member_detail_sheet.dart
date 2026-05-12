@@ -7,16 +7,16 @@ import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 class MemberDetailSheet extends StatelessWidget {
   const MemberDetailSheet({
     required this.member,
-    required this.onActivate,
     required this.onMute,
     required this.onMemorialize,
+    required this.onRemove,
     super.key,
   });
 
   final CircleMember member;
-  final VoidCallback onActivate;
   final VoidCallback onMute;
   final VoidCallback onMemorialize;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -99,16 +99,6 @@ class MemberDetailSheet extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 24),
-              if (member.status == CircleStatus.pendingOutbound ||
-                  member.status == CircleStatus.pendingInbound)
-                PrimaryGlowButton(
-                  label: 'Mark as connected',
-                  glowColor: color,
-                  onPressed: onActivate,
-                ),
-              if (member.status == CircleStatus.pendingOutbound ||
-                  member.status == CircleStatus.pendingInbound)
-                const SizedBox(height: 12),
               Row(
                 children: <Widget>[
                   Expanded(
@@ -116,7 +106,9 @@ class MemberDetailSheet extends StatelessWidget {
                       onPressed: onMute,
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
                       ),
                       child: const Text('Mute for one week'),
                     ),
@@ -130,10 +122,44 @@ class MemberDetailSheet extends StatelessWidget {
                   child: const Text('Mark memorial'),
                 ),
               ),
+              const SizedBox(height: 12),
+              PrimaryGlowButton(
+                label: 'Remove from circle',
+                glowColor: AppColors.coral,
+                onPressed: () => _confirmRemove(context),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _confirmRemove(BuildContext context) async {
+    final bool confirmed = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext dialogContext) => AlertDialog(
+            backgroundColor: AppColors.deepNight,
+            title: Text('Remove ${member.displayName}?'),
+            content: const Text(
+              'They will disappear from your circle and from theirs. The Lumis you have already shared stay on the Shelf.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Keep'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Remove'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (confirmed) {
+      onRemove();
+    }
   }
 }

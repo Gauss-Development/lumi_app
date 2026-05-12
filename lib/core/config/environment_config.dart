@@ -6,24 +6,20 @@ class EnvironmentConfig {
   EnvironmentConfig._({
     required this.flavor,
     required this.appName,
-    required this.enableDemoMode,
-    required this.supabaseUrl,
-    required this.supabaseAnonKey,
     required this.inviteBaseUrl,
     required this.revenueCatAppleKey,
     required this.revenueCatGoogleKey,
+    required this.oauthRedirectUrl,
   });
 
   static late EnvironmentConfig instance;
 
   final Flavor flavor;
   final String appName;
-  final bool enableDemoMode;
-  final String supabaseUrl;
-  final String supabaseAnonKey;
   final String inviteBaseUrl;
   final String revenueCatAppleKey;
   final String revenueCatGoogleKey;
+  final String oauthRedirectUrl;
 
   static Future<EnvironmentConfig> load({required Flavor flavor}) async {
     dotenv.clean();
@@ -54,38 +50,17 @@ class EnvironmentConfig {
     final config = EnvironmentConfig._(
       flavor: flavor,
       appName: valueOf('APP_NAME').isEmpty ? 'Lumi' : valueOf('APP_NAME'),
-      enableDemoMode: valueOf('ENABLE_DEMO_MODE').toLowerCase() == 'true',
-      supabaseUrl: valueOf('SUPABASE_URL'),
-      supabaseAnonKey: valueOf('SUPABASE_ANON_KEY'),
       inviteBaseUrl: valueOf('INVITE_BASE_URL').isEmpty
           ? 'https://lumi.family/invite'
           : valueOf('INVITE_BASE_URL'),
       revenueCatAppleKey: valueOf('REVENUECAT_APPLE_KEY'),
       revenueCatGoogleKey: valueOf('REVENUECAT_GOOGLE_KEY'),
+      oauthRedirectUrl: valueOf('OAUTH_REDIRECT_URL').isEmpty
+          ? 'appwrite-callback-69ff68eb0033441e4041'
+          : valueOf('OAUTH_REDIRECT_URL'),
     );
 
-    config.validateRequired();
     instance = config;
     return config;
-  }
-
-  void validateRequired() {
-    if (enableDemoMode) {
-      return;
-    }
-
-    final missingKeys = <String>[
-      if (supabaseUrl.isEmpty) 'SUPABASE_URL',
-      if (supabaseAnonKey.isEmpty) 'SUPABASE_ANON_KEY',
-      if (revenueCatAppleKey.isEmpty && revenueCatGoogleKey.isEmpty)
-        'REVENUECAT_APPLE_KEY or REVENUECAT_GOOGLE_KEY',
-    ];
-
-    if (missingKeys.isNotEmpty) {
-      throw StateError(
-        'Missing required environment values: ${missingKeys.join(', ')}. '
-        'Add them to ${flavor.envAssetName} or provide --dart-define overrides.',
-      );
-    }
   }
 }

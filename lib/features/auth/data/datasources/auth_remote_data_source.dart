@@ -1,128 +1,165 @@
-import 'dart:math';
+import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/enums.dart';
+import 'package:appwrite/models.dart' as models;
 
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-import 'package:lumi/core/config/environment_config.dart';
-import 'package:lumi/core/network/supabase_client_provider.dart';
-import 'package:lumi/core/services/preferences_service.dart';
+import 'package:lumi/core/network/appwrite_client.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
 
-abstract class AuthRemoteDataSource {
-  Future<void> requestOtp(String phoneNumber);
+const String _databaseId = 'lumi';
+const String _usersCollectionId = 'users';
+const String _defaultAvatarStyle = 'avatar_0';
+const int _defaultSignatureColorValue = 0xFFFF7D6B;
 
+class AuthDataSourceException implements Exception {
+  const AuthDataSourceException(this.message);
+  final String message;
+
+  @override
+  String toString() => 'AuthDataSourceException($message)';
+}
+
+abstract class AuthRemoteDataSource {
   Future<AuthSession?> getCurrentSession();
 
-  Future<AuthSession> verifyOtp({
-    required String phoneNumber,
-    required String code,
+  Future<AuthSession> signInWithEmail({
+    required String email,
+    required String password,
   });
+
+  Future<AuthSession> signUpWithEmail({
+    required String email,
+    required String password,
+    required String name,
+  });
+
+  Future<AuthSession> signInWithGoogle();
 
   Future<void> signOut();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  AuthRemoteDataSourceImpl({
-    required EnvironmentConfig config,
-    required PreferencesService preferencesService,
-    required SupabaseClientProvider supabaseClientProvider,
-  }) : _config = config,
-       _preferencesService = preferencesService,
-       _supabaseClientProvider = supabaseClientProvider;
+  AuthRemoteDataSourceImpl({Account? account, TablesDB? tablesDb})
+    : _account = account ?? Account(client),
+      _tablesDb = tablesDb ?? TablesDB(client);
 
-  final EnvironmentConfig _config;
-  final PreferencesService _preferencesService;
-  final SupabaseClientProvider _supabaseClientProvider;
-
-  static const String _sessionKey = 'auth_demo_session';
-
-  bool get _demoMode => _config.enableDemoMode;
+  final Account _account;
+  final TablesDB _tablesDb;
 
   @override
   Future<AuthSession?> getCurrentSession() async {
-    if (_demoMode) {
-      final String? rawSession = _preferencesService.readString(_sessionKey);
-      if (rawSession == null || rawSession.isEmpty) {
+    try {
+      final models.User user = await _account.get();
+      await _ensureUserDocument(user);
+      return _mapUser(user);
+    } on AppwriteException catch (e) {
+      if (e.code == 401) {
         return null;
       }
-      final List<String> parts = rawSession.split('|');
-      if (parts.length != 2) {
-        return null;
-      }
-      return AuthSession(
-        userId: parts.first,
-        phoneNumber: parts.last,
-        isDemo: true,
-      );
+      throw AuthDataSourceException(e.message ?? 'Could not load your session.');
     }
-
-    final Session? session = _supabaseClientProvider.client.auth.currentSession;
-    if (session == null) {
-      return null;
-    }
-
-    return AuthSession(
-      userId: session.user.id,
-      phoneNumber: session.user.phone ?? '',
-      isDemo: false,
-    );
   }
 
   @override
-  Future<void> requestOtp(String phoneNumber) async {
-    if (_demoMode) {
-      if (phoneNumber.isEmpty) {
-        throw const AuthException('Phone number is required.');
-      }
-      return;
+  Future<AuthSession> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await _account.createEmailPasswordSession(
+        email: email,
+        password: password,
+      );
+      final models.User user = await _account.get();
+      await _ensureUserDocument(user);
+      return _mapUser(user);
+    } on AppwriteException catch (e) {
+      throw AuthDataSourceException(e.message ?? 'Sign-in failed.');
     }
+  }
 
-    await _supabaseClientProvider.client.auth.signInWithOtp(phone: phoneNumber);
+  @override
+  Future<AuthSession> signUpWithEmail({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    try {
+      await _account.create(
+        userId: ID.unique(),
+        email: email,
+        password: password,
+        name: name,
+      );
+      await _account.createEmailPasswordSession(
+        email: email,
+        password: password,
+      );
+      final models.User user = await _account.get();
+      await _ensureUserDocument(user);
+      return _mapUser(user);
+    } on AppwriteException catch (e) {
+      throw AuthDataSourceException(e.message ?? 'Sign-up failed.');
+    }
+  }
+
+  @override
+  Future<AuthSession> signInWithGoogle() async {
+    try {
+      await _account.createOAuth2Session(provider: OAuthProvider.google);
+      final models.User user = await _account.get();
+      await _ensureUserDocument(user);
+      return _mapUser(user);
+    } on AppwriteException catch (e) {
+      throw AuthDataSourceException(e.message ?? 'Google sign-in failed.');
+    }
   }
 
   @override
   Future<void> signOut() async {
-    if (_demoMode) {
-      await _preferencesService.remove(_sessionKey);
-      return;
+    try {
+      await _account.deleteSession(sessionId: 'current');
+    } on AppwriteException catch (e) {
+      if (e.code == 401) {
+        return;
+      }
+      throw AuthDataSourceException(e.message ?? 'Sign-out failed.');
     }
-
-    await _supabaseClientProvider.client.auth.signOut();
   }
 
-  @override
-  Future<AuthSession> verifyOtp({
-    required String phoneNumber,
-    required String code,
-  }) async {
-    if (_demoMode) {
-      if (code.length < 4) {
-        throw const AuthException('Enter the demo code sent to your phone.');
-      }
-
-      final AuthSession session = AuthSession(
-        userId:
-            'demo-${phoneNumber.replaceAll(RegExp(r'[^0-9]'), '')}-${Random().nextInt(9999)}',
-        phoneNumber: phoneNumber,
-        isDemo: true,
+  Future<void> _ensureUserDocument(models.User user) async {
+    try {
+      await _tablesDb.createRow(
+        databaseId: _databaseId,
+        tableId: _usersCollectionId,
+        rowId: user.$id,
+        data: <String, dynamic>{
+          'userId': user.$id,
+          'email': user.email,
+          'name': user.name,
+          'displayName': user.name,
+          'avatarStyle': _defaultAvatarStyle,
+          'signatureColorValue': _defaultSignatureColorValue,
+          'photoUrl': null,
+          'createdAt': DateTime.now().toUtc().toIso8601String(),
+        },
+        permissions: <String>[
+          Permission.read(Role.user(user.$id)),
+          Permission.update(Role.user(user.$id)),
+          Permission.delete(Role.user(user.$id)),
+        ],
       );
-      await _preferencesService.writeString(
-        _sessionKey,
-        '${session.userId}|${session.phoneNumber}',
-      );
-      return session;
+    } on AppwriteException catch (_) {
+      // 409 = row already exists; other errors should not block auth.
     }
+  }
 
-    final AuthResponse response = await _supabaseClientProvider.client.auth
-        .verifyOTP(phone: phoneNumber, token: code, type: OtpType.sms);
-    final Session? session = response.session;
-    if (session == null) {
-      throw const AuthException('Unable to verify the code.');
-    }
-
+  AuthSession _mapUser(models.User user) {
+    final dynamic prefsRaw = user.prefs.data['avatarUrl'];
     return AuthSession(
-      userId: session.user.id,
-      phoneNumber: session.user.phone ?? phoneNumber,
-      isDemo: false,
+      userId: user.$id,
+      email: user.email,
+      name: user.name,
+      photoUrl: prefsRaw is String && prefsRaw.isNotEmpty ? prefsRaw : null,
     );
   }
 }

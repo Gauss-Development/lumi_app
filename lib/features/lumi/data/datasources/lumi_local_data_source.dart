@@ -1,15 +1,15 @@
 import 'dart:convert';
 
 import 'package:lumi/core/services/preferences_service.dart';
-import 'package:lumi/features/circle/data/datasources/circle_local_data_source.dart';
+import 'package:lumi/features/circle/data/datasources/circle_remote_data_source.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 
 class LumiLocalDataSource {
-  LumiLocalDataSource(this._preferencesService, this._circleLocalDataSource);
+  LumiLocalDataSource(this._preferencesService, this._circleRemoteDataSource);
 
   final PreferencesService _preferencesService;
-  final CircleLocalDataSource _circleLocalDataSource;
+  final CircleRemoteDataSource _circleRemoteDataSource;
 
   static const String _lumiKey = 'lumi_items';
   static const String _doodleDraftKey = 'doodle_draft';
@@ -30,6 +30,16 @@ class LumiLocalDataSource {
     await _preferencesService.writeString(
       _lumiKey,
       jsonEncode(lumis.map((item) => item.toJson()).toList(growable: false)),
+    );
+  }
+
+  Future<void> touchMemberActivity({
+    required String memberId,
+    required bool queued,
+  }) {
+    return _circleRemoteDataSource.touchMemberActivity(
+      memberId: memberId,
+      queued: queued,
     );
   }
 
@@ -54,7 +64,8 @@ class LumiLocalDataSource {
     QuietHours? quietHours,
     bool forceQueued = false,
   }) async {
-    final queued = forceQueued || (quietHours?.isActiveAt(DateTime.now()) ?? false);
+    final queued =
+        forceQueued || (quietHours?.isActiveAt(DateTime.now()) ?? false);
     final lumi = Lumi(
       id: 'lumi-${DateTime.now().microsecondsSinceEpoch}',
       memberId: recipientId,
@@ -72,22 +83,8 @@ class LumiLocalDataSource {
     );
 
     final all = await fetchAll();
-    final simulatedReply = Lumi(
-      id: 'reply-${DateTime.now().microsecondsSinceEpoch + 1}',
-      memberId: recipientId,
-      senderId: recipientId,
-      isIncoming: true,
-      type: type,
-      colorValue: colorValue,
-      createdAt: DateTime.now().add(const Duration(seconds: 4)),
-      deliveryStatus: LumiDeliveryStatus.delivered,
-      reaction: LumiReactionType.handOnHeart,
-      intensity: intensity,
-      pulsePattern: pulsePattern,
-      doodleStroke: doodleStroke,
-    );
-    await saveAll(<Lumi>[simulatedReply, lumi, ...all]);
-    await _circleLocalDataSource.touchMemberActivity(
+    await saveAll(<Lumi>[lumi, ...all]);
+    await _circleRemoteDataSource.touchMemberActivity(
       memberId: recipientId,
       queued: queued,
     );

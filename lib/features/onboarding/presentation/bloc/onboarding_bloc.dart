@@ -7,8 +7,6 @@ part 'onboarding_bloc.freezed.dart';
 
 enum OnboardingStage {
   welcome,
-  phone,
-  otp,
   profile,
   permissions,
   onboarding,

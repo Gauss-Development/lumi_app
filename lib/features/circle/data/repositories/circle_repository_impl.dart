@@ -1,54 +1,79 @@
 import 'package:dartz/dartz.dart';
 
-import 'package:lumi/core/constants/app_constants.dart';
 import 'package:lumi/core/error/failures.dart';
-import 'package:lumi/features/circle/data/datasources/circle_local_data_source.dart';
+import 'package:lumi/features/circle/data/datasources/circle_remote_data_source.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
+import 'package:lumi/features/circle/domain/entities/invitation.dart';
 import 'package:lumi/features/circle/domain/repositories/circle_repository.dart';
 import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
 import 'package:lumi/features/subscription/domain/repositories/subscription_repository.dart';
 
 class CircleRepositoryImpl implements CircleRepository {
   CircleRepositoryImpl({
-    required CircleLocalDataSource localDataSource,
+    required CircleRemoteDataSource remoteDataSource,
     required SubscriptionRepository subscriptionRepository,
-  }) : _localDataSource = localDataSource,
+  }) : _remoteDataSource = remoteDataSource,
        _subscriptionRepository = subscriptionRepository;
 
-  final CircleLocalDataSource _localDataSource;
+  final CircleRemoteDataSource _remoteDataSource;
   final SubscriptionRepository _subscriptionRepository;
 
   @override
-  Future<Either<Failure, CircleMember>> activateMember({
-    required String memberId,
+  Future<Either<Failure, Invitation>> createInvitation({
+    required String inviteeLabel,
+    String? inviteeRelationshipLabel,
   }) async {
+    final availableSlotsResult = await getAvailableSlots();
+    final int availableSlots = availableSlotsResult.getOrElse(() => 0);
+    if (availableSlots <= 0) {
+      return const Left(
+        PermissionFailure(
+          'Your free circle is full. Upgrade to unlock more family slots.',
+        ),
+      );
+    }
+
     try {
-      final member = await _localDataSource.activateMember(memberId);
-      if (member == null) {
-        return const Left(
-          UnexpectedFailure('The selected invite could not be found.'),
-        );
-      }
-      return Right(member);
+      final Invitation invitation = await _remoteDataSource.createInvitation(
+        inviteeLabel: inviteeLabel,
+        inviteeRelationshipLabel: inviteeRelationshipLabel,
+      );
+      return Right(invitation);
     } catch (_) {
       return const Left(
-        UnexpectedFailure('Unable to activate this connection.'),
+        UnexpectedFailure('Unable to create an invite right now.'),
       );
     }
   }
 
   @override
-  Future<Either<Failure, InviteLink>> createInviteLink({
-    required String displayName,
+  Future<Either<Failure, CircleMember>> acceptInvitation({
+    required String inviteCode,
   }) async {
-    final now = DateTime.now();
-    return Right(
-      InviteLink(
-        url:
-            '${AppConstants.defaultInviteBaseUrl}/${displayName.toLowerCase()}-${now.millisecondsSinceEpoch}',
-        expiresAt: now.add(const Duration(hours: 24)),
-      ),
-    );
+    try {
+      final CircleMember member = await _remoteDataSource.acceptInvitation(
+        inviteCode,
+      );
+      return Right(member);
+    } on InviteCodeNotFound {
+      return const Left(
+        UnexpectedFailure('That code does not match an invite.'),
+      );
+    } on InviteCodeExpired {
+      return const Left(UnexpectedFailure('That invite has expired.'));
+    } on InviteCodeAlreadyUsed {
+      return const Left(
+        UnexpectedFailure('That invite has already been accepted.'),
+      );
+    } on InviteCodeIsOwn {
+      return const Left(
+        UnexpectedFailure('You cannot accept your own invite.'),
+      );
+    } on AcceptInvitationStepFailed catch (e) {
+      return Left(UnexpectedFailure('Failed while ${e.reason}.'));
+    } catch (e) {
+      return Left(UnexpectedFailure('Unable to accept this invite. ($e)'));
+    }
   }
 
   @override
@@ -59,7 +84,7 @@ class CircleRepositoryImpl implements CircleRepository {
       final entitlement = entitlementResult.getOrElse(
         () => const EntitlementStatus.free(),
       );
-      final members = await _localDataSource.getMembers();
+      final members = await _remoteDataSource.getMembers();
       final activeMembers = members.where((member) => member.isActive).length;
       return Right(entitlement.activeMembersLimit - activeMembers);
     } catch (_) {
@@ -72,10 +97,10 @@ class CircleRepositoryImpl implements CircleRepository {
   @override
   Future<Either<Failure, List<CircleMember>>> getMembers() async {
     try {
-      return Right(await _localDataSource.getMembers());
-    } catch (_) {
-      return const Left(
-        UnexpectedFailure('Unable to load your circle right now.'),
+      return Right(await _remoteDataSource.getMembers());
+    } catch (e) {
+      return Left(
+        UnexpectedFailure('Unable to load your circle right now. ($e)'),
       );
     }
   }
@@ -86,7 +111,7 @@ class CircleRepositoryImpl implements CircleRepository {
     required DateTime until,
   }) async {
     try {
-      final member = await _localDataSource.muteMember(
+      final member = await _remoteDataSource.muteMember(
         memberId: memberId,
         until: until,
       );
@@ -108,7 +133,7 @@ class CircleRepositoryImpl implements CircleRepository {
     required String memberId,
   }) async {
     try {
-      final member = await _localDataSource.memorializeMember(memberId);
+      final member = await _remoteDataSource.memorializeMember(memberId);
       if (member == null) {
         return const Left(
           UnexpectedFailure('Unable to memorialize this member right now.'),
@@ -123,31 +148,18 @@ class CircleRepositoryImpl implements CircleRepository {
   }
 
   @override
-  Future<Either<Failure, CircleMember>> sendInvite({
-    required String displayName,
-    String? relationshipLabel,
-  }) async {
+  Future<Either<Failure, Unit>> removeMember({required String memberId}) async {
     try {
-      final availableSlotsResult = await getAvailableSlots();
-      final availableSlots = availableSlotsResult.getOrElse(() => 0);
-      if (availableSlots <= 0) {
+      final removed = await _remoteDataSource.removeMember(memberId);
+      if (!removed) {
         return const Left(
-          PermissionFailure(
-            'Your free circle is full. Upgrade to unlock more family slots.',
-          ),
+          UnexpectedFailure('That light is no longer in your circle.'),
         );
       }
-
-      return Right(
-        await _localDataSource.addInvite(
-          displayName: displayName,
-          colorValue: AppConstants.signatureColors.first.toARGB32(),
-          relationshipLabel: relationshipLabel,
-        ),
-      );
+      return const Right(unit);
     } catch (_) {
       return const Left(
-        UnexpectedFailure('Unable to create this invite right now.'),
+        UnexpectedFailure('Unable to remove this light right now.'),
       );
     }
   }

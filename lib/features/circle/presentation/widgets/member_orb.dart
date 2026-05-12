@@ -78,7 +78,9 @@ class MemberOrb extends StatelessWidget {
                     height: diameter,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
                     ),
                   )
                 : null,
@@ -121,7 +123,7 @@ class MemberOrb extends StatelessWidget {
       return 'pending';
     }
     if (member.lastInteractionAt == null) {
-      return 'waiting';
+      return 'connected';
     }
     final Duration diff = DateTime.now().difference(member.lastInteractionAt!);
     if (diff.inMinutes < 60) {
