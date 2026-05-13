@@ -34,7 +34,9 @@ class ProfileSetupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color glowColor = Color(state.signatureColorValue);
-    final int avatarIndex = UserProfile.avatarOptions.indexOf(state.avatarStyle);
+    final int avatarIndex = UserProfile.avatarOptions.indexOf(
+      state.avatarStyle,
+    );
     final String avatarGlyph = _avatarGlyphs[avatarIndex < 0 ? 0 : avatarIndex];
 
     return Column(
@@ -49,9 +51,7 @@ class ProfileSetupCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 44,
               color: Colors.white.withValues(alpha: 0.92),
-              shadows: <Shadow>[
-                Shadow(color: glowColor, blurRadius: 18),
-              ],
+              shadows: <Shadow>[Shadow(color: glowColor, blurRadius: 18)],
             ),
           ),
         ),
@@ -65,17 +65,15 @@ class ProfileSetupCard extends StatelessWidget {
         Text(
           'Set how you appear to the people you love',
           textAlign: TextAlign.center,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Colors.white.withValues(alpha: 0.45)),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Colors.white.withValues(alpha: 0.45),
+          ),
         ),
         const SizedBox(height: 28),
         TextFormField(
           initialValue: state.displayName,
           onChanged: onNameChanged,
-          decoration: const InputDecoration(
-            hintText: 'Display name',
-          ),
+          decoration: const InputDecoration(hintText: 'Display name'),
         ),
         const SizedBox(height: 24),
         Align(
@@ -150,37 +148,40 @@ class ProfileSetupCard extends StatelessWidget {
           crossAxisSpacing: 12,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          children: AppConstants.signatureColors.map((Color color) {
-            final bool isSelected = state.signatureColorValue == color.toARGB32();
-            return GestureDetector(
-              onTap: () => onColorSelected(color.toARGB32()),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: <Color>[
-                      Colors.white.withValues(alpha: 0.67),
-                      color,
-                    ],
-                    stops: const <double>[0, 0.6],
-                  ),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: color.withValues(alpha: isSelected ? 0.55 : 0.2),
-                      blurRadius: isSelected ? 24 : 12,
+          children: AppConstants.signatureColors
+              .map((Color color) {
+                final bool isSelected =
+                    state.signatureColorValue == color.toARGB32();
+                return GestureDetector(
+                  onTap: () => onColorSelected(color.toARGB32()),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: <Color>[
+                          Colors.white.withValues(alpha: 0.67),
+                          color,
+                        ],
+                        stops: const <double>[0, 0.6],
+                      ),
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: color.withValues(
+                            alpha: isSelected ? 0.55 : 0.2,
+                          ),
+                          blurRadius: isSelected ? 24 : 12,
+                        ),
+                      ],
+                      border: Border.all(
+                        color: isSelected ? color : Colors.transparent,
+                        width: 2.5,
+                      ),
                     ),
-                  ],
-                  border: Border.all(
-                    color: isSelected
-                        ? color
-                        : Colors.transparent,
-                    width: 2.5,
                   ),
-                ),
-              ),
-            );
-          }).toList(growable: false),
+                );
+              })
+              .toList(growable: false),
         ),
         const SizedBox(height: 28),
         PrimaryGlowButton(
@@ -188,7 +189,9 @@ class ProfileSetupCard extends StatelessWidget {
               ? 'Saving…'
               : 'Keep this glow',
           glowColor: glowColor,
-          onPressed: state.status == ProfileSetupStatus.saving ? null : onSubmit,
+          onPressed: state.status == ProfileSetupStatus.saving
+              ? null
+              : onSubmit,
         ),
         if (state.errorMessage != null) ...<Widget>[
           const SizedBox(height: 16),

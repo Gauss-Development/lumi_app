@@ -1,25 +1,30 @@
 import 'dart:convert';
 
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/enums.dart' as enums;
 import 'package:appwrite/models.dart' as models;
 
 import 'package:lumi/core/network/appwrite_client.dart';
-import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 
 const String _databaseId = 'lumi';
 const String _lumisTable = 'lumis';
-const String _membersTable = 'circle_members';
+const String _sendLumiFunctionId = 'send_lumi';
 
 const int _defaultColorValue = 0xFFFF7D6B;
 
 class LumiRemoteDataSource {
-  LumiRemoteDataSource({TablesDB? tablesDb, Account? account})
-    : _tablesDb = tablesDb ?? TablesDB(client),
-      _account = account ?? Account(client);
+  LumiRemoteDataSource({
+    TablesDB? tablesDb,
+    Account? account,
+    Functions? functions,
+  }) : _tablesDb = tablesDb ?? TablesDB(client),
+       _account = account ?? Account(client),
+       _functions = functions ?? Functions(client);
 
   final TablesDB _tablesDb;
   final Account _account;
+  final Functions _functions;
 
   Future<List<Lumi>> getRecentLumis({String? memberId}) async {
     final String? currentUserId = await _currentUserIdOrNull();
@@ -70,23 +75,13 @@ class LumiRemoteDataSource {
     DoodleStroke? doodleStroke,
     required bool queued,
   }) async {
-    final CircleMember member = await _getMember(senderMemberId);
-    final String? recipientUserId = member.memberUserId;
-    if (recipientUserId == null || recipientUserId.isEmpty) {
-      throw StateError('Circle member is not linked to an app user.');
-    }
-
-    final DateTime createdAt = DateTime.now().toUtc();
-    final models.Row row = await _tablesDb.createRow(
-      databaseId: _databaseId,
-      tableId: _lumisTable,
-      rowId: ID.unique(),
-      data: <String, dynamic>{
+    final models.Execution execution = await _functions.createExecution(
+      functionId: _sendLumiFunctionId,
+      xasync: false,
+      method: enums.ExecutionMethod.pOST,
+      body: jsonEncode(<String, dynamic>{
         'senderId': senderId,
-        'recipientId': recipientUserId,
         'senderMemberId': senderMemberId,
-        'recipientMemberId': member.reciprocalMemberId,
-        'circleId': senderMemberId,
         'type': type.name,
         'colorValue': colorValue,
         'intensity': intensity,
@@ -99,14 +94,24 @@ class LumiRemoteDataSource {
         'doodleStrokeJson': doodleStroke == null
             ? null
             : jsonEncode(doodleStroke.toJson()),
-        'createdAt': createdAt.toIso8601String(),
-      },
-      permissions: _lumiPermissions(
-        senderUserId: senderId,
-        recipientUserId: recipientUserId,
-      ),
+      }),
     );
 
+    if (execution.responseStatusCode < 200 ||
+        execution.responseStatusCode >= 300) {
+      throw AppwriteException(
+        execution.responseBody.isEmpty
+            ? 'Unable to send Lumi.'
+            : execution.responseBody,
+        execution.responseStatusCode,
+      );
+    }
+
+    final Object? decoded = jsonDecode(execution.responseBody);
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('send_lumi returned an invalid response.');
+    }
+    final models.Row row = models.Row.fromMap(decoded);
     return _lumiFromRow(row, senderId);
   }
 
@@ -139,32 +144,6 @@ class LumiRemoteDataSource {
       },
     );
     return _lumiFromRow(row, currentUserId);
-  }
-
-  Future<CircleMember> _getMember(String memberId) async {
-    final models.Row row = await _tablesDb.getRow(
-      databaseId: _databaseId,
-      tableId: _membersTable,
-      rowId: memberId,
-    );
-    final Map<String, dynamic> data = row.data;
-    return CircleMember(
-      id: row.$id,
-      displayName: data['displayName'] as String? ?? '',
-      signatureColorValue:
-          data['signatureColorValue'] as int? ?? _defaultColorValue,
-      status: CircleStatus.values.byName(
-        data['status'] as String? ?? CircleStatus.active.name,
-      ),
-      paceCount: data['paceCount'] as int? ?? 0,
-      queuedCount: data['queuedCount'] as int? ?? 0,
-      mutualConnection: data['mutualConnection'] as bool? ?? false,
-      ownerUserId: data['ownerUserId'] as String?,
-      memberUserId: data['memberUserId'] as String?,
-      reciprocalMemberId: data['reciprocalMemberId'] as String?,
-      invitationCode: data['invitationCode'] as String?,
-      relationshipLabel: data['relationshipLabel'] as String?,
-    );
   }
 
   Future<String> _currentUserId() async {
@@ -247,18 +226,5 @@ class LumiRemoteDataSource {
       return null;
     }
     return DoodleStroke.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-  }
-
-  List<String> _lumiPermissions({
-    required String senderUserId,
-    required String recipientUserId,
-  }) {
-    // The client SDK may only grant permissions for roles the current user
-    // belongs to. Per-recipient ACLs require a server-side Appwrite Function.
-    return <String>{
-      Permission.read(Role.users()),
-      Permission.update(Role.users()),
-      Permission.delete(Role.user(senderUserId)),
-    }.toList(growable: false);
   }
 }

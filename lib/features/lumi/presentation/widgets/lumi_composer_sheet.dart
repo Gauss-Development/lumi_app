@@ -84,265 +84,294 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.04),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.04),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
                         ),
                       ),
+                      icon: const Icon(Icons.arrow_back_rounded, size: 18),
                     ),
-                    icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                    Column(
+                      children: <Widget>[
+                        Text(
+                          'Sending to',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: AppColors.textFaint),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.member.displayName,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.85),
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 40),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 260,
+                  child: Center(
+                    child: _selectedType == LumiType.doodle
+                        ? Container(
+                            width: 260,
+                            height: 260,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(28),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.08),
+                              ),
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: selectedColor.withValues(alpha: 0.16),
+                                  blurRadius: 60,
+                                ),
+                              ],
+                            ),
+                            child: DoodleCanvas(
+                              points: _doodlePoints,
+                              color: selectedColor,
+                              onChanged: (List<DoodlePoint> points) {
+                                setState(() {
+                                  _doodlePoints
+                                    ..clear()
+                                    ..addAll(points);
+                                });
+                              },
+                              onClear: () {
+                                setState(_doodlePoints.clear);
+                              },
+                            ),
+                          )
+                        : GlowOrb(
+                            color: selectedColor,
+                            size: 240,
+                            intensity: _selectedType == LumiType.pulse
+                                ? 1.08
+                                : 1,
+                          ),
                   ),
-                  Column(
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.07),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        'Sending to',
+                        'How it arrives',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.textFaint,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.member.displayName,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: LumiType.values
+                            .map((LumiType type) {
+                              return Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    right: type == LumiType.values.last ? 0 : 8,
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _selectedType = type),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 180,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _selectedType == type
+                                            ? selectedColor.withValues(
+                                                alpha: 0.14,
+                                              )
+                                            : Colors.white.withValues(
+                                                alpha: 0.03,
+                                              ),
+                                        borderRadius: BorderRadius.circular(18),
+                                        border: Border.all(
+                                          color: _selectedType == type
+                                              ? selectedColor.withValues(
+                                                  alpha: 0.8,
+                                                )
+                                              : Colors.white.withValues(
+                                                  alpha: 0.07,
+                                                ),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          switch (type) {
+                                            LumiType.pure => 'Glow',
+                                            LumiType.pulse => 'Pulse',
+                                            LumiType.doodle => 'Doodle',
+                                            LumiType.light => 'Color',
+                                          },
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: _selectedType == type
+                                                    ? Colors.white
+                                                    : AppColors.textSecondary,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            })
+                            .toList(growable: false),
+                      ),
+                      const SizedBox(height: 10),
+                      Center(
+                        child: Text(
+                          _selectedDescription,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.textFaint),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(width: 40),
+                ),
+                if (_selectedType == LumiType.pulse) ...<Widget>[
+                  const SizedBox(height: 16),
+                  PulsePatternPad(
+                    onTapBeat: _recordPulseBeat,
+                    onReset: _resetPulse,
+                    recordedBeats: _pulseBeats,
+                  ),
                 ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 260,
-                child: Center(
-                  child: _selectedType == LumiType.doodle
-                      ? Container(
-                          width: 260,
-                          height: 260,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(28),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08),
-                            ),
-                            boxShadow: <BoxShadow>[
-                              BoxShadow(
-                                color: selectedColor.withValues(alpha: 0.16),
-                                blurRadius: 60,
-                              ),
-                            ],
-                          ),
-                          child: DoodleCanvas(
-                            points: _doodlePoints,
-                            color: selectedColor,
-                            onChanged: (List<DoodlePoint> points) {
-                              setState(() {
-                                _doodlePoints
-                                  ..clear()
-                                  ..addAll(points);
-                              });
-                            },
-                            onClear: () {
-                              setState(_doodlePoints.clear);
-                            },
-                          ),
-                        )
-                      : GlowOrb(
-                          color: selectedColor,
-                          size: 240,
-                          intensity: _selectedType == LumiType.pulse ? 1.08 : 1,
-                        ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.03),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'How it arrives',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.textFaint,
-                      ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Color',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.textFaint,
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: LumiType.values.map((LumiType type) {
-                        return Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: type == LumiType.values.last ? 0 : 8,
-                            ),
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedType = type),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: _selectedType == type
-                                      ? selectedColor.withValues(alpha: 0.14)
-                                      : Colors.white.withValues(alpha: 0.03),
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: _selectedType == type
-                                        ? selectedColor.withValues(alpha: 0.8)
-                                        : Colors.white.withValues(alpha: 0.07),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: AppConstants.signatureColors
+                      .take(6)
+                      .map((Color color) {
+                        final bool selected =
+                            color.toARGB32() == _selectedColorValue;
+                        return GestureDetector(
+                          onTap: () => setState(
+                            () => _selectedColorValue = color.toARGB32(),
+                          ),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: <Color>[
+                                  Colors.white.withValues(alpha: 0.7),
+                                  color,
+                                ],
+                                stops: const <double>[0, 0.6],
+                              ),
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: color.withValues(
+                                    alpha: selected ? 0.5 : 0.2,
                                   ),
+                                  blurRadius: selected ? 22 : 14,
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    switch (type) {
-                                      LumiType.pure => 'Glow',
-                                      LumiType.pulse => 'Pulse',
-                                      LumiType.doodle => 'Doodle',
-                                      LumiType.light => 'Color',
-                                    },
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: _selectedType == type
-                                          ? Colors.white
-                                          : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ),
+                              ],
+                              border: Border.all(
+                                color: selected ? color : Colors.transparent,
+                                width: 2.5,
                               ),
                             ),
                           ),
                         );
-                      }).toList(growable: false),
-                    ),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Text(
-                        _selectedDescription,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textFaint,
-                        ),
-                      ),
-                    ),
-                  ],
+                      })
+                      .toList(growable: false),
                 ),
-              ),
-              if (_selectedType == LumiType.pulse) ...<Widget>[
-                const SizedBox(height: 16),
-                PulsePatternPad(
-                  onTapBeat: _recordPulseBeat,
-                  onReset: _resetPulse,
-                  recordedBeats: _pulseBeats,
-                ),
-              ],
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Color',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.textFaint,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: AppConstants.signatureColors.take(6).map((Color color) {
-                  final bool selected = color.toARGB32() == _selectedColorValue;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedColorValue = color.toARGB32()),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 160),
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: <Color>[
-                            Colors.white.withValues(alpha: 0.7),
-                            color,
-                          ],
-                          stops: const <double>[0, 0.6],
-                        ),
-                        boxShadow: <BoxShadow>[
-                          BoxShadow(
-                            color: color.withValues(alpha: selected ? 0.5 : 0.2),
-                            blurRadius: selected ? 22 : 14,
-                          ),
-                        ],
-                        border: Border.all(
-                          color: selected ? color : Colors.transparent,
-                          width: 2.5,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(growable: false),
-              ),
-              const SizedBox(height: 24),
-              PrimaryGlowButton(
-                label: 'Send Lumi',
-                glowColor: selectedColor,
-                onPressed: _canSend
-                    ? () {
-                        switch (_selectedType) {
-                          case LumiType.pure:
-                            context.read<LumiBloc>().add(
-                              LumiEvent.sendPureRequested(
-                                senderId: senderId,
-                                memberId: widget.member.id,
-                                colorValue: _selectedColorValue,
-                              ),
-                            );
-                          case LumiType.light:
-                            context.read<LumiBloc>().add(
-                              LumiEvent.sendLightRequested(
-                                senderId: senderId,
-                                memberId: widget.member.id,
-                                colorValue: _selectedColorValue,
-                                intensity: 0.8,
-                              ),
-                            );
-                          case LumiType.pulse:
-                            context.read<LumiBloc>().add(
-                              LumiEvent.sendPulseRequested(
-                                senderId: senderId,
-                                memberId: widget.member.id,
-                                colorValue: _selectedColorValue,
-                                pulsePattern: PulsePattern(
-                                  List<int>.of(_pulseBeats),
+                const SizedBox(height: 24),
+                PrimaryGlowButton(
+                  label: 'Send Lumi',
+                  glowColor: selectedColor,
+                  onPressed: _canSend
+                      ? () {
+                          switch (_selectedType) {
+                            case LumiType.pure:
+                              context.read<LumiBloc>().add(
+                                LumiEvent.sendPureRequested(
+                                  senderId: senderId,
+                                  memberId: widget.member.id,
+                                  colorValue: _selectedColorValue,
                                 ),
-                              ),
-                            );
-                          case LumiType.doodle:
-                            context.read<LumiBloc>().add(
-                              LumiEvent.sendDoodleRequested(
-                                senderId: senderId,
-                                memberId: widget.member.id,
-                                colorValue: _selectedColorValue,
-                                doodleStroke: DoodleStroke(
-                                  List<DoodlePoint>.of(_doodlePoints),
+                              );
+                            case LumiType.light:
+                              context.read<LumiBloc>().add(
+                                LumiEvent.sendLightRequested(
+                                  senderId: senderId,
+                                  memberId: widget.member.id,
+                                  colorValue: _selectedColorValue,
+                                  intensity: 0.8,
                                 ),
-                              ),
-                            );
+                              );
+                            case LumiType.pulse:
+                              context.read<LumiBloc>().add(
+                                LumiEvent.sendPulseRequested(
+                                  senderId: senderId,
+                                  memberId: widget.member.id,
+                                  colorValue: _selectedColorValue,
+                                  pulsePattern: PulsePattern(
+                                    List<int>.of(_pulseBeats),
+                                  ),
+                                ),
+                              );
+                            case LumiType.doodle:
+                              context.read<LumiBloc>().add(
+                                LumiEvent.sendDoodleRequested(
+                                  senderId: senderId,
+                                  memberId: widget.member.id,
+                                  colorValue: _selectedColorValue,
+                                  doodleStroke: DoodleStroke(
+                                    List<DoodlePoint>.of(_doodlePoints),
+                                  ),
+                                ),
+                              );
+                          }
+                          _hapticsService.playSoftSelection();
+                          Navigator.of(context).pop();
                         }
-                        _hapticsService.playSoftSelection();
-                        Navigator.of(context).pop();
-                      }
-                    : null,
-              ),
+                      : null,
+                ),
               ],
             ),
           ),

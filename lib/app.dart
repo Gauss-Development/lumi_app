@@ -10,6 +10,7 @@ import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
+import 'package:lumi/features/rituals/presentation/bloc/rituals_cubit.dart';
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/shelf/presentation/bloc/shelf_bloc.dart';
 import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
@@ -63,6 +64,7 @@ class _LumiAppState extends State<LumiApp> {
           create: (_) =>
               sl<SettingsBloc>()..add(const SettingsEvent.loadRequested()),
         ),
+        BlocProvider<RitualsCubit>(create: (_) => sl<RitualsCubit>()..load()),
         BlocProvider<SubscriptionBloc>(
           create: (_) =>
               sl<SubscriptionBloc>()

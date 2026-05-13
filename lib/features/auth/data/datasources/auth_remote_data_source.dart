@@ -55,7 +55,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (e.code == 401) {
         return null;
       }
-      throw AuthDataSourceException(e.message ?? 'Could not load your session.');
+      throw AuthDataSourceException(
+        e.message ?? 'Could not load your session.',
+      );
     }
   }
 

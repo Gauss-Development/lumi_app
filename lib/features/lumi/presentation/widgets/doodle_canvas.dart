@@ -34,26 +34,22 @@ class DoodleCanvas extends StatelessWidget {
               builder: (BuildContext context, BoxConstraints constraints) {
                 return GestureDetector(
                   onPanStart: (DragStartDetails details) {
-                    onChanged(
-                      <DoodlePoint>[
-                        ...points,
-                        DoodlePoint(
-                          dx: details.localPosition.dx / constraints.maxWidth,
-                          dy: details.localPosition.dy / constraints.maxHeight,
-                        ),
-                      ],
-                    );
+                    onChanged(<DoodlePoint>[
+                      ...points,
+                      DoodlePoint(
+                        dx: details.localPosition.dx / constraints.maxWidth,
+                        dy: details.localPosition.dy / constraints.maxHeight,
+                      ),
+                    ]);
                   },
                   onPanUpdate: (DragUpdateDetails details) {
-                    onChanged(
-                      <DoodlePoint>[
-                        ...points,
-                        DoodlePoint(
-                          dx: details.localPosition.dx / constraints.maxWidth,
-                          dy: details.localPosition.dy / constraints.maxHeight,
-                        ),
-                      ],
-                    );
+                    onChanged(<DoodlePoint>[
+                      ...points,
+                      DoodlePoint(
+                        dx: details.localPosition.dx / constraints.maxWidth,
+                        dy: details.localPosition.dy / constraints.maxHeight,
+                      ),
+                    ]);
                   },
                   child: CustomPaint(
                     painter: _DoodlePainter(points: points, color: color),
@@ -66,10 +62,7 @@ class DoodleCanvas extends StatelessWidget {
           Positioned(
             right: 0,
             top: 0,
-            child: TextButton(
-              onPressed: onClear,
-              child: const Text('Clear'),
-            ),
+            child: TextButton(onPressed: onClear, child: const Text('Clear')),
           ),
         ],
       ),

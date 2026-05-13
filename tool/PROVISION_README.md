@@ -1,7 +1,8 @@
 # Appwrite Schema Provisioning
 
-This script creates the Appwrite database `lumi` and all six collections used by
-the app. It's idempotent — re-running skips anything that already exists.
+This script creates the Appwrite database `lumi`, all six collections used by
+the app, and the `send_lumi` Function shell. It's idempotent — re-running skips
+or updates anything that already exists.
 
 ## Collections
 
@@ -38,6 +39,9 @@ Required scopes:
 - `collections.read`, `collections.write`
 - `attributes.read`, `attributes.write`
 - `indexes.read`, `indexes.write`
+- `rows.read`, `rows.write`
+- `messages.write`
+- `functions.read`, `functions.write`
 
 ### 2. Run the script
 
@@ -47,15 +51,25 @@ APPWRITE_PROVISIONING_API_KEY=<your-server-key> dart run tool/provision_appwrite
 
 The key is read from the process environment so it never lands in a file.
 
-### 3. Verify
+### 3. Deploy Functions
+
+```bash
+APPWRITE_PROVISIONING_API_KEY=<your-server-key> dart run tool/deploy_appwrite_functions.dart
+```
+
+This uploads `functions/send_lumi` and activates the deployment. The Function
+creates `lumis` rows server-side with strict sender/recipient permissions and
+attempts an Appwrite Messaging push after the row is created.
+
+### 4. Verify
 
 In Appwrite Console → **Databases → lumi**, you should see the six collections
-with their attributes and indexes.
+with their attributes and indexes. In **Functions**, `send_lumi` should be
+enabled and have an active deployment.
 
 ## Notes
 
 - Uses the **server SDK** `dart_appwrite` (under `dev_dependencies`), not the
   Flutter client SDK.
-- Document-level security is on. Collection-level perms only grant `create` /
-  `read` to authenticated users; per-document update/delete is set by the
-  client when the document is created.
+- Document-level security is on. Lumi delivery is server-side: the client calls
+  `send_lumi`, and the Function writes the row with sender/recipient ACLs.

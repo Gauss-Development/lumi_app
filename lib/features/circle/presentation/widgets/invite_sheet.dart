@@ -255,45 +255,48 @@ class _SendInviteForm extends StatelessWidget {
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: AppConstants.relationshipSuggestions.map((
-            String relationship,
-          ) {
-            final bool selected = selectedRelationship == relationship;
-            return GestureDetector(
-              onTap: () =>
-                  onRelationshipChanged(selected ? null : relationship),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.softLavender.withValues(alpha: 0.14)
-                      : Colors.white.withValues(alpha: 0.03),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: selected
-                        ? AppColors.softLavender.withValues(alpha: 0.75)
-                        : Colors.white.withValues(alpha: 0.07),
+          children: AppConstants.relationshipSuggestions
+              .map((String relationship) {
+                final bool selected = selectedRelationship == relationship;
+                return GestureDetector(
+                  onTap: () =>
+                      onRelationshipChanged(selected ? null : relationship),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.softLavender.withValues(alpha: 0.14)
+                          : Colors.white.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.softLavender.withValues(alpha: 0.75)
+                            : Colors.white.withValues(alpha: 0.07),
+                      ),
+                    ),
+                    child: Text(
+                      relationship,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: selected
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                      ),
+                    ),
                   ),
-                ),
-                child: Text(
-                  relationship,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: selected ? Colors.white : AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            );
-          }).toList(growable: false),
+                );
+              })
+              .toList(growable: false),
         ),
         const SizedBox(height: 24),
         AnimatedBuilder(
           animation: labelController,
           builder: (BuildContext context, Widget? _) {
-            final bool canSubmit = labelController.text.trim().isNotEmpty ||
+            final bool canSubmit =
+                labelController.text.trim().isNotEmpty ||
                 (selectedRelationship?.isNotEmpty ?? false);
             return PrimaryGlowButton(
               label: 'Create invite',
@@ -432,8 +435,7 @@ class _ReceiveCodeForm extends StatelessWidget {
         AnimatedBuilder(
           animation: codeController,
           builder: (BuildContext context, Widget? _) {
-            final bool canSubmit =
-                codeController.text.trim().length >= 6;
+            final bool canSubmit = codeController.text.trim().length >= 6;
             return PrimaryGlowButton(
               label: 'Accept invite',
               glowColor: AppColors.softLavender,

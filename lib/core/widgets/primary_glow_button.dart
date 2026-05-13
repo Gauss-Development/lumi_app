@@ -32,10 +32,7 @@ class PrimaryGlowButton extends StatelessWidget {
             blurRadius: 40,
             spreadRadius: 1,
           ),
-          BoxShadow(
-            color: color.withValues(alpha: 0.18),
-            blurRadius: 80,
-          ),
+          BoxShadow(color: color.withValues(alpha: 0.18), blurRadius: 80),
         ],
       ),
       child: FilledButton(
@@ -55,14 +52,13 @@ class PrimaryGlowButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            if (icon != null) ...<Widget>[
-              icon!,
-              const SizedBox(width: 10),
-            ],
+            if (icon != null) ...<Widget>[icon!, const SizedBox(width: 10)],
             Text(
               label,
               style: AppTextStyles.label.copyWith(
-                color: Colors.white.withValues(alpha: onPressed == null ? 0.45 : 0.9),
+                color: Colors.white.withValues(
+                  alpha: onPressed == null ? 0.45 : 0.9,
+                ),
               ),
             ),
           ],

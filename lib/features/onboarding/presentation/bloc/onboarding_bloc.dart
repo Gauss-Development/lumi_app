@@ -5,13 +5,7 @@ import 'package:lumi/core/services/preferences_service.dart';
 
 part 'onboarding_bloc.freezed.dart';
 
-enum OnboardingStage {
-  welcome,
-  profile,
-  permissions,
-  onboarding,
-  complete,
-}
+enum OnboardingStage { welcome, profile, permissions, onboarding, complete }
 
 @freezed
 sealed class OnboardingEvent with _$OnboardingEvent {

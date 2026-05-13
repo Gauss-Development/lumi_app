@@ -60,20 +60,13 @@ class PulsePatternPad extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: recordedBeats.isEmpty
-                ? const <Widget>[
-                    _BeatChip(label: 'No beats yet'),
-                  ]
+                ? const <Widget>[_BeatChip(label: 'No beats yet')]
                 : recordedBeats
-                    .map(
-                      (int beat) => _BeatChip(label: '${beat}ms'),
-                    )
-                    .toList(growable: false),
+                      .map((int beat) => _BeatChip(label: '${beat}ms'))
+                      .toList(growable: false),
           ),
           const SizedBox(height: 12),
-          TextButton(
-            onPressed: onReset,
-            child: const Text('Reset rhythm'),
-          ),
+          TextButton(onPressed: onReset, child: const Text('Reset rhythm')),
         ],
       ),
     );

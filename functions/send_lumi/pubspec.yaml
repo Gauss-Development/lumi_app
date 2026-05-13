@@ -1,0 +1,9 @@
+name: send_lumi
+description: Server-side Appwrite function for sending Lumi events.
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  dart_appwrite: ^15.0.0

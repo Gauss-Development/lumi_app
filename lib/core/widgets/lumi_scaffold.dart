@@ -48,16 +48,13 @@ class LumiScaffold extends StatelessWidget {
           : AppBar(
               title: Text(
                 title!,
-                style: AppTextStyles.eyebrow.copyWith(color: AppColors.textFaint),
+                style: AppTextStyles.eyebrow.copyWith(
+                  color: AppColors.textFaint,
+                ),
               ),
               actions: actions,
             ),
-      body: Stack(
-        children: <Widget>[
-          const _AmbientBackground(),
-          body,
-        ],
-      ),
+      body: Stack(children: <Widget>[const _AmbientBackground(), body]),
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,
     );
@@ -71,9 +68,7 @@ class _AmbientBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: AppColors.deepNight,
-        ),
+        decoration: const BoxDecoration(color: AppColors.deepNight),
         child: Stack(
           children: <Widget>[
             Positioned(
@@ -113,12 +108,7 @@ class _GlowBlob extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: <Color>[
-              color,
-              Colors.transparent,
-            ],
-          ),
+          gradient: RadialGradient(colors: <Color>[color, Colors.transparent]),
         ),
       ),
     );

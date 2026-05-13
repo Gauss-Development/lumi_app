@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter_test/flutter_test.dart';
@@ -10,60 +12,58 @@ class _MockTablesDB extends Mock implements TablesDB {}
 
 class _MockAccount extends Mock implements Account {}
 
+class _MockFunctions extends Mock implements Functions {}
+
 void main() {
   late _MockTablesDB tablesDb;
   late _MockAccount account;
+  late _MockFunctions functions;
   late LumiRemoteDataSource dataSource;
 
   setUp(() {
     tablesDb = _MockTablesDB();
     account = _MockAccount();
-    dataSource = LumiRemoteDataSource(tablesDb: tablesDb, account: account);
+    functions = _MockFunctions();
+    dataSource = LumiRemoteDataSource(
+      tablesDb: tablesDb,
+      account: account,
+      functions: functions,
+    );
   });
 
-  test('sendLumi uses the circle member link as the real recipient', () async {
-    Map<dynamic, dynamic>? createdData;
-    List<String>? createdPermissions;
-
+  test('sendLumi delegates delivery to the server function', () async {
+    Map<String, dynamic>? requestBody;
     when(
-      () => tablesDb.getRow(
-        databaseId: any(named: 'databaseId'),
-        tableId: any(named: 'tableId'),
-        rowId: 'member-a-to-b',
-      ),
-    ).thenAnswer(
-      (_) async => _row(
-        id: 'member-a-to-b',
-        tableId: 'circle_members',
-        data: <String, dynamic>{
-          'ownerUserId': 'user-a',
-          'memberUserId': 'user-b',
-          'reciprocalMemberId': 'member-b-to-a',
-          'displayName': 'User B',
-          'signatureColorValue': 0xFFFFAA00,
-          'status': 'active',
-          'paceCount': 0,
-          'queuedCount': 0,
-          'mutualConnection': true,
-        },
-      ),
-    );
-    when(
-      () => tablesDb.createRow(
-        databaseId: any(named: 'databaseId'),
-        tableId: any(named: 'tableId'),
-        rowId: any(named: 'rowId'),
-        data: any(named: 'data'),
-        permissions: any(named: 'permissions'),
+      () => functions.createExecution(
+        functionId: 'send_lumi',
+        xasync: false,
+        method: any(named: 'method'),
+        body: any(named: 'body'),
       ),
     ).thenAnswer((invocation) async {
-      createdData = invocation.namedArguments[#data] as Map<dynamic, dynamic>;
-      createdPermissions =
-          invocation.namedArguments[#permissions] as List<String>?;
-      return _row(
-        id: invocation.namedArguments[#rowId] as String,
-        tableId: 'lumis',
-        data: createdData!,
+      requestBody =
+          jsonDecode(invocation.namedArguments[#body] as String)
+              as Map<String, dynamic>;
+      return _execution(
+        responseStatusCode: 201,
+        responseBody: jsonEncode(
+          _row(
+            id: 'lumi-1',
+            tableId: 'lumis',
+            data: <String, dynamic>{
+              'senderId': 'user-a',
+              'recipientId': 'user-b',
+              'senderMemberId': 'member-a-to-b',
+              'recipientMemberId': 'member-b-to-a',
+              'type': 'pulse',
+              'colorValue': 0xFFFFAA00,
+              'intensity': 0.8,
+              'deliveryStatus': 'delivered',
+              'pulsePatternJson': '{"intervals":[120,240]}',
+              'createdAt': DateTime.utc(2026, 5, 11).toIso8601String(),
+            },
+          ).toMap(),
+        ),
       );
     });
 
@@ -77,21 +77,11 @@ void main() {
       queued: false,
     );
 
-    expect(createdData, containsPair('senderId', 'user-a'));
-    expect(createdData, containsPair('recipientId', 'user-b'));
-    expect(createdData, containsPair('senderMemberId', 'member-a-to-b'));
-    expect(createdData, containsPair('recipientMemberId', 'member-b-to-a'));
-    expect(createdData, containsPair('deliveryStatus', 'delivered'));
-    expect(createdPermissions, contains(Permission.read(Role.users())));
-    expect(createdPermissions, contains(Permission.update(Role.users())));
-    expect(
-      createdPermissions,
-      contains(Permission.delete(Role.user('user-a'))),
-    );
-    expect(
-      createdPermissions,
-      isNot(contains(Permission.read(Role.user('user-b')))),
-    );
+    expect(requestBody, containsPair('senderId', 'user-a'));
+    expect(requestBody, containsPair('senderMemberId', 'member-a-to-b'));
+    expect(requestBody, containsPair('type', 'pulse'));
+    expect(requestBody, containsPair('deliveryStatus', 'delivered'));
+    expect(requestBody, isNot(contains('recipientId')));
     expect(lumi.memberId, 'member-a-to-b');
     expect(lumi.isIncoming, isFalse);
   });
@@ -181,5 +171,33 @@ models.Row _row({
     r'$updatedAt': DateTime.utc(2026).toIso8601String(),
     r'$permissions': <String>[],
     'data': data,
+  });
+}
+
+models.Execution _execution({
+  required int responseStatusCode,
+  required String responseBody,
+}) {
+  return models.Execution.fromMap(<String, dynamic>{
+    r'$id': 'execution-1',
+    r'$createdAt': DateTime.utc(2026).toIso8601String(),
+    r'$updatedAt': DateTime.utc(2026).toIso8601String(),
+    r'$permissions': <String>[],
+    'functionId': 'send_lumi',
+    'deploymentId': 'deployment-1',
+    'trigger': 'http',
+    'status': responseStatusCode >= 200 && responseStatusCode < 300
+        ? 'completed'
+        : 'failed',
+    'requestMethod': 'POST',
+    'requestPath': '/',
+    'requestHeaders': <dynamic>[],
+    'responseStatusCode': responseStatusCode,
+    'responseBody': responseBody,
+    'responseHeaders': <dynamic>[],
+    'logs': '',
+    'errors': '',
+    'duration': 0.01,
+    'scheduledAt': null,
   });
 }

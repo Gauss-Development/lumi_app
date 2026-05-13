@@ -55,19 +55,30 @@ analyze: ## Static analysis
 	flutter analyze
 
 format: ## Format Dart sources
-	dart format lib test tool
+	dart format lib test tool functions
 
 provision: ## Provision the Appwrite schema (needs APPWRITE_PROVISIONING_API_KEY)
 	@if [ -z "$$APPWRITE_PROVISIONING_API_KEY" ]; then \
 		echo "APPWRITE_PROVISIONING_API_KEY is not set."; \
 		echo "Create a server API key in Appwrite Console with"; \
 		echo "  databases.read/write, collections.read/write,"; \
-		echo "  attributes.read/write, indexes.read/write"; \
+		echo "  attributes.read/write, indexes.read/write,"; \
+		echo "  rows.read/write,"; \
+		echo "  messages.write,"; \
+		echo "  functions.read/write"; \
 		echo "scopes, then run:"; \
 		echo "  export APPWRITE_PROVISIONING_API_KEY=<key> && make provision"; \
 		exit 1; \
 	fi
 	dart run tool/provision_appwrite.dart
+
+deploy-functions: ## Deploy Appwrite Functions (needs APPWRITE_PROVISIONING_API_KEY)
+	@if [ -z "$$APPWRITE_PROVISIONING_API_KEY" ]; then \
+		echo "APPWRITE_PROVISIONING_API_KEY is not set."; \
+		echo "Create a server API key with functions.read/write scopes."; \
+		exit 1; \
+	fi
+	dart run tool/deploy_appwrite_functions.dart
 
 doctor: ## flutter doctor -v
 	flutter doctor -v

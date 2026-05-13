@@ -138,8 +138,9 @@ void main() {
   blocTest<AuthBloc, AuthState>(
     'emits loading then authenticated when Google sign-in succeeds',
     build: () {
-      when(() => signInWithGoogleUseCase.call())
-          .thenAnswer((_) async => const Right(googleSession));
+      when(
+        () => signInWithGoogleUseCase.call(),
+      ).thenAnswer((_) async => const Right(googleSession));
       return buildBloc();
     },
     act: (AuthBloc bloc) => bloc.add(const AuthEvent.googleSignInRequested()),
@@ -162,15 +163,18 @@ void main() {
     act: (AuthBloc bloc) => bloc.add(const AuthEvent.googleSignInRequested()),
     expect: () => <AuthState>[
       const AuthState.loading(),
-      const AuthState.failure('Google sign-in did not finish. Please try again.'),
+      const AuthState.failure(
+        'Google sign-in did not finish. Please try again.',
+      ),
     ],
   );
 
   blocTest<AuthBloc, AuthState>(
     'emits loading then unauthenticated when sign-out succeeds',
     build: () {
-      when(() => signOutUseCase.call())
-          .thenAnswer((_) async => const Right(unit));
+      when(
+        () => signOutUseCase.call(),
+      ).thenAnswer((_) async => const Right(unit));
       return buildBloc();
     },
     act: (AuthBloc bloc) => bloc.add(const AuthEvent.signedOut()),

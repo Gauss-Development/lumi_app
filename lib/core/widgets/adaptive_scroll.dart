@@ -18,8 +18,9 @@ class AdaptiveScrollColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double bottomInset =
-        reserveBottomInset ? MediaQuery.viewInsetsOf(context).bottom : 0;
+    final double bottomInset = reserveBottomInset
+        ? MediaQuery.viewInsetsOf(context).bottom
+        : 0;
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -28,8 +29,10 @@ class AdaptiveScrollColumn extends StatelessWidget {
           padding: EdgeInsets.only(bottom: bottomInset),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: (constraints.maxHeight - bottomInset)
-                  .clamp(0, double.infinity),
+              minHeight: (constraints.maxHeight - bottomInset).clamp(
+                0,
+                double.infinity,
+              ),
             ),
             child: IntrinsicHeight(
               child: Padding(

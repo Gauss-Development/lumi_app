@@ -5,7 +5,7 @@
 //
 // The API key needs scopes: databases.read, databases.write,
 // collections.read, collections.write, attributes.read, attributes.write,
-// indexes.read, indexes.write.
+// indexes.read, indexes.write, functions.read, functions.write.
 //
 // Re-running is safe: every step skips on 409 (already exists).
 
@@ -13,6 +13,7 @@ import 'dart:io';
 
 import 'package:dart_appwrite/dart_appwrite.dart';
 import 'package:dart_appwrite/enums.dart' as enums;
+import 'package:dart_appwrite/models.dart' as models;
 
 const String _projectId = '69ff68eb0033441e4041';
 const String _endpoint = 'https://sfo.cloud.appwrite.io/v1';
@@ -20,6 +21,7 @@ const String _databaseId = 'lumi';
 const String _databaseName = 'Lumi';
 
 late final Databases databases;
+late final Functions functions;
 
 Future<void> main() async {
   final String? apiKey = Platform.environment['APPWRITE_PROVISIONING_API_KEY'];
@@ -38,6 +40,7 @@ Future<void> main() async {
       .setProject(_projectId)
       .setKey(apiKey);
   databases = Databases(client);
+  functions = Functions(client);
 
   await _ensureDatabase();
 
@@ -47,8 +50,84 @@ Future<void> main() async {
   await _provisionLumis();
   await _provisionKeptLumis();
   await _provisionSettings();
+  await _provisionSendLumiFunction();
 
   stdout.writeln('\nProvisioning complete.');
+}
+
+Future<void> _provisionSendLumiFunction() async {
+  const String id = 'send_lumi';
+  const String name = 'Send Lumi';
+  const List<String> execute = <String>['users'];
+  const List<String> scopes = <String>[
+    'databases.read',
+    'databases.write',
+    'rows.read',
+    'rows.write',
+    'messages.write',
+  ];
+
+  try {
+    await functions.create(
+      functionId: id,
+      name: name,
+      runtime: enums.Runtime.dart35,
+      execute: execute,
+      timeout: 15,
+      enabled: true,
+      logging: true,
+      entrypoint: 'lib/main.dart',
+      commands: 'dart pub get',
+      scopes: scopes,
+    );
+    stdout.writeln('+ function $id');
+  } on AppwriteException catch (e) {
+    _onConflictOrRethrow(e, '= function $id');
+    await functions.update(
+      functionId: id,
+      name: name,
+      runtime: enums.Runtime.dart35,
+      execute: execute,
+      timeout: 15,
+      enabled: true,
+      logging: true,
+      entrypoint: 'lib/main.dart',
+      commands: 'dart pub get',
+      scopes: scopes,
+    );
+    stdout.writeln('  ~ function $id config');
+  }
+
+  await _ensureFunctionVariable(id, 'APPWRITE_ENDPOINT', _endpoint);
+}
+
+Future<void> _ensureFunctionVariable(
+  String functionId,
+  String key,
+  String value,
+) async {
+  final models.VariableList variables = await functions.listVariables(
+    functionId: functionId,
+  );
+  for (final models.Variable variable in variables.variables) {
+    if (variable.key == key) {
+      await functions.updateVariable(
+        functionId: functionId,
+        variableId: variable.$id,
+        key: key,
+        value: value,
+      );
+      stdout.writeln('  ~ function $functionId env $key');
+      return;
+    }
+  }
+
+  await functions.createVariable(
+    functionId: functionId,
+    key: key,
+    value: value,
+  );
+  stdout.writeln('  + function $functionId env $key');
 }
 
 // ---------------- Collections ----------------

@@ -14,7 +14,11 @@ class CircleEmptyState extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const GlowOrb(color: AppColors.softLavender, size: 120, intensity: 0.75),
+        const GlowOrb(
+          color: AppColors.softLavender,
+          size: 120,
+          intensity: 0.75,
+        ),
         const SizedBox(height: 24),
         Text(
           'Invite your first person',
@@ -25,9 +29,9 @@ class CircleEmptyState extends StatelessWidget {
         Text(
           'Twelve quiet spaces. Start with one orb that matters.',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 28),
         PrimaryGlowButton(

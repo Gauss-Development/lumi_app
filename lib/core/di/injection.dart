@@ -50,6 +50,10 @@ import 'package:lumi/features/profile/domain/usecases/get_profile_usecase.dart';
 import 'package:lumi/features/profile/domain/usecases/save_profile_usecase.dart';
 import 'package:lumi/features/profile/domain/usecases/update_signature_color_usecase.dart';
 import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
+import 'package:lumi/features/rituals/data/datasources/rituals_local_data_source.dart';
+import 'package:lumi/features/rituals/data/repositories/rituals_repository_impl.dart';
+import 'package:lumi/features/rituals/domain/repositories/rituals_repository.dart';
+import 'package:lumi/features/rituals/presentation/bloc/rituals_cubit.dart';
 import 'package:lumi/features/settings/data/datasources/settings_local_data_source.dart';
 import 'package:lumi/features/settings/data/repositories/settings_repository_impl.dart';
 import 'package:lumi/features/settings/domain/repositories/settings_repository.dart';
@@ -121,6 +125,12 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   );
   sl.registerLazySingleton<SettingsRepository>(
     () => SettingsRepositoryImpl(sl<SettingsLocalDataSource>()),
+  );
+  sl.registerLazySingleton<RitualsLocalDataSource>(
+    () => RitualsLocalDataSource(sl<PreferencesService>()),
+  );
+  sl.registerLazySingleton<RitualsRepository>(
+    () => RitualsRepositoryImpl(sl<RitualsLocalDataSource>()),
   );
 
   sl.registerLazySingleton<SubscriptionLocalDataSource>(
@@ -306,6 +316,7 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
       updatePreferences: sl<UpdateMutePreferencesUseCase>(),
     ),
   );
+  sl.registerFactory<RitualsCubit>(() => RitualsCubit(sl<RitualsRepository>()));
   sl.registerFactory<SubscriptionBloc>(
     () => SubscriptionBloc(
       getEntitlementStatusUseCase: sl<GetEntitlementStatusUseCase>(),

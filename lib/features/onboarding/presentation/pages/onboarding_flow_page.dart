@@ -123,7 +123,10 @@ class _ProfileStep extends StatelessWidget {
                   },
                   onColorSelected: (int value) {
                     context.read<ProfileSetupBloc>().add(
-                      ProfileSetupEvent.signatureColorChanged(value, userId: userId),
+                      ProfileSetupEvent.signatureColorChanged(
+                        value,
+                        userId: userId,
+                      ),
                     );
                   },
                   onSubmit: () {
@@ -216,8 +219,7 @@ class _NarrativeOnboardingStepState extends State<_NarrativeOnboardingStep> {
     _SlideData(
       color: AppColors.amberGlow,
       title: 'Send a glow,\nnot a message.',
-      body:
-          'Lumi turns presence into a soft signal. No typing, no pressure.',
+      body: 'Lumi turns presence into a soft signal. No typing, no pressure.',
     ),
     _SlideData(
       color: AppColors.softLavender,

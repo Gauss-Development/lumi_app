@@ -5,6 +5,7 @@ import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
+import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/circle/presentation/widgets/circle_empty_state.dart';
@@ -15,6 +16,11 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
+import 'package:lumi/features/rituals/domain/entities/ritual_preferences.dart';
+import 'package:lumi/features/rituals/domain/services/ritual_suggestion_engine.dart';
+import 'package:lumi/features/rituals/presentation/bloc/rituals_cubit.dart';
+import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.dart';
+import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
@@ -175,6 +181,8 @@ class HomePage extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            if (activeMembers.isNotEmpty)
+                              _RitualPromptHost(members: activeMembers),
                             if (members.isEmpty)
                               Expanded(
                                 child: LayoutBuilder(
@@ -351,6 +359,86 @@ class HomePage extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class _RitualPromptHost extends StatelessWidget {
+  const _RitualPromptHost({required this.members});
+
+  final List<CircleMember> members;
+
+  @override
+  Widget build(BuildContext context) {
+    final RitualsState ritualsState = context.watch<RitualsCubit>().state;
+    final SettingsState settingsState = context.watch<SettingsBloc>().state;
+    final List<Lumi> recentLumis = context.watch<LumiBloc>().state.items;
+    final RitualSuggestion? suggestion = const RitualSuggestionEngine().suggest(
+      preferences: ritualsState.preferences,
+      quietHours: settingsState.quietHours,
+      members: members,
+      recentLumis: recentLumis,
+    );
+
+    if (suggestion == null) {
+      return const SizedBox.shrink();
+    }
+
+    return RitualPromptCard(
+      suggestion: suggestion,
+      onDismiss: () => context.read<RitualsCubit>().dismissForToday(),
+      onSend: () => _sendRitual(context, suggestion),
+    );
+  }
+
+  void _sendRitual(BuildContext context, RitualSuggestion suggestion) {
+    final String? senderId = context.read<AuthBloc>().state.maybeWhen(
+      authenticated: (session) => session.userId,
+      orElse: () => null,
+    );
+    if (senderId == null) {
+      return;
+    }
+
+    final Set<String> targetIds = suggestion.memberIds.toSet();
+    final List<CircleMember> targets = members
+        .where((CircleMember member) => targetIds.contains(member.id))
+        .toList(growable: false);
+    final LumiBloc lumiBloc = context.read<LumiBloc>();
+    final int colorValue = switch (suggestion.kind) {
+      RitualKind.morning => AppColors.peach.toARGB32(),
+      RitualKind.evening => AppColors.softLavender.toARGB32(),
+      RitualKind.checkIn => AppColors.mint.toARGB32(),
+    };
+
+    for (final CircleMember member in targets) {
+      switch (suggestion.kind) {
+        case RitualKind.evening:
+          lumiBloc.add(
+            LumiEvent.sendLightRequested(
+              senderId: senderId,
+              memberId: member.id,
+              colorValue: colorValue,
+              intensity: 0.58,
+            ),
+          );
+        case RitualKind.morning:
+        case RitualKind.checkIn:
+          lumiBloc.add(
+            LumiEvent.sendPureRequested(
+              senderId: senderId,
+              memberId: member.id,
+              colorValue: colorValue,
+            ),
+          );
+      }
+    }
+
+    context.read<RitualsCubit>().markSent(suggestion.kind);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('Sent to ${targets.length} people.')),
+      );
   }
 }
 

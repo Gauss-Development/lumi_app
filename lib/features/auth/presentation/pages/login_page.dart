@@ -54,12 +54,14 @@ class _LoginPageState extends State<LoginPage> {
           previous != current,
       listener: (BuildContext context, AuthState state) {
         state.whenOrNull(
-          failure: (String message) => ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(message))),
+          failure: (String message) => ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message))),
           unauthenticated: (String? message) {
             if (message != null && message.isNotEmpty) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(message)));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
             }
           },
         );
@@ -164,9 +166,9 @@ class _OrDivider extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             'or',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.textFaint,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.textFaint),
           ),
         ),
         Expanded(
@@ -233,10 +235,7 @@ class _LumiField extends StatelessWidget {
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscure,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: hint,
-        ),
+        decoration: InputDecoration(border: InputBorder.none, hintText: hint),
       ),
     );
   }

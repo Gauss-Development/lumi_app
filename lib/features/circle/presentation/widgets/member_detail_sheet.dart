@@ -92,9 +92,9 @@ class MemberDetailSheet extends StatelessWidget {
                   child: Text(
                     member.subtitle!,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textFaint,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.textFaint),
                   ),
                 ),
               ],
@@ -136,7 +136,8 @@ class MemberDetailSheet extends StatelessWidget {
   }
 
   Future<void> _confirmRemove(BuildContext context) async {
-    final bool confirmed = await showDialog<bool>(
+    final bool confirmed =
+        await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) => AlertDialog(
             backgroundColor: AppColors.deepNight,

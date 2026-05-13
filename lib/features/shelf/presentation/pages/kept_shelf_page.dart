@@ -52,9 +52,9 @@ class _ShelfBody extends StatelessWidget {
                 _BackButton(onTap: () => Navigator.of(context).pop()),
                 Text(
                   'Kept shelf',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.textFaint,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: AppColors.textFaint),
                 ),
                 const SizedBox(width: 40),
               ],
@@ -102,7 +102,8 @@ class _ShelfBody extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
             sliver: SliverList.separated(
-              itemCount: items.length + ((isLoading || footerMessage != null) ? 1 : 0),
+              itemCount:
+                  items.length + ((isLoading || footerMessage != null) ? 1 : 0),
               itemBuilder: (BuildContext context, int index) {
                 if (index == items.length) {
                   return Padding(
@@ -117,14 +118,18 @@ class _ShelfBody extends StatelessWidget {
                 }
 
                 final KeptLumi kept = items[index];
-                final Color color = AppColors.signaturePalette[index % AppColors.signaturePalette.length];
+                final Color color =
+                    AppColors.signaturePalette[index %
+                        AppColors.signaturePalette.length];
 
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.035),
                     borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.07),
+                    ),
                   ),
                   child: Row(
                     children: <Widget>[
@@ -160,7 +165,9 @@ class _ShelfBody extends StatelessWidget {
                               children: <Widget>[
                                 Text(
                                   kept.senderName,
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                                 Text(
                                   _when(kept.savedAt),
@@ -172,9 +179,8 @@ class _ShelfBody extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               kept.previewLabel,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: AppColors.textSecondary),
                             ),
                           ],
                         ),
