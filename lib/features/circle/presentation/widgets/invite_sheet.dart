@@ -89,7 +89,14 @@ class _InviteSheetState extends State<InviteSheet> {
                 },
               );
             },
-            buildWhen: (previous, current) => true,
+            buildWhen: (CircleState previous, CircleState current) {
+              String? pendingCode(CircleState state) => state.maybeMap(
+                loaded: (loaded) => loaded.pendingInvitation?.code,
+                orElse: () => null,
+              );
+              return pendingCode(previous) != pendingCode(current) ||
+                  previous.runtimeType != current.runtimeType;
+            },
             builder: (BuildContext context, CircleState state) {
               final Invitation? pending = state.maybeMap(
                 loaded: (loaded) => loaded.pendingInvitation,

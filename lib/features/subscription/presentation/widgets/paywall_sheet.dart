@@ -261,17 +261,54 @@ class _PaywallBodyState extends State<_PaywallBody> {
               );
             }),
             const SizedBox(height: 14),
-            PrimaryGlowButton(
-              label: 'Begin Glow+',
-              glowColor: AppColors.gold,
-              onPressed: widget.plans.isEmpty
-                  ? null
-                  : () {
-                      context.read<SubscriptionBloc>().add(
-                        SubscriptionEvent.purchaseRequested(_selectedId),
-                      );
+            BlocListener<SubscriptionBloc, SubscriptionState>(
+              listenWhen: (SubscriptionState prev, SubscriptionState curr) {
+                final bool failed = curr.maybeWhen(
+                  failure: (_) => true,
+                  orElse: () => false,
+                );
+                final bool purchaseCompleted =
+                    prev.maybeWhen(loading: () => true, orElse: () => false) &&
+                    curr.maybeWhen(
+                      loaded: (_, _) => true,
+                      orElse: () => false,
+                    );
+                return failed || purchaseCompleted;
+              },
+              listener: (BuildContext context, SubscriptionState state) {
+                state.whenOrNull(
+                  failure: (String message) {
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(content: Text(message)));
+                  },
+                  loaded: (_, _) {
+                    if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
-                    },
+                    }
+                  },
+                );
+              },
+              child: PrimaryGlowButton(
+                label: 'Begin Glow+',
+                glowColor: AppColors.gold,
+                onPressed: widget.plans.isEmpty
+                    ? null
+                    : () {
+                        context.read<SubscriptionBloc>().add(
+                          SubscriptionEvent.purchaseRequested(_selectedId),
+                        );
+                      },
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                context.read<SubscriptionBloc>().add(
+                  const SubscriptionEvent.restoreRequested(),
+                );
+              },
+              child: const Text('Restore purchases'),
             ),
             const SizedBox(height: 14),
             Text(

@@ -41,7 +41,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     on<_MemberRemoved>(_onMemberRemoved);
     on<_DismissUpgradePrompt>(_onDismissUpgradePrompt);
     on<_PendingInvitationDismissed>(_onPendingInvitationDismissed);
-    _syncTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+    _syncTimer = Timer.periodic(const Duration(seconds: 20), (_) {
       if (isClosed) {
         return;
       }

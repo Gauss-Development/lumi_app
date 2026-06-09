@@ -16,7 +16,8 @@ class GlowOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return RepaintBoundary(
+      child: Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -42,6 +43,7 @@ class GlowOrb extends StatelessWidget {
         ],
       ),
       child: Center(child: child),
+      ),
     );
   }
 }

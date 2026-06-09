@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
@@ -19,6 +20,7 @@ import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
 import 'package:lumi/features/rituals/domain/entities/ritual_preferences.dart';
+import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 import 'package:lumi/features/rituals/domain/services/ritual_suggestion_engine.dart';
 import 'package:lumi/features/rituals/presentation/bloc/rituals_cubit.dart';
 import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.dart';
@@ -305,22 +307,24 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        BlocBuilder<LumiBloc, LumiState>(
-                          builder: (BuildContext context, LumiState lumiState) {
-                            final List<Lumi> incoming = lumiState.items
-                                .where(
-                                  (Lumi item) =>
-                                      item.isIncoming &&
-                                      item.deliveryStatus !=
-                                          LumiDeliveryStatus.seen,
-                                )
-                                .toList(growable: false);
-                            if (incoming.isEmpty) {
+                        BlocSelector<LumiBloc, LumiState, Lumi?>(
+                          selector: (LumiState lumiState) {
+                            for (final Lumi item in lumiState.items) {
+                              if (item.isIncoming &&
+                                  item.deliveryStatus !=
+                                      LumiDeliveryStatus.seen) {
+                                return item;
+                              }
+                            }
+                            return null;
+                          },
+                          builder: (BuildContext context, Lumi? incoming) {
+                            if (incoming == null) {
                               return const SizedBox.shrink();
                             }
                             return Align(
                               alignment: Alignment.bottomCenter,
-                              child: IncomingLumiOverlay(lumi: incoming.first),
+                              child: IncomingLumiOverlay(lumi: incoming),
                             );
                           },
                         ),
@@ -346,6 +350,18 @@ class HomePage extends StatelessWidget {
   void _openComposer(BuildContext context, CircleMember member) {
     if (!member.canSend) {
       _openDetails(context, member);
+      return;
+    }
+    if (member.paceCount >= LumiLimits.maxLumisPerPairPerDay) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gentle limit reached for ${member.displayName} today.',
+            ),
+          ),
+        );
       return;
     }
     showModalBottomSheet<void>(
@@ -394,6 +410,18 @@ class HomePage extends StatelessWidget {
       orElse: () => null,
     );
     if (senderId == null) {
+      return;
+    }
+    if (member.paceCount >= LumiLimits.maxLumisPerPairPerDay) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gentle limit reached for ${member.displayName} today.',
+            ),
+          ),
+        );
       return;
     }
 
@@ -489,24 +517,38 @@ class _RitualPromptHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final RitualsState ritualsState = context.watch<RitualsCubit>().state;
-    final SettingsState settingsState = context.watch<SettingsBloc>().state;
-    final List<Lumi> recentLumis = context.watch<LumiBloc>().state.items;
-    final RitualSuggestion? suggestion = const RitualSuggestionEngine().suggest(
-      preferences: ritualsState.preferences,
-      quietHours: settingsState.quietHours,
-      members: members,
-      recentLumis: recentLumis,
-    );
+    return BlocSelector<RitualsCubit, RitualsState, RitualPreferences>(
+      selector: (RitualsState state) => state.preferences,
+      builder: (BuildContext context, RitualPreferences preferences) {
+        return BlocSelector<SettingsBloc, SettingsState, QuietHours>(
+          selector: (SettingsState state) => state.quietHours,
+          builder: (BuildContext context, QuietHours quietHours) {
+            return BlocSelector<LumiBloc, LumiState, List<Lumi>>(
+              selector: (LumiState state) => state.items,
+              builder: (BuildContext context, List<Lumi> recentLumis) {
+                final RitualSuggestion? suggestion =
+                    const RitualSuggestionEngine().suggest(
+                      preferences: preferences,
+                      quietHours: quietHours,
+                      members: members,
+                      recentLumis: recentLumis,
+                    );
 
-    if (suggestion == null) {
-      return const SizedBox.shrink();
-    }
+                if (suggestion == null) {
+                  return const SizedBox.shrink();
+                }
 
-    return RitualPromptCard(
-      suggestion: suggestion,
-      onDismiss: () => context.read<RitualsCubit>().dismissForToday(),
-      onSend: () => _sendRitual(context, suggestion),
+                return RitualPromptCard(
+                  suggestion: suggestion,
+                  onDismiss: () =>
+                      context.read<RitualsCubit>().dismissForToday(),
+                  onSend: () => _sendRitual(context, suggestion),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
