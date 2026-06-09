@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import 'package:lumi/core/config/environment_config.dart';
@@ -7,6 +9,8 @@ class RevenueCatService {
   RevenueCatService({required EnvironmentConfig config, required Flavor flavor})
     : _config = config,
       _flavor = flavor;
+
+  static const String lumiPlusEntitlementId = 'lumi_plus';
 
   final EnvironmentConfig _config;
   final Flavor _flavor;
@@ -42,6 +46,14 @@ class RevenueCatService {
     return Purchases.getOfferings();
   }
 
+  Future<CustomerInfo?> purchasePackage(Package package) async {
+    if (!_isConfigured) {
+      return null;
+    }
+    final result = await Purchases.purchase(PurchaseParams.package(package));
+    return result.customerInfo;
+  }
+
   Future<CustomerInfo?> restorePurchases() async {
     if (!_isConfigured) {
       return null;
@@ -49,9 +61,27 @@ class RevenueCatService {
     return Purchases.restorePurchases();
   }
 
+  Future<void> logIn(String userId) async {
+    if (!_isConfigured || userId.isEmpty) {
+      return;
+    }
+    await Purchases.logIn(userId);
+  }
+
+  Future<void> logOut() async {
+    if (!_isConfigured) {
+      return;
+    }
+    await Purchases.logOut();
+  }
+
   String? _resolveApiKey() {
-    return _config.revenueCatAppleKey.isNotEmpty
-        ? _config.revenueCatAppleKey
-        : _config.revenueCatGoogleKey;
+    if (Platform.isIOS) {
+      return _config.revenueCatAppleKey;
+    }
+    if (Platform.isAndroid) {
+      return _config.revenueCatGoogleKey;
+    }
+    return null;
   }
 }

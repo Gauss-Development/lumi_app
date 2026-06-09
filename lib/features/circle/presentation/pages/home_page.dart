@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
+import 'package:lumi/core/services/widget_bridge_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
@@ -120,11 +122,16 @@ class HomePage extends StatelessWidget {
                   final List<CircleMember> activeMembers = members
                       .where((CircleMember member) => member.isActive)
                       .toList(growable: false);
+                  final List<CircleMember> quickSendMembers = activeMembers
+                      .where((CircleMember member) => member.canSend)
+                      .take(WidgetBridgeService.maxQuickSendMembers)
+                      .toList(growable: false);
 
                   return LumiScaffold(
                     padding: EdgeInsets.zero,
                     child: Stack(
                       children: <Widget>[
+                        _WidgetSyncEffect(members: members),
                         Column(
                           children: <Widget>[
                             Padding(
@@ -227,7 +234,7 @@ class HomePage extends StatelessWidget {
                                     16,
                                     24,
                                     16,
-                                    100,
+                                    156,
                                   ),
                                   child: OrbGrid(
                                     members: members,
@@ -265,16 +272,36 @@ class HomePage extends StatelessWidget {
                         ),
                         Align(
                           alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 40),
-                            child: _ComposeButton(
-                              onTap: () {
-                                if (activeMembers.isNotEmpty) {
-                                  _openComposer(context, activeMembers.first);
-                                } else {
-                                  _showInviteSheet(context);
-                                }
-                              },
+                          child: SafeArea(
+                            top: false,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  if (quickSendMembers.isNotEmpty)
+                                    _QuickSendDock(
+                                      members: quickSendMembers,
+                                      onSend: (CircleMember member) =>
+                                          _quickSend(context, member),
+                                      onOpenComposer: (CircleMember member) =>
+                                          _openComposer(context, member),
+                                    ),
+                                  const SizedBox(height: 14),
+                                  _ComposeButton(
+                                    onTap: () {
+                                      if (activeMembers.isNotEmpty) {
+                                        _openComposer(
+                                          context,
+                                          activeMembers.first,
+                                        );
+                                      } else {
+                                        _showInviteSheet(context);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -360,6 +387,99 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+
+  void _quickSend(BuildContext context, CircleMember member) {
+    final String? senderId = context.read<AuthBloc>().state.maybeWhen(
+      authenticated: (session) => session.userId,
+      orElse: () => null,
+    );
+    if (senderId == null) {
+      return;
+    }
+
+    const HapticsService().playSoftSelection();
+    context.read<LumiBloc>().add(
+      LumiEvent.sendPureRequested(
+        senderId: senderId,
+        memberId: member.id,
+        colorValue: member.signatureColorValue,
+      ),
+    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
+  }
+}
+
+class _WidgetSyncEffect extends StatefulWidget {
+  const _WidgetSyncEffect({required this.members});
+
+  final List<CircleMember> members;
+
+  @override
+  State<_WidgetSyncEffect> createState() => _WidgetSyncEffectState();
+}
+
+class _WidgetSyncEffectState extends State<_WidgetSyncEffect> {
+  String? _lastSignature;
+
+  @override
+  void initState() {
+    super.initState();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant _WidgetSyncEffect oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _sync();
+  }
+
+  void _sync() {
+    final String signature = widget.members
+        .map(
+          (CircleMember member) =>
+              '${member.id}:${member.status.name}:${member.displayName}:${member.signatureColorValue}',
+        )
+        .join('|');
+    if (signature == _lastSignature) {
+      return;
+    }
+    _lastSignature = signature;
+
+    final List<CircleMember> activeMembers = widget.members
+        .where((CircleMember member) => member.isActive)
+        .toList(growable: false);
+    final int pendingMembers = widget.members.length - activeMembers.length;
+    final List<WidgetQuickSendMember> quickSendMembers = activeMembers
+        .where((CircleMember member) => member.canSend)
+        .take(WidgetBridgeService.maxQuickSendMembers)
+        .map(
+          (CircleMember member) => WidgetQuickSendMember(
+            id: member.id,
+            displayName: member.displayName,
+            colorValue: member.signatureColorValue,
+          ),
+        )
+        .toList(growable: false);
+
+    Future<void>(() async {
+      try {
+        final WidgetBridgeService widgetBridge = sl<WidgetBridgeService>();
+        await widgetBridge.syncCircleSummary(
+          activeMembers: activeMembers.length,
+          pendingMembers: pendingMembers,
+        );
+        await widgetBridge.syncQuickSendMembers(quickSendMembers);
+      } catch (_) {
+        // Widgets are an optional surface; app interactions should continue
+        // even on platforms without a HomeWidget implementation.
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _RitualPromptHost extends StatelessWidget {
@@ -439,6 +559,103 @@ class _RitualPromptHost extends StatelessWidget {
       ..showSnackBar(
         SnackBar(content: Text('Sent to ${targets.length} people.')),
       );
+  }
+}
+
+class _QuickSendDock extends StatelessWidget {
+  const _QuickSendDock({
+    required this.members,
+    required this.onSend,
+    required this.onOpenComposer,
+  });
+
+  final List<CircleMember> members;
+  final ValueChanged<CircleMember> onSend;
+  final ValueChanged<CircleMember> onOpenComposer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.deepNight.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.22),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: members
+            .map(
+              (CircleMember member) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: _QuickSendButton(
+                  member: member,
+                  onSend: () => onSend(member),
+                  onOpenComposer: () => onOpenComposer(member),
+                ),
+              ),
+            )
+            .toList(growable: false),
+      ),
+    );
+  }
+}
+
+class _QuickSendButton extends StatelessWidget {
+  const _QuickSendButton({
+    required this.member,
+    required this.onSend,
+    required this.onOpenComposer,
+  });
+
+  final CircleMember member;
+  final VoidCallback onSend;
+  final VoidCallback onOpenComposer;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = Color(member.signatureColorValue);
+    return Tooltip(
+      message: member.displayName,
+      child: GestureDetector(
+        onTap: onSend,
+        onLongPress: onOpenComposer,
+        child: Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: <Color>[Colors.white.withValues(alpha: 0.74), color],
+              stops: const <double>[0, 0.66],
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(color: color.withValues(alpha: 0.34), blurRadius: 22),
+            ],
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.36),
+              width: 1.2,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              member.initials,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: AppColors.deepNight,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

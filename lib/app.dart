@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/router/app_router.dart';
+import 'package:lumi/core/services/revenuecat_service.dart';
 import 'package:lumi/core/theme/app_theme.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
@@ -88,9 +89,38 @@ class _LumiAppState extends State<LumiApp> {
               );
               return !wasAuthenticated && isAuthenticated;
             },
-            listener: (BuildContext context, AuthState state) {
+            listener: (BuildContext context, AuthState state) async {
+              await state.maybeWhen(
+                authenticated: (session) =>
+                    sl<RevenueCatService>().logIn(session.userId),
+                orElse: () async {},
+              );
+              if (!context.mounted) return;
               context.read<CircleBloc>().add(const CircleEvent.loadRequested());
               context.read<LumiBloc>().add(const LumiEvent.watchRecent());
+              context.read<SubscriptionBloc>().add(
+                const SubscriptionEvent.loadRequested(),
+              );
+            },
+          ),
+          BlocListener<AuthBloc, AuthState>(
+            listenWhen: (AuthState previous, AuthState current) {
+              final bool wasAuthenticated = previous.maybeWhen(
+                authenticated: (_) => true,
+                orElse: () => false,
+              );
+              final bool isAuthenticated = current.maybeWhen(
+                authenticated: (_) => true,
+                orElse: () => false,
+              );
+              return wasAuthenticated && !isAuthenticated;
+            },
+            listener: (BuildContext context, AuthState state) async {
+              await sl<RevenueCatService>().logOut();
+              if (!context.mounted) return;
+              context.read<SubscriptionBloc>().add(
+                const SubscriptionEvent.loadRequested(),
+              );
             },
           ),
         ],

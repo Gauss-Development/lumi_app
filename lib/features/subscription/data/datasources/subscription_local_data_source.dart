@@ -31,39 +31,16 @@ class SubscriptionLocalDataSource {
   List<PaywallPlan> defaultPlans() {
     return const <PaywallPlan>[
       PaywallPlan(
-        id: 'household_yearly',
-        title: 'Yearly',
-        priceLabel: '\$24',
-        description: '\$2 / month · save 60%',
-        isAnnual: true,
-      ),
-      PaywallPlan(
-        id: 'household_monthly',
+        id: 'lumi_monthly',
         title: 'Monthly',
-        priceLabel: '\$4.99',
-        description: 'billed monthly',
+        priceLabel: '\$9.99',
+        description: '7 days free, then billed monthly',
         isAnnual: false,
       ),
     ];
   }
 
-  Future<EntitlementStatus> purchase(String planId) async {
-    final isAnnual = planId.contains('year');
-    final status = EntitlementStatus(
-      isActive: true,
-      householdSeats: 6,
-      activeMembersLimit: 12,
-      plan: isAnnual ? HouseholdPlan.yearly : HouseholdPlan.monthly,
-    );
-    await _saveStatus(status);
-    return status;
-  }
-
-  Future<EntitlementStatus> restore() {
-    return getStatus();
-  }
-
-  Future<void> _saveStatus(EntitlementStatus status) async {
+  Future<void> saveStatus(EntitlementStatus status) async {
     await _preferencesService.setString(
       _subscriptionKey,
       jsonEncode(<String, dynamic>{
