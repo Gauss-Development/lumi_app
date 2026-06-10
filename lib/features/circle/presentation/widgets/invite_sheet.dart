@@ -1,17 +1,30 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_contacts/models/permissions/permission_status.dart';
+import 'package:flutter_contacts/models/permissions/permission_type.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:lumi/core/constants/app_constants.dart';
 import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/core/utils/invite_link_utils.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/circle/domain/entities/invitation.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 
-enum _Mode { send, receive }
+enum InviteSheetMode { send, receive }
 
 class InviteSheet extends StatefulWidget {
-  const InviteSheet({super.key});
+  const InviteSheet({
+    this.initialCode,
+    this.initialMode = InviteSheetMode.send,
+    super.key,
+  });
+
+  final String? initialCode;
+  final InviteSheetMode initialMode;
 
   @override
   State<InviteSheet> createState() => _InviteSheetState();
@@ -21,7 +34,16 @@ class _InviteSheetState extends State<InviteSheet> {
   final TextEditingController _labelController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
   String? _selectedRelationship;
-  _Mode _mode = _Mode.send;
+  late InviteSheetMode _mode;
+
+  @override
+  void initState() {
+    super.initState();
+    _mode = widget.initialMode;
+    if (widget.initialCode != null && widget.initialCode!.isNotEmpty) {
+      _codeController.text = widget.initialCode!.trim().toUpperCase();
+    }
+  }
 
   @override
   void dispose() {
@@ -80,15 +102,7 @@ class _InviteSheetState extends State<InviteSheet> {
               );
               return prev?.code != next?.code;
             },
-            listener: (BuildContext context, CircleState state) {
-              state.mapOrNull(
-                loaded: (loaded) {
-                  if (loaded.pendingInvitation != null && _mode == _Mode.send) {
-                    // Stay in this sheet; the share view appears below.
-                  }
-                },
-              );
-            },
+            listener: (BuildContext context, CircleState state) {},
             buildWhen: (CircleState previous, CircleState current) {
               String? pendingCode(CircleState state) => state.maybeMap(
                 loaded: (loaded) => loaded.pendingInvitation?.code,
@@ -109,12 +123,12 @@ class _InviteSheetState extends State<InviteSheet> {
                 children: <Widget>[
                   _ModeToggle(
                     mode: _mode,
-                    onChanged: (_Mode next) {
+                    onChanged: (InviteSheetMode next) {
                       setState(() => _mode = next);
                     },
                   ),
                   const SizedBox(height: 20),
-                  if (_mode == _Mode.send) ...<Widget>[
+                  if (_mode == InviteSheetMode.send) ...<Widget>[
                     if (pending != null)
                       _ShareCodeView(
                         invitation: pending,
@@ -132,6 +146,7 @@ class _InviteSheetState extends State<InviteSheet> {
                         onRelationshipChanged: (String? next) {
                           setState(() => _selectedRelationship = next);
                         },
+                        onPickContact: () => _pickContact(context),
                         onSubmit: () => _onCreatePressed(context),
                       ),
                   ] else
@@ -147,13 +162,49 @@ class _InviteSheetState extends State<InviteSheet> {
       ),
     );
   }
+
+  Future<void> _pickContact(BuildContext context) async {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Contact picking is available on mobile devices.'),
+        ),
+      );
+      return;
+    }
+
+    final PermissionStatus status = await FlutterContacts.permissions.request(
+      PermissionType.read,
+    );
+    if (status != PermissionStatus.granted &&
+        status != PermissionStatus.limited) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Contacts permission is needed to pick someone.'),
+        ),
+      );
+      return;
+    }
+
+    final Contact? contact = await FlutterContacts.native.showPicker();
+    if (contact == null || !context.mounted) {
+      return;
+    }
+
+    final String name = contact.displayName?.trim() ?? '';
+    if (name.isNotEmpty) {
+      _labelController.text = name;
+    }
+    setState(() {});
+  }
 }
 
 class _ModeToggle extends StatelessWidget {
   const _ModeToggle({required this.mode, required this.onChanged});
 
-  final _Mode mode;
-  final ValueChanged<_Mode> onChanged;
+  final InviteSheetMode mode;
+  final ValueChanged<InviteSheetMode> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -169,15 +220,15 @@ class _ModeToggle extends StatelessWidget {
           Expanded(
             child: _ToggleSegment(
               label: 'Send invite',
-              selected: mode == _Mode.send,
-              onTap: () => onChanged(_Mode.send),
+              selected: mode == InviteSheetMode.send,
+              onTap: () => onChanged(InviteSheetMode.send),
             ),
           ),
           Expanded(
             child: _ToggleSegment(
               label: 'Have a code?',
-              selected: mode == _Mode.receive,
-              onTap: () => onChanged(_Mode.receive),
+              selected: mode == InviteSheetMode.receive,
+              onTap: () => onChanged(InviteSheetMode.receive),
             ),
           ),
         ],
@@ -228,12 +279,14 @@ class _SendInviteForm extends StatelessWidget {
     required this.labelController,
     required this.selectedRelationship,
     required this.onRelationshipChanged,
+    required this.onPickContact,
     required this.onSubmit,
   });
 
   final TextEditingController labelController;
   final String? selectedRelationship;
   final ValueChanged<String?> onRelationshipChanged;
+  final VoidCallback onPickContact;
   final VoidCallback onSubmit;
 
   @override
@@ -257,6 +310,16 @@ class _SendInviteForm extends StatelessWidget {
           controller: labelController,
           hint: 'Their name',
           textInputAction: TextInputAction.next,
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: onPickContact,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          icon: const Icon(Icons.contacts_outlined, size: 18),
+          label: const Text('Choose from contacts'),
         ),
         const SizedBox(height: 14),
         Wrap(
@@ -326,6 +389,7 @@ class _ShareCodeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String inviteUrl = InviteLinkUtils.buildInviteUrl(invitation.code);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -336,7 +400,7 @@ class _ShareCodeView extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Send it to ${invitation.inviteeLabel}. They open Lumi, tap "Have a code?", and the orbs connect.',
+          'Send the link to ${invitation.inviteeLabel}. After install, Lumi opens ready to connect.',
           textAlign: TextAlign.center,
           style: Theme.of(
             context,
@@ -371,12 +435,35 @@ class _ShareCodeView extends StatelessWidget {
             ).textTheme.bodySmall?.copyWith(color: AppColors.textFaint),
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 16),
+        SelectableText(
+          inviteUrl,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () async {
-            await Clipboard.setData(ClipboardData(text: invitation.code));
+            await Share.share(
+              'Join my Lumi circle: $inviteUrl\nOr enter code ${invitation.code}',
+              subject: 'Lumi invite',
+            );
+          },
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(52),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          icon: const Icon(Icons.ios_share_rounded, size: 18),
+          label: const Text('Share invite link'),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () async {
+            await Clipboard.setData(ClipboardData(text: inviteUrl));
             messenger.showSnackBar(
-              const SnackBar(content: Text('Code copied to clipboard')),
+              const SnackBar(content: Text('Invite link copied')),
             );
           },
           style: OutlinedButton.styleFrom(
@@ -384,7 +471,7 @@ class _ShareCodeView extends StatelessWidget {
             side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
           ),
           icon: const Icon(Icons.copy_rounded, size: 18),
-          label: const Text('Copy code'),
+          label: const Text('Copy link'),
         ),
         const SizedBox(height: 12),
         PrimaryGlowButton(

@@ -55,7 +55,7 @@ extension CircleEventPatterns on CircleEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _InvitationRequested value)?  invitationRequested,TResult Function( _InviteCodeAccepted value)?  inviteCodeAccepted,TResult Function( _MemberMuted value)?  memberMuted,TResult Function( _MemberMemorialized value)?  memberMemorialized,TResult Function( _MemberRemoved value)?  memberRemoved,TResult Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,TResult Function( _PendingInvitationDismissed value)?  pendingInvitationDismissed,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _LoadRequested value)?  loadRequested,TResult Function( _InvitationRequested value)?  invitationRequested,TResult Function( _InviteCodeAccepted value)?  inviteCodeAccepted,TResult Function( _MemberMuted value)?  memberMuted,TResult Function( _MemberMemorialized value)?  memberMemorialized,TResult Function( _MemberRemoved value)?  memberRemoved,TResult Function( _DismissCircleCapMessage value)?  dismissCircleCapMessage,TResult Function( _PendingInvitationDismissed value)?  pendingInvitationDismissed,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
@@ -64,8 +64,8 @@ return invitationRequested(_that);case _InviteCodeAccepted() when inviteCodeAcce
 return inviteCodeAccepted(_that);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that);case _MemberRemoved() when memberRemoved != null:
-return memberRemoved(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt(_that);case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return memberRemoved(_that);case _DismissCircleCapMessage() when dismissCircleCapMessage != null:
+return dismissCircleCapMessage(_that);case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
 return pendingInvitationDismissed(_that);case _:
   return orElse();
 
@@ -84,7 +84,7 @@ return pendingInvitationDismissed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _InvitationRequested value)  invitationRequested,required TResult Function( _InviteCodeAccepted value)  inviteCodeAccepted,required TResult Function( _MemberMuted value)  memberMuted,required TResult Function( _MemberMemorialized value)  memberMemorialized,required TResult Function( _MemberRemoved value)  memberRemoved,required TResult Function( _DismissUpgradePrompt value)  dismissUpgradePrompt,required TResult Function( _PendingInvitationDismissed value)  pendingInvitationDismissed,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _LoadRequested value)  loadRequested,required TResult Function( _InvitationRequested value)  invitationRequested,required TResult Function( _InviteCodeAccepted value)  inviteCodeAccepted,required TResult Function( _MemberMuted value)  memberMuted,required TResult Function( _MemberMemorialized value)  memberMemorialized,required TResult Function( _MemberRemoved value)  memberRemoved,required TResult Function( _DismissCircleCapMessage value)  dismissCircleCapMessage,required TResult Function( _PendingInvitationDismissed value)  pendingInvitationDismissed,}){
 final _that = this;
 switch (_that) {
 case _LoadRequested():
@@ -93,8 +93,8 @@ return invitationRequested(_that);case _InviteCodeAccepted():
 return inviteCodeAccepted(_that);case _MemberMuted():
 return memberMuted(_that);case _MemberMemorialized():
 return memberMemorialized(_that);case _MemberRemoved():
-return memberRemoved(_that);case _DismissUpgradePrompt():
-return dismissUpgradePrompt(_that);case _PendingInvitationDismissed():
+return memberRemoved(_that);case _DismissCircleCapMessage():
+return dismissCircleCapMessage(_that);case _PendingInvitationDismissed():
 return pendingInvitationDismissed(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -112,7 +112,7 @@ return pendingInvitationDismissed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _InvitationRequested value)?  invitationRequested,TResult? Function( _InviteCodeAccepted value)?  inviteCodeAccepted,TResult? Function( _MemberMuted value)?  memberMuted,TResult? Function( _MemberMemorialized value)?  memberMemorialized,TResult? Function( _MemberRemoved value)?  memberRemoved,TResult? Function( _DismissUpgradePrompt value)?  dismissUpgradePrompt,TResult? Function( _PendingInvitationDismissed value)?  pendingInvitationDismissed,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _LoadRequested value)?  loadRequested,TResult? Function( _InvitationRequested value)?  invitationRequested,TResult? Function( _InviteCodeAccepted value)?  inviteCodeAccepted,TResult? Function( _MemberMuted value)?  memberMuted,TResult? Function( _MemberMemorialized value)?  memberMemorialized,TResult? Function( _MemberRemoved value)?  memberRemoved,TResult? Function( _DismissCircleCapMessage value)?  dismissCircleCapMessage,TResult? Function( _PendingInvitationDismissed value)?  pendingInvitationDismissed,}){
 final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
@@ -121,8 +121,8 @@ return invitationRequested(_that);case _InviteCodeAccepted() when inviteCodeAcce
 return inviteCodeAccepted(_that);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that);case _MemberRemoved() when memberRemoved != null:
-return memberRemoved(_that);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt(_that);case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return memberRemoved(_that);case _DismissCircleCapMessage() when dismissCircleCapMessage != null:
+return dismissCircleCapMessage(_that);case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
 return pendingInvitationDismissed(_that);case _:
   return null;
 
@@ -140,7 +140,7 @@ return pendingInvitationDismissed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String label,  String? relationshipLabel)?  invitationRequested,TResult Function( String code)?  inviteCodeAccepted,TResult Function( String memberId,  Duration duration)?  memberMuted,TResult Function( String memberId)?  memberMemorialized,TResult Function( String memberId)?  memberRemoved,TResult Function()?  dismissUpgradePrompt,TResult Function()?  pendingInvitationDismissed,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String label,  String? relationshipLabel)?  invitationRequested,TResult Function( String code)?  inviteCodeAccepted,TResult Function( String memberId,  Duration duration)?  memberMuted,TResult Function( String memberId)?  memberMemorialized,TResult Function( String memberId)?  memberRemoved,TResult Function()?  dismissCircleCapMessage,TResult Function()?  pendingInvitationDismissed,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
 return loadRequested();case _InvitationRequested() when invitationRequested != null:
@@ -148,8 +148,8 @@ return invitationRequested(_that.label,_that.relationshipLabel);case _InviteCode
 return inviteCodeAccepted(_that.code);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that.memberId);case _MemberRemoved() when memberRemoved != null:
-return memberRemoved(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt();case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return memberRemoved(_that.memberId);case _DismissCircleCapMessage() when dismissCircleCapMessage != null:
+return dismissCircleCapMessage();case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
 return pendingInvitationDismissed();case _:
   return orElse();
 
@@ -168,7 +168,7 @@ return pendingInvitationDismissed();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String label,  String? relationshipLabel)  invitationRequested,required TResult Function( String code)  inviteCodeAccepted,required TResult Function( String memberId,  Duration duration)  memberMuted,required TResult Function( String memberId)  memberMemorialized,required TResult Function( String memberId)  memberRemoved,required TResult Function()  dismissUpgradePrompt,required TResult Function()  pendingInvitationDismissed,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String label,  String? relationshipLabel)  invitationRequested,required TResult Function( String code)  inviteCodeAccepted,required TResult Function( String memberId,  Duration duration)  memberMuted,required TResult Function( String memberId)  memberMemorialized,required TResult Function( String memberId)  memberRemoved,required TResult Function()  dismissCircleCapMessage,required TResult Function()  pendingInvitationDismissed,}) {final _that = this;
 switch (_that) {
 case _LoadRequested():
 return loadRequested();case _InvitationRequested():
@@ -176,8 +176,8 @@ return invitationRequested(_that.label,_that.relationshipLabel);case _InviteCode
 return inviteCodeAccepted(_that.code);case _MemberMuted():
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized():
 return memberMemorialized(_that.memberId);case _MemberRemoved():
-return memberRemoved(_that.memberId);case _DismissUpgradePrompt():
-return dismissUpgradePrompt();case _PendingInvitationDismissed():
+return memberRemoved(_that.memberId);case _DismissCircleCapMessage():
+return dismissCircleCapMessage();case _PendingInvitationDismissed():
 return pendingInvitationDismissed();case _:
   throw StateError('Unexpected subclass');
 
@@ -195,7 +195,7 @@ return pendingInvitationDismissed();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String label,  String? relationshipLabel)?  invitationRequested,TResult? Function( String code)?  inviteCodeAccepted,TResult? Function( String memberId,  Duration duration)?  memberMuted,TResult? Function( String memberId)?  memberMemorialized,TResult? Function( String memberId)?  memberRemoved,TResult? Function()?  dismissUpgradePrompt,TResult? Function()?  pendingInvitationDismissed,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String label,  String? relationshipLabel)?  invitationRequested,TResult? Function( String code)?  inviteCodeAccepted,TResult? Function( String memberId,  Duration duration)?  memberMuted,TResult? Function( String memberId)?  memberMemorialized,TResult? Function( String memberId)?  memberRemoved,TResult? Function()?  dismissCircleCapMessage,TResult? Function()?  pendingInvitationDismissed,}) {final _that = this;
 switch (_that) {
 case _LoadRequested() when loadRequested != null:
 return loadRequested();case _InvitationRequested() when invitationRequested != null:
@@ -203,8 +203,8 @@ return invitationRequested(_that.label,_that.relationshipLabel);case _InviteCode
 return inviteCodeAccepted(_that.code);case _MemberMuted() when memberMuted != null:
 return memberMuted(_that.memberId,_that.duration);case _MemberMemorialized() when memberMemorialized != null:
 return memberMemorialized(_that.memberId);case _MemberRemoved() when memberRemoved != null:
-return memberRemoved(_that.memberId);case _DismissUpgradePrompt() when dismissUpgradePrompt != null:
-return dismissUpgradePrompt();case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
+return memberRemoved(_that.memberId);case _DismissCircleCapMessage() when dismissCircleCapMessage != null:
+return dismissCircleCapMessage();case _PendingInvitationDismissed() when pendingInvitationDismissed != null:
 return pendingInvitationDismissed();case _:
   return null;
 
@@ -582,8 +582,8 @@ as String,
 /// @nodoc
 
 
-class _DismissUpgradePrompt implements CircleEvent {
-  const _DismissUpgradePrompt();
+class _DismissCircleCapMessage implements CircleEvent {
+  const _DismissCircleCapMessage();
   
 
 
@@ -593,7 +593,7 @@ class _DismissUpgradePrompt implements CircleEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DismissUpgradePrompt);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DismissCircleCapMessage);
 }
 
 
@@ -602,7 +602,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'CircleEvent.dismissUpgradePrompt()';
+  return 'CircleEvent.dismissCircleCapMessage()';
 }
 
 
@@ -760,12 +760,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<CircleMember> members,  int availableSlots,  Invitation? pendingInvitation,  bool showUpgradePrompt,  Failure? transientFailure)?  loaded,TResult Function( Failure failure)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<CircleMember> members,  int availableSlots,  int activeMembersLimit,  bool isSubscriber,  Invitation? pendingInvitation,  bool showCircleCapMessage,  Failure? transientFailure)?  loaded,TResult Function( Failure failure)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.members,_that.availableSlots,_that.pendingInvitation,_that.showUpgradePrompt,_that.transientFailure);case _Failure() when failure != null:
+return loaded(_that.members,_that.availableSlots,_that.activeMembersLimit,_that.isSubscriber,_that.pendingInvitation,_that.showCircleCapMessage,_that.transientFailure);case _Failure() when failure != null:
 return failure(_that.failure);case _:
   return orElse();
 
@@ -784,12 +784,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<CircleMember> members,  int availableSlots,  Invitation? pendingInvitation,  bool showUpgradePrompt,  Failure? transientFailure)  loaded,required TResult Function( Failure failure)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<CircleMember> members,  int availableSlots,  int activeMembersLimit,  bool isSubscriber,  Invitation? pendingInvitation,  bool showCircleCapMessage,  Failure? transientFailure)  loaded,required TResult Function( Failure failure)  failure,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.members,_that.availableSlots,_that.pendingInvitation,_that.showUpgradePrompt,_that.transientFailure);case _Failure():
+return loaded(_that.members,_that.availableSlots,_that.activeMembersLimit,_that.isSubscriber,_that.pendingInvitation,_that.showCircleCapMessage,_that.transientFailure);case _Failure():
 return failure(_that.failure);case _:
   throw StateError('Unexpected subclass');
 
@@ -807,12 +807,12 @@ return failure(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<CircleMember> members,  int availableSlots,  Invitation? pendingInvitation,  bool showUpgradePrompt,  Failure? transientFailure)?  loaded,TResult? Function( Failure failure)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<CircleMember> members,  int availableSlots,  int activeMembersLimit,  bool isSubscriber,  Invitation? pendingInvitation,  bool showCircleCapMessage,  Failure? transientFailure)?  loaded,TResult? Function( Failure failure)?  failure,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.members,_that.availableSlots,_that.pendingInvitation,_that.showUpgradePrompt,_that.transientFailure);case _Failure() when failure != null:
+return loaded(_that.members,_that.availableSlots,_that.activeMembersLimit,_that.isSubscriber,_that.pendingInvitation,_that.showCircleCapMessage,_that.transientFailure);case _Failure() when failure != null:
 return failure(_that.failure);case _:
   return null;
 
@@ -889,7 +889,7 @@ String toString() {
 
 
 class _Loaded implements CircleState {
-  const _Loaded({required final  List<CircleMember> members, required this.availableSlots, this.pendingInvitation, this.showUpgradePrompt = false, this.transientFailure}): _members = members;
+  const _Loaded({required final  List<CircleMember> members, required this.availableSlots, this.activeMembersLimit = 3, this.isSubscriber = false, this.pendingInvitation, this.showCircleCapMessage = false, this.transientFailure}): _members = members;
   
 
  final  List<CircleMember> _members;
@@ -900,8 +900,10 @@ class _Loaded implements CircleState {
 }
 
  final  int availableSlots;
+@JsonKey() final  int activeMembersLimit;
+@JsonKey() final  bool isSubscriber;
  final  Invitation? pendingInvitation;
-@JsonKey() final  bool showUpgradePrompt;
+@JsonKey() final  bool showCircleCapMessage;
  final  Failure? transientFailure;
 
 /// Create a copy of CircleState
@@ -914,16 +916,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._members, _members)&&(identical(other.availableSlots, availableSlots) || other.availableSlots == availableSlots)&&(identical(other.pendingInvitation, pendingInvitation) || other.pendingInvitation == pendingInvitation)&&(identical(other.showUpgradePrompt, showUpgradePrompt) || other.showUpgradePrompt == showUpgradePrompt)&&(identical(other.transientFailure, transientFailure) || other.transientFailure == transientFailure));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._members, _members)&&(identical(other.availableSlots, availableSlots) || other.availableSlots == availableSlots)&&(identical(other.activeMembersLimit, activeMembersLimit) || other.activeMembersLimit == activeMembersLimit)&&(identical(other.isSubscriber, isSubscriber) || other.isSubscriber == isSubscriber)&&(identical(other.pendingInvitation, pendingInvitation) || other.pendingInvitation == pendingInvitation)&&(identical(other.showCircleCapMessage, showCircleCapMessage) || other.showCircleCapMessage == showCircleCapMessage)&&(identical(other.transientFailure, transientFailure) || other.transientFailure == transientFailure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_members),availableSlots,pendingInvitation,showUpgradePrompt,transientFailure);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_members),availableSlots,activeMembersLimit,isSubscriber,pendingInvitation,showCircleCapMessage,transientFailure);
 
 @override
 String toString() {
-  return 'CircleState.loaded(members: $members, availableSlots: $availableSlots, pendingInvitation: $pendingInvitation, showUpgradePrompt: $showUpgradePrompt, transientFailure: $transientFailure)';
+  return 'CircleState.loaded(members: $members, availableSlots: $availableSlots, activeMembersLimit: $activeMembersLimit, isSubscriber: $isSubscriber, pendingInvitation: $pendingInvitation, showCircleCapMessage: $showCircleCapMessage, transientFailure: $transientFailure)';
 }
 
 
@@ -934,7 +936,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $CircleStateCopyWith<$Res
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- List<CircleMember> members, int availableSlots, Invitation? pendingInvitation, bool showUpgradePrompt, Failure? transientFailure
+ List<CircleMember> members, int availableSlots, int activeMembersLimit, bool isSubscriber, Invitation? pendingInvitation, bool showCircleCapMessage, Failure? transientFailure
 });
 
 
@@ -951,12 +953,14 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of CircleState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? members = null,Object? availableSlots = null,Object? pendingInvitation = freezed,Object? showUpgradePrompt = null,Object? transientFailure = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? members = null,Object? availableSlots = null,Object? activeMembersLimit = null,Object? isSubscriber = null,Object? pendingInvitation = freezed,Object? showCircleCapMessage = null,Object? transientFailure = freezed,}) {
   return _then(_Loaded(
 members: null == members ? _self._members : members // ignore: cast_nullable_to_non_nullable
 as List<CircleMember>,availableSlots: null == availableSlots ? _self.availableSlots : availableSlots // ignore: cast_nullable_to_non_nullable
-as int,pendingInvitation: freezed == pendingInvitation ? _self.pendingInvitation : pendingInvitation // ignore: cast_nullable_to_non_nullable
-as Invitation?,showUpgradePrompt: null == showUpgradePrompt ? _self.showUpgradePrompt : showUpgradePrompt // ignore: cast_nullable_to_non_nullable
+as int,activeMembersLimit: null == activeMembersLimit ? _self.activeMembersLimit : activeMembersLimit // ignore: cast_nullable_to_non_nullable
+as int,isSubscriber: null == isSubscriber ? _self.isSubscriber : isSubscriber // ignore: cast_nullable_to_non_nullable
+as bool,pendingInvitation: freezed == pendingInvitation ? _self.pendingInvitation : pendingInvitation // ignore: cast_nullable_to_non_nullable
+as Invitation?,showCircleCapMessage: null == showCircleCapMessage ? _self.showCircleCapMessage : showCircleCapMessage // ignore: cast_nullable_to_non_nullable
 as bool,transientFailure: freezed == transientFailure ? _self.transientFailure : transientFailure // ignore: cast_nullable_to_non_nullable
 as Failure?,
   ));

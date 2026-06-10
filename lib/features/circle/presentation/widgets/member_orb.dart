@@ -14,12 +14,14 @@ class MemberOrb extends StatefulWidget {
     required this.onLongPress,
     super.key,
     this.diameter = 88,
+    this.unreadCount = 0,
   });
 
   final CircleMember? member;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final double diameter;
+  final int unreadCount;
 
   @override
   State<MemberOrb> createState() => _MemberOrbState();
@@ -56,11 +58,11 @@ class _MemberOrbState extends State<MemberOrb> {
               height: widget.diameter,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                color: Colors.white.withValues(alpha: 0.015),
-              ),
-              child: const Center(
-                child: Icon(Icons.add, color: AppColors.textFaint, size: 18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1.2,
+                ),
+                color: Colors.white.withValues(alpha: 0.02),
               ),
             ),
           ],
@@ -74,7 +76,11 @@ class _MemberOrbState extends State<MemberOrb> {
         currentMember.paceCount >= LumiLimits.maxLumisPerPairPerDay - 1;
     final bool memorial = currentMember.status == CircleStatus.memorial;
     final DateTime now = DateTime.now();
-    final double intensity = _intensityFor(currentMember.lastInteractionAt, now);
+    final double intensity = _intensityFor(
+      currentMember.lastInteractionAt,
+      now,
+      unreadCount: widget.unreadCount,
+    );
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -123,14 +129,22 @@ class _MemberOrbState extends State<MemberOrb> {
     );
   }
 
-  static double _intensityFor(DateTime? lastSeen, DateTime now) {
-    return switch (lastSeen) {
+  static double _intensityFor(
+    DateTime? lastSeen,
+    DateTime now, {
+    int unreadCount = 0,
+  }) {
+    final double activityIntensity = switch (lastSeen) {
       null => 0.82,
       final DateTime seen when now.difference(seen).inHours < 1 => 1.1,
       final DateTime seen when now.difference(seen).inHours < 6 => 1.0,
       final DateTime seen when now.difference(seen).inHours < 24 => 0.92,
       _ => 0.8,
     };
+    if (unreadCount > 0) {
+      return activityIntensity < 1.18 ? 1.18 : activityIntensity;
+    }
+    return activityIntensity;
   }
 
   String _subtitle(CircleMember member, DateTime now) {

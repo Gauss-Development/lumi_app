@@ -13,6 +13,8 @@ import 'package:lumi/features/circle/domain/usecases/get_circle_members_usecase.
 import 'package:lumi/features/circle/domain/usecases/memorialize_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/mute_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/remove_member_usecase.dart';
+import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
+import 'package:lumi/features/subscription/domain/usecases/get_entitlement_status_usecase.dart';
 
 part 'circle_bloc.freezed.dart';
 
@@ -25,6 +27,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     required MemorializeMemberUseCase memorializeMemberUseCase,
     required RemoveMemberUseCase removeMemberUseCase,
     required GetAvailableSlotsUseCase getAvailableSlotsUseCase,
+    required GetEntitlementStatusUseCase getEntitlementStatusUseCase,
   }) : _getCircleMembersUseCase = getCircleMembersUseCase,
        _createInvitationUseCase = createInvitationUseCase,
        _acceptInvitationUseCase = acceptInvitationUseCase,
@@ -32,6 +35,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
        _memorializeMemberUseCase = memorializeMemberUseCase,
        _removeMemberUseCase = removeMemberUseCase,
        _getAvailableSlotsUseCase = getAvailableSlotsUseCase,
+       _getEntitlementStatusUseCase = getEntitlementStatusUseCase,
        super(const CircleState.initial()) {
     on<_LoadRequested>(_onLoadRequested);
     on<_InvitationRequested>(_onInvitationRequested);
@@ -39,9 +43,9 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     on<_MemberMuted>(_onMemberMuted);
     on<_MemberMemorialized>(_onMemberMemorialized);
     on<_MemberRemoved>(_onMemberRemoved);
-    on<_DismissUpgradePrompt>(_onDismissUpgradePrompt);
+    on<_DismissCircleCapMessage>(_onDismissCircleCapMessage);
     on<_PendingInvitationDismissed>(_onPendingInvitationDismissed);
-    _syncTimer = Timer.periodic(const Duration(seconds: 20), (_) {
+    _syncTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (isClosed) {
         return;
       }
@@ -62,6 +66,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
   final MemorializeMemberUseCase _memorializeMemberUseCase;
   final RemoveMemberUseCase _removeMemberUseCase;
   final GetAvailableSlotsUseCase _getAvailableSlotsUseCase;
+  final GetEntitlementStatusUseCase _getEntitlementStatusUseCase;
   Timer? _syncTimer;
 
   Future<void> _onLoadRequested(
@@ -83,6 +88,8 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
 
     final slotsResult = await _getAvailableSlotsUseCase();
     final membersResult = await _getCircleMembersUseCase();
+    final EntitlementStatus entitlement = (await _getEntitlementStatusUseCase())
+        .getOrElse(() => const EntitlementStatus.free());
 
     membersResult.fold(
       (failure) {
@@ -106,6 +113,8 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
         CircleState.loaded(
           members: members,
           availableSlots: slotsResult.getOrElse(() => 0),
+          activeMembersLimit: entitlement.activeMembersLimit,
+          isSubscriber: entitlement.isActive,
           pendingInvitation: carry,
         ),
       ),
@@ -123,7 +132,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     }
 
     if (loaded.availableSlots <= 0) {
-      emit(loaded.copyWith(showUpgradePrompt: true));
+      emit(loaded.copyWith(showCircleCapMessage: true));
       return;
     }
 
@@ -189,12 +198,12 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
     );
   }
 
-  void _onDismissUpgradePrompt(
-    _DismissUpgradePrompt event,
+  void _onDismissCircleCapMessage(
+    _DismissCircleCapMessage event,
     Emitter<CircleState> emit,
   ) {
     state.maybeMap(
-      loaded: (loaded) => emit(loaded.copyWith(showUpgradePrompt: false)),
+      loaded: (loaded) => emit(loaded.copyWith(showCircleCapMessage: false)),
       orElse: () {},
     );
   }
@@ -233,7 +242,7 @@ class CircleEvent with _$CircleEvent {
       _MemberMemorialized;
   const factory CircleEvent.memberRemoved({required String memberId}) =
       _MemberRemoved;
-  const factory CircleEvent.dismissUpgradePrompt() = _DismissUpgradePrompt;
+  const factory CircleEvent.dismissCircleCapMessage() = _DismissCircleCapMessage;
   const factory CircleEvent.pendingInvitationDismissed() =
       _PendingInvitationDismissed;
 }
@@ -245,8 +254,10 @@ class CircleState with _$CircleState {
   const factory CircleState.loaded({
     required List<CircleMember> members,
     required int availableSlots,
+    @Default(3) int activeMembersLimit,
+    @Default(false) bool isSubscriber,
     Invitation? pendingInvitation,
-    @Default(false) bool showUpgradePrompt,
+    @Default(false) bool showCircleCapMessage,
     Failure? transientFailure,
   }) = _Loaded;
   const factory CircleState.failure({required Failure failure}) = _Failure;
