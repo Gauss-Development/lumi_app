@@ -26,9 +26,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
         }
       }
       return Right(await _localDataSource.getProfile());
-    } on ProfileRemoteDataSourceException catch (e) {
-      return Left(ServerFailure(e.message));
+    } on ProfileRemoteDataSourceException catch (_) {
+      final UserProfile? cached = await _localDataSource.getProfile();
+      if (cached != null && (userId == null || cached.id == userId)) {
+        return Right(cached);
+      }
+      return const Left(ServerFailure('Unable to load profile from cloud.'));
     } catch (_) {
+      final UserProfile? cached = await _localDataSource.getProfile();
+      if (cached != null && (userId == null || cached.id == userId)) {
+        return Right(cached);
+      }
       return const Left(UnexpectedFailure('Unable to load profile.'));
     }
   }

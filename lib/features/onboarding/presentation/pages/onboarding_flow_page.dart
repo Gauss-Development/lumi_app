@@ -22,13 +22,7 @@ class OnboardingFlowPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<ProfileSetupBloc, ProfileSetupState>(
       listenWhen: (ProfileSetupState previous, ProfileSetupState current) {
-        if (current.status == ProfileSetupStatus.saved) {
-          return true;
-        }
-        return current.status == ProfileSetupStatus.ready &&
-            current.restoredFromCloud &&
-            current.isProfileComplete &&
-            previous.status != ProfileSetupStatus.ready;
+        return current.status == ProfileSetupStatus.saved;
       },
       listener: (BuildContext context, ProfileSetupState state) {
         final OnboardingStage stage =

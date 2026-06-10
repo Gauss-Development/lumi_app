@@ -93,10 +93,45 @@ class _LumiAppState extends State<LumiApp> {
                 orElse: () async {},
               );
               if (!context.mounted) return;
+              state.maybeWhen(
+                authenticated: (session) {
+                  context.read<ProfileSetupBloc>().add(
+                    ProfileSetupEvent.started(
+                      userId: session.userId,
+                      displayNameHint: session.name,
+                    ),
+                  );
+                },
+                orElse: () {},
+              );
               context.read<CircleBloc>().add(const CircleEvent.loadRequested());
               context.read<LumiBloc>().add(const LumiEvent.watchRecent());
               context.read<SubscriptionBloc>().add(
                 const SubscriptionEvent.loadRequested(),
+              );
+            },
+          ),
+          BlocListener<ProfileSetupBloc, ProfileSetupState>(
+            listenWhen: (ProfileSetupState previous, ProfileSetupState current) {
+              return current.status == ProfileSetupStatus.ready &&
+                  current.restoredFromCloud &&
+                  current.isProfileComplete &&
+                  previous.status != ProfileSetupStatus.ready;
+            },
+            listener: (BuildContext context, ProfileSetupState state) {
+              final OnboardingState onboarding =
+                  context.read<OnboardingBloc>().state;
+              if (onboarding.completed) {
+                return;
+              }
+              if (onboarding.stage == OnboardingStage.profile) {
+                context.read<OnboardingBloc>().add(
+                  const OnboardingEvent.completeProfile(),
+                );
+                return;
+              }
+              context.read<OnboardingBloc>().add(
+                const OnboardingEvent.restoreForReturningUser(),
               );
             },
           ),
@@ -115,6 +150,9 @@ class _LumiAppState extends State<LumiApp> {
             listener: (BuildContext context, AuthState state) async {
               await sl<RevenueCatService>().logOut();
               if (!context.mounted) return;
+              context.read<ProfileSetupBloc>().add(
+                const ProfileSetupEvent.reset(),
+              );
               context.read<SubscriptionBloc>().add(
                 const SubscriptionEvent.loadRequested(),
               );
