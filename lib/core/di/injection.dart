@@ -43,7 +43,10 @@ import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dar
 import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:lumi/features/auth/domain/usecases/request_phone_otp_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/verify_phone_otp_usecase.dart';
 import 'package:lumi/features/profile/data/datasources/profile_local_data_source.dart';
+import 'package:lumi/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:lumi/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:lumi/features/profile/domain/repositories/profile_repository.dart';
 import 'package:lumi/features/profile/domain/usecases/get_profile_usecase.dart';
@@ -116,8 +119,14 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<ProfileLocalDataSource>(
     () => ProfileLocalDataSource(sl<PreferencesService>()),
   );
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    ProfileRemoteDataSourceImpl.new,
+  );
   sl.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(sl<ProfileLocalDataSource>()),
+    () => ProfileRepositoryImpl(
+      sl<ProfileLocalDataSource>(),
+      sl<ProfileRemoteDataSource>(),
+    ),
   );
 
   sl.registerLazySingleton<SettingsLocalDataSource>(
@@ -187,6 +196,12 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   );
   sl.registerLazySingleton<SignOutUseCase>(
     () => SignOutUseCase(sl<AuthRepository>()),
+  );
+  sl.registerLazySingleton<RequestPhoneOtpUseCase>(
+    () => RequestPhoneOtpUseCase(sl<AuthRepository>()),
+  );
+  sl.registerLazySingleton<VerifyPhoneOtpUseCase>(
+    () => VerifyPhoneOtpUseCase(sl<AuthRepository>()),
   );
 
   sl.registerLazySingleton<GetProfileUseCase>(
@@ -273,6 +288,8 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(
       getCurrentSessionUseCase: sl<GetCurrentSessionUseCase>(),
+      requestPhoneOtpUseCase: sl<RequestPhoneOtpUseCase>(),
+      verifyPhoneOtpUseCase: sl<VerifyPhoneOtpUseCase>(),
       signInWithEmailUseCase: sl<SignInWithEmailUseCase>(),
       signUpWithEmailUseCase: sl<SignUpWithEmailUseCase>(),
       signInWithGoogleUseCase: sl<SignInWithGoogleUseCase>(),

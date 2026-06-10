@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
+import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
 import 'package:lumi/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -69,6 +70,37 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(
         AuthFailure('Google sign-in did not finish. Please try again.'),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, PhoneOtpChallenge>> requestPhoneOtp({
+    required String phone,
+  }) async {
+    try {
+      return Right(await _remoteDataSource.requestPhoneOtp(phone: phone));
+    } on AuthDataSourceException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (_) {
+      return const Left(
+        AuthFailure('Could not send a verification code. Try again.'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthSession>> verifyPhoneOtp({
+    required String userId,
+    required String otp,
+  }) async {
+    try {
+      return Right(
+        await _remoteDataSource.verifyPhoneOtp(userId: userId, otp: otp),
+      );
+    } on AuthDataSourceException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (_) {
+      return const Left(AuthFailure('That code did not work. Try again.'));
     }
   }
 

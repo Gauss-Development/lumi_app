@@ -12,7 +12,7 @@ class UserProfileModel extends UserProfile {
     return UserProfileModel(
       id: json['id'] as String? ?? 'local-user',
       displayName: json['display_name'] as String? ?? '',
-      avatarStyle: json['avatar_style'] as String? ?? 'generatedGlow',
+      avatarStyle: json['avatar_style'] as String? ?? UserProfile.avatarOptions.first,
       signatureColorValue: json['signature_color_value'] as int? ?? 0xFFFF7D6B,
     );
   }
