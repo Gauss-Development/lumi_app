@@ -28,6 +28,11 @@ import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.da
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
+import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
+import 'package:lumi/features/subscription/domain/entitlement_features.dart';
+import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -476,6 +481,7 @@ class HomePage extends StatelessWidget {
         colorValue: member.signatureColorValue,
       ),
     );
+    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
@@ -644,6 +650,19 @@ class _RitualPromptHost extends StatelessWidget {
       return;
     }
 
+    final EntitlementStatus entitlement = context
+        .read<SubscriptionBloc>()
+        .state
+        .maybeWhen(
+          loaded: (EntitlementStatus status, _) => status,
+          orElse: () => const EntitlementStatus.free(),
+        );
+    if (suggestion.kind == RitualKind.evening &&
+        !entitlement.canSendLumiType(LumiType.light)) {
+      PaywallSheet.show(context);
+      return;
+    }
+
     final Set<String> targetIds = suggestion.memberIds.toSet();
     final List<CircleMember> targets = members
         .where((CircleMember member) => targetIds.contains(member.id))
@@ -679,6 +698,7 @@ class _RitualPromptHost extends StatelessWidget {
     }
 
     context.read<RitualsCubit>().markSent(suggestion.kind);
+    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(

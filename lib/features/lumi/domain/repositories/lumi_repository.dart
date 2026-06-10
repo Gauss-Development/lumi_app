@@ -25,6 +25,10 @@ abstract class LumiRepository {
 
   Future<Either<Failure, DoodleStroke>> saveDoodleDraft(DoodleStroke stroke);
 
+  Future<Either<Failure, DoodleStroke?>> getDoodleDraft();
+
+  Future<Either<Failure, Unit>> clearDoodleDraft();
+
   Future<Either<Failure, List<Lumi>>> sendMorningLight({
     required String senderId,
     required List<String> recipientIds,

@@ -219,7 +219,9 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
                       child: GlowOrb(
                         color: color,
                         size: 300,
-                        intensity: _pulseActive ? 1.22 : 1.05,
+                        intensity: widget.lumi.type == LumiType.light
+                            ? widget.lumi.intensity.clamp(0.55, 1.2)
+                            : (_pulseActive ? 1.22 : 1.05),
                         child: widget.lumi.type == LumiType.doodle
                             ? CustomPaint(
                                 size: const Size(220, 220),

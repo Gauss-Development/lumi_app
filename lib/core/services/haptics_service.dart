@@ -22,4 +22,11 @@ class HapticsService {
       await playPulseHit();
     }
   }
+
+  /// Distinct from incoming receive — confirms a Lumi was sent.
+  Future<void> playSendLumi() async {
+    await HapticFeedback.heavyImpact();
+    await Future<void>.delayed(const Duration(milliseconds: 40));
+    await HapticFeedback.lightImpact();
+  }
 }
