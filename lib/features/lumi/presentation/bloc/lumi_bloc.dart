@@ -34,7 +34,7 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     on<_ReactRequested>(_onReactRequested);
     on<_MarkSeenRequested>(_onMarkSeenRequested);
     on<_SaveDoodleDraftRequested>(_onSaveDoodleDraftRequested);
-    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _pollTimer = Timer.periodic(const Duration(seconds: 12), (_) {
       if (isClosed) {
         return;
       }
@@ -81,9 +81,14 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
           recentLumis: state.recentLumis,
         ),
       ),
-      (List<Lumi> lumis) => emit(
-        LumiState.loaded(selectedMemberId: event.memberId, recentLumis: lumis),
-      ),
+      (List<Lumi> lumis) {
+        if (_sameLumis(lumis, state.recentLumis)) {
+          return;
+        }
+        emit(
+          LumiState.loaded(selectedMemberId: event.memberId, recentLumis: lumis),
+        );
+      },
     );
   }
 
@@ -246,6 +251,18 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
   Future<void> close() {
     _pollTimer?.cancel();
     return super.close();
+  }
+
+  static bool _sameLumis(List<Lumi> next, List<Lumi> previous) {
+    if (next.length != previous.length) {
+      return false;
+    }
+    for (var index = 0; index < next.length; index++) {
+      if (next[index] != previous[index]) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 

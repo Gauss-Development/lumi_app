@@ -1,5 +1,5 @@
-import 'dart:io' show Platform;
-
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import 'package:lumi/core/config/environment_config.dart';
@@ -76,10 +76,13 @@ class RevenueCatService {
   }
 
   String? _resolveApiKey() {
-    if (Platform.isIOS) {
+    if (kIsWeb) {
+      return null;
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
       return _config.revenueCatAppleKey;
     }
-    if (Platform.isAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       return _config.revenueCatGoogleKey;
     }
     return null;

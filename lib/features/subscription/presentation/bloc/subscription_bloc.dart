@@ -52,6 +52,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     _PurchaseRequested event,
     Emitter<SubscriptionState> emit,
   ) async {
+    emit(const SubscriptionState.loading());
     final result = await _purchasePlanUseCase(event.planId);
     result.fold(
       (failure) => emit(SubscriptionState.failure(failure.message)),
@@ -63,6 +64,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     _RestoreRequested event,
     Emitter<SubscriptionState> emit,
   ) async {
+    emit(const SubscriptionState.loading());
     final result = await _restorePurchasesUseCase();
     result.fold(
       (failure) => emit(SubscriptionState.failure(failure.message)),

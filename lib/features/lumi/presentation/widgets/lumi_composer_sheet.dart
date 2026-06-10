@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/app_constants.dart';
+import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/adaptive_scroll.dart';
@@ -13,6 +14,10 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/doodle_canvas.dart';
 import 'package:lumi/features/lumi/presentation/widgets/pulse_pattern_pad.dart';
+import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
+import 'package:lumi/features/subscription/domain/entitlement_features.dart';
+import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
 
 class LumiComposerSheet extends StatefulWidget {
   const LumiComposerSheet({required this.member, super.key});
@@ -47,13 +52,41 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
     setState(() {});
   }
 
-  bool get _canSend {
-    return switch (_selectedType) {
+  bool get _atPaceLimit =>
+      widget.member.paceCount >= LumiLimits.maxLumisPerPairPerDay;
+
+  bool _canSendForType(LumiType type) {
+    return switch (type) {
       LumiType.pure => true,
       LumiType.light => true,
       LumiType.pulse => _pulseBeats.isNotEmpty,
       LumiType.doodle => _doodlePoints.length > 1,
     };
+  }
+
+  EntitlementStatus _entitlement(BuildContext context) {
+    return context.watch<SubscriptionBloc>().state.maybeWhen(
+      loaded: (EntitlementStatus status, _) => status,
+      orElse: () => const EntitlementStatus.free(),
+    );
+  }
+
+  void _selectType(BuildContext context, LumiType type) {
+    final EntitlementStatus entitlement = _entitlement(context);
+    if (!entitlement.canSendLumiType(type)) {
+      PaywallSheet.show(context);
+      return;
+    }
+    setState(() => _selectedType = type);
+  }
+
+  void _selectColor(BuildContext context, int colorValue) {
+    final EntitlementStatus entitlement = _entitlement(context);
+    if (!entitlement.composerColorValues().contains(colorValue)) {
+      PaywallSheet.show(context);
+      return;
+    }
+    setState(() => _selectedColorValue = colorValue);
   }
 
   String get _selectedDescription => switch (_selectedType) {
@@ -70,6 +103,12 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
       orElse: () => 'local-user',
     );
     final Color selectedColor = Color(_selectedColorValue);
+    final EntitlementStatus entitlement = _entitlement(context);
+    final List<int> availableColors = entitlement.composerColorValues();
+    final bool canSend =
+        _canSendForType(_selectedType) &&
+        entitlement.canSendLumiType(_selectedType) &&
+        !_atPaceLimit;
 
     return Container(
       decoration: const BoxDecoration(
@@ -195,8 +234,7 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                                     right: type == LumiType.values.last ? 0 : 8,
                                   ),
                                   child: GestureDetector(
-                                    onTap: () =>
-                                        setState(() => _selectedType = type),
+                                    onTap: () => _selectType(context, type),
                                     child: AnimatedContainer(
                                       duration: const Duration(
                                         milliseconds: 180,
@@ -281,14 +319,15 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: AppConstants.signatureColors
-                      .take(6)
                       .map((Color color) {
-                        final bool selected =
-                            color.toARGB32() == _selectedColorValue;
+                        final int colorValue = color.toARGB32();
+                        final bool unlocked =
+                            availableColors.contains(colorValue);
+                        final bool selected = colorValue == _selectedColorValue;
                         return GestureDetector(
-                          onTap: () => setState(
-                            () => _selectedColorValue = color.toARGB32(),
-                          ),
+                          onTap: unlocked
+                              ? () => _selectColor(context, colorValue)
+                              : () => PaywallSheet.show(context),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 160),
                             width: 40,
@@ -297,8 +336,10 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                               shape: BoxShape.circle,
                               gradient: RadialGradient(
                                 colors: <Color>[
-                                  Colors.white.withValues(alpha: 0.7),
-                                  color,
+                                  Colors.white.withValues(
+                                    alpha: unlocked ? 0.7 : 0.25,
+                                  ),
+                                  color.withValues(alpha: unlocked ? 1 : 0.35),
                                 ],
                                 stops: const <double>[0, 0.6],
                               ),
@@ -320,11 +361,21 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                       })
                       .toList(growable: false),
                 ),
+                if (_atPaceLimit) ...<Widget>[
+                  const SizedBox(height: 12),
+                  Text(
+                    'You have reached today\'s gentle limit for ${widget.member.displayName}.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textFaint,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 PrimaryGlowButton(
                   label: 'Send Lumi',
                   glowColor: selectedColor,
-                  onPressed: _canSend
+                  onPressed: canSend
                       ? () {
                           switch (_selectedType) {
                             case LumiType.pure:
