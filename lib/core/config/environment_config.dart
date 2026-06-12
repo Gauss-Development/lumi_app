@@ -10,6 +10,12 @@ class EnvironmentConfig {
     required this.revenueCatAppleKey,
     required this.revenueCatGoogleKey,
     required this.oauthRedirectUrl,
+    required this.firebaseApiKey,
+    required this.firebaseAppId,
+    required this.firebaseMessagingSenderId,
+    required this.firebaseProjectId,
+    required this.firebaseIosBundleId,
+    required this.appwriteFcmProviderId,
   });
 
   static late EnvironmentConfig instance;
@@ -20,6 +26,12 @@ class EnvironmentConfig {
   final String revenueCatAppleKey;
   final String revenueCatGoogleKey;
   final String oauthRedirectUrl;
+  final String firebaseApiKey;
+  final String firebaseAppId;
+  final String firebaseMessagingSenderId;
+  final String firebaseProjectId;
+  final String firebaseIosBundleId;
+  final String appwriteFcmProviderId;
 
   static Future<EnvironmentConfig> load({required Flavor flavor}) async {
     dotenv.clean();
@@ -58,6 +70,12 @@ class EnvironmentConfig {
       oauthRedirectUrl: valueOf('OAUTH_REDIRECT_URL').isEmpty
           ? 'appwrite-callback-69ff68eb0033441e4041'
           : valueOf('OAUTH_REDIRECT_URL'),
+      firebaseApiKey: valueOf('FIREBASE_API_KEY'),
+      firebaseAppId: valueOf('FIREBASE_APP_ID'),
+      firebaseMessagingSenderId: valueOf('FIREBASE_MESSAGING_SENDER_ID'),
+      firebaseProjectId: valueOf('FIREBASE_PROJECT_ID'),
+      firebaseIosBundleId: valueOf('FIREBASE_IOS_BUNDLE_ID'),
+      appwriteFcmProviderId: valueOf('APPWRITE_FCM_PROVIDER_ID'),
     );
 
     instance = config;

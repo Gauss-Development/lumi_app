@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
+import 'package:lumi/core/services/pending_lumi_notification_service.dart';
+import 'package:lumi/core/utils/lumi_push_payload.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/widget_bridge_service.dart';
@@ -151,6 +153,7 @@ class HomePage extends StatelessWidget {
                     child: Stack(
                       children: <Widget>[
                         const _PendingInviteHost(),
+                        const _PendingLumiPushHost(),
                         _WidgetSyncEffect(members: members),
                         Column(
                           children: <Widget>[
@@ -486,6 +489,38 @@ class HomePage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
   }
+}
+
+class _PendingLumiPushHost extends StatefulWidget {
+  const _PendingLumiPushHost();
+
+  @override
+  State<_PendingLumiPushHost> createState() => _PendingLumiPushHostState();
+}
+
+class _PendingLumiPushHostState extends State<_PendingLumiPushHost> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _consumePendingPush());
+  }
+
+  Future<void> _consumePendingPush() async {
+    if (!mounted) {
+      return;
+    }
+    final LumiPushPayload? payload =
+        await sl<PendingLumiNotificationService>().consume();
+    if (payload == null || !mounted) {
+      return;
+    }
+    context.read<LumiBloc>().add(
+      LumiEvent.watchRecent(memberId: payload.senderMemberId),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _PendingInviteHost extends StatefulWidget {
