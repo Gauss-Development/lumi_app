@@ -26,6 +26,7 @@ Flutter SDK is expected on `PATH` (cloud VM: `$HOME/flutter/bin`).
 - Without those values, the app still runs; delivery falls back to the existing 12s `LumiBloc` poll.
 - `google-services.json` / `GoogleService-Info.plist` are not committed; native builds need them locally for real device push.
 - Push registration runs after auth via `PushNotificationService.registerForAuthenticatedUser()`; sign-out calls `unregister()`.
+- Incoming push taps must refresh with `recipientMemberId` (recipient-side circle member), not `senderMemberId`. `LumiBloc.watchRecent` always loads the full inbox; `memberId` on the event is UI focus only.
 
 ### Non-obvious gotchas
 

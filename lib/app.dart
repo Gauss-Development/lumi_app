@@ -193,10 +193,11 @@ class _PushNotificationCoordinator extends StatefulWidget {
 }
 
 class _PushNotificationCoordinatorState
-    extends State<_PushNotificationCoordinator> {
+    extends State<_PushNotificationCoordinator> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final PushNotificationService pushService = sl<PushNotificationService>();
     pushService.setOnTap(_handlePushTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -218,12 +219,22 @@ class _PushNotificationCoordinatorState
       return;
     }
     context.read<LumiBloc>().add(
-      LumiEvent.watchRecent(memberId: payload.senderMemberId),
+      LumiEvent.watchRecent(
+        memberId: payload.recipientCircleMemberId,
+      ),
     );
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      context.read<LumiBloc>().add(const LumiEvent.watchRecent());
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     sl<PushNotificationService>().setOnTap(null);
     super.dispose();
   }

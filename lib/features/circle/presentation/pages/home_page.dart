@@ -515,7 +515,9 @@ class _PendingLumiPushHostState extends State<_PendingLumiPushHost> {
       return;
     }
     context.read<LumiBloc>().add(
-      LumiEvent.watchRecent(memberId: payload.senderMemberId),
+      LumiEvent.watchRecent(
+        memberId: payload.recipientCircleMemberId,
+      ),
     );
   }
 
