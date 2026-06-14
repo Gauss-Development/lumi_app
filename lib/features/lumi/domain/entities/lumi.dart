@@ -13,6 +13,15 @@ extension LumiTypeX on LumiType {
 
 enum LumiDeliveryStatus { queued, sent, delivered, reacted, seen }
 
+extension LumiDeliveryStatusX on LumiDeliveryStatus {
+  bool get isIncomingSettled =>
+      this == LumiDeliveryStatus.seen || this == LumiDeliveryStatus.reacted;
+}
+
+extension LumiIncomingX on Lumi {
+  bool get isAwaitingReply => isIncoming && !deliveryStatus.isIncomingSettled;
+}
+
 enum LumiReactionType { heart, smile, handOnHeart, sun, moon }
 
 extension LumiReactionTypeX on LumiReactionType {

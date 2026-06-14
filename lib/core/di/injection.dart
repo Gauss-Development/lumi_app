@@ -42,6 +42,7 @@ import 'package:lumi/features/lumi/data/repositories/lumi_repository_impl.dart';
 import 'package:lumi/features/lumi/domain/repositories/lumi_repository.dart';
 import 'package:lumi/features/lumi/domain/usecases/get_recent_lumis_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/mark_lumi_seen_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/reply_with_pure_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/react_to_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/clear_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/get_doodle_draft_usecase.dart';
@@ -285,6 +286,9 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<ReactToLumiUseCase>(
     () => ReactToLumiUseCase(sl<LumiRepository>()),
   );
+  sl.registerLazySingleton<ReplyWithPureLumiUseCase>(
+    () => ReplyWithPureLumiUseCase(sl<LumiRepository>()),
+  );
   sl.registerLazySingleton<MarkLumiSeenUseCase>(
     () => MarkLumiSeenUseCase(sl<LumiRepository>()),
   );
@@ -354,6 +358,7 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
       getRecentLumisUseCase: sl<GetRecentLumisUseCase>(),
       sendLumiUseCase: sl<SendLumiUseCase>(),
       reactToLumiUseCase: sl<ReactToLumiUseCase>(),
+      replyWithPureLumiUseCase: sl<ReplyWithPureLumiUseCase>(),
       markLumiSeenUseCase: sl<MarkLumiSeenUseCase>(),
       saveDoodleDraftUseCase: sl<SaveDoodleDraftUseCase>(),
       clearDoodleDraftUseCase: sl<ClearDoodleDraftUseCase>(),

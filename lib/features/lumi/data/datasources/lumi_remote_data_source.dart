@@ -10,6 +10,7 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 const String _databaseId = 'lumi';
 const String _lumisTable = 'lumis';
 const String _sendLumiFunctionId = 'send_lumi';
+const String _reactLumiFunctionId = 'react_lumi';
 
 const int _defaultColorValue = 0xFFFF7D6B;
 
@@ -133,16 +134,32 @@ class LumiRemoteDataSource {
     required String lumiId,
     required LumiReactionType reaction,
   }) async {
-    final String currentUserId = await _currentUserId();
-    final models.Row row = await _tablesDb.updateRow(
-      databaseId: _databaseId,
-      tableId: _lumisTable,
-      rowId: lumiId,
-      data: <String, dynamic>{
-        'reactionEmoji': reaction.name,
-        'deliveryStatus': LumiDeliveryStatus.reacted.name,
-      },
+    final models.Execution execution = await _functions.createExecution(
+      functionId: _reactLumiFunctionId,
+      xasync: false,
+      method: enums.ExecutionMethod.pOST,
+      body: jsonEncode(<String, dynamic>{
+        'lumiId': lumiId,
+        'reaction': reaction.name,
+      }),
     );
+
+    if (execution.responseStatusCode < 200 ||
+        execution.responseStatusCode >= 300) {
+      throw AppwriteException(
+        execution.responseBody.isEmpty
+            ? 'Unable to send your reaction.'
+            : execution.responseBody,
+        execution.responseStatusCode,
+      );
+    }
+
+    final Object? decoded = jsonDecode(execution.responseBody);
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('react_lumi returned an invalid response.');
+    }
+    final String currentUserId = await _currentUserId();
+    final models.Row row = models.Row.fromMap(decoded);
     return _lumiFromRow(row, currentUserId);
   }
 

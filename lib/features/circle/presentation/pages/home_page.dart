@@ -328,9 +328,7 @@ class HomePage extends StatelessWidget {
                         BlocSelector<LumiBloc, LumiState, Lumi?>(
                           selector: (LumiState lumiState) {
                             for (final Lumi item in lumiState.items) {
-                              if (item.isIncoming &&
-                                  item.deliveryStatus !=
-                                      LumiDeliveryStatus.seen) {
+                              if (item.isAwaitingReply) {
                                 return item;
                               }
                             }
@@ -390,8 +388,7 @@ class HomePage extends StatelessWidget {
   static Map<String, int> _unreadCounts(List<Lumi> items) {
     final Map<String, int> counts = <String, int>{};
     for (final Lumi lumi in items) {
-      if (lumi.isIncoming &&
-          lumi.deliveryStatus != LumiDeliveryStatus.seen) {
+      if (lumi.isIncoming && lumi.isAwaitingReply) {
         counts[lumi.memberId] = (counts[lumi.memberId] ?? 0) + 1;
       }
     }

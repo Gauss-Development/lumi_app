@@ -76,6 +76,28 @@ class LumiRepositoryImpl implements LumiRepository {
   }
 
   @override
+  Future<Either<Failure, Lumi>> replyWithPureLumi({
+    required String senderId,
+    required String memberId,
+    required String incomingLumiId,
+    required int colorValue,
+  }) async {
+    final Either<Failure, Lumi> sendResult = await sendLumi(
+      senderId: senderId,
+      recipientId: memberId,
+      type: LumiType.pure,
+      colorValue: colorValue,
+    );
+    return sendResult.fold(Left.new, (_) async {
+      try {
+        return Right(await _remoteDataSource.markSeen(incomingLumiId));
+      } catch (e) {
+        return Left(UnexpectedFailure('Unable to complete your reply. ($e)'));
+      }
+    });
+  }
+
+  @override
   Future<Either<Failure, Lumi>> markSeen(String lumiId) async {
     try {
       return Right(await _remoteDataSource.markSeen(lumiId));
