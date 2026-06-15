@@ -8,6 +8,7 @@ class LumiPushPayload extends Equatable {
     this.type,
     this.senderName,
     this.senderColorValue,
+    this.reaction,
   });
 
   final String? lumiId;
@@ -16,6 +17,13 @@ class LumiPushPayload extends Equatable {
   final String? type;
   final String? senderName;
   final int? senderColorValue;
+  final String? reaction;
+
+  bool get isReaction => type == 'reaction';
+
+  /// Circle member id to focus on the home screen after opening a push.
+  String? get focusMemberId =>
+      isReaction ? senderMemberId : recipientCircleMemberId;
 
   static LumiPushPayload? fromData(Map<String, dynamic> raw) {
     if (raw.isEmpty) {
@@ -39,6 +47,7 @@ class LumiPushPayload extends Equatable {
       type: _stringValue(data['type']),
       senderName: _stringValue(data['senderName']),
       senderColorValue: _parseColorValue(data['senderColorValue']),
+      reaction: _stringValue(data['reaction']),
     );
   }
 
@@ -50,7 +59,30 @@ class LumiPushPayload extends Equatable {
     return 'A Lumi from $trimmed';
   }
 
-  String get body => privacySafeBody(senderName: senderName);
+  String get body => isReaction
+      ? reactionBody(senderName: senderName, reaction: reaction)
+      : privacySafeBody(senderName: senderName);
+
+  static String reactionBody({String? senderName, String? reaction}) {
+    final String trimmed = senderName?.trim() ?? '';
+    final String name = trimmed.isEmpty ? 'Someone' : trimmed;
+    return '$name felt your Lumi ${_reactionEmoji(reaction)}';
+  }
+
+  static String _reactionEmoji(String? reaction) {
+    if (reaction == null || reaction.isEmpty) {
+      return '♥';
+    }
+    return _reactionEmojis[reaction] ?? '♥';
+  }
+
+  static const Map<String, String> _reactionEmojis = <String, String>{
+    'heart': '♥',
+    'smile': '☺',
+    'handOnHeart': '🤍',
+    'sun': '☀',
+    'moon': '☾',
+  };
 
   /// Member row id on the recipient's circle (the orb that should glow).
   String? get recipientCircleMemberId => recipientMemberId;
@@ -64,6 +96,7 @@ class LumiPushPayload extends Equatable {
       if (senderName != null) 'senderName': senderName!,
       if (senderColorValue != null)
         'senderColorValue': senderColorValue!.toString(),
+      if (reaction != null) 'reaction': reaction!,
     };
   }
 
@@ -99,5 +132,6 @@ class LumiPushPayload extends Equatable {
     type,
     senderName,
     senderColorValue,
+    reaction,
   ];
 }

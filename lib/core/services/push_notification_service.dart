@@ -217,7 +217,11 @@ class PushNotificationService {
     }
 
     if (_preferencesService.readBool(_hapticsEnabledKey, fallback: true)) {
-      await _hapticsService.playIncomingLumi();
+      if (payload.isReaction) {
+        await _hapticsService.playSoftSelection();
+      } else {
+        await _hapticsService.playIncomingLumi();
+      }
     }
 
     await _notificationService.showIncomingLumi(

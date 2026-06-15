@@ -7,6 +7,7 @@ import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/orb_pulse.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
+import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 
 class MemberOrb extends StatefulWidget {
   const MemberOrb({
@@ -16,6 +17,7 @@ class MemberOrb extends StatefulWidget {
     super.key,
     this.diameter = 88,
     this.unreadCount = 0,
+    this.reactionBadge,
   });
 
   final CircleMember? member;
@@ -23,6 +25,7 @@ class MemberOrb extends StatefulWidget {
   final VoidCallback onLongPress;
   final double diameter;
   final int unreadCount;
+  final LumiReactionType? reactionBadge;
 
   @override
   State<MemberOrb> createState() => _MemberOrbState();
@@ -114,11 +117,26 @@ class _MemberOrbState extends State<MemberOrb> {
                   : intensity * intensityMultiplier;
               return Transform.scale(
                 scale: scale,
-                child: GlowOrb(
-                  color: memorial ? color.withValues(alpha: 0.7) : color,
-                  size: widget.diameter,
-                  intensity: orbIntensity,
-                  child: memorialChild,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    GlowOrb(
+                      color: memorial ? color.withValues(alpha: 0.7) : color,
+                      size: widget.diameter,
+                      intensity: orbIntensity,
+                      child: memorialChild,
+                    ),
+                    if (widget.reactionBadge != null)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: _ReactionBadge(
+                          reaction: widget.reactionBadge!,
+                          diameter: widget.diameter,
+                        ),
+                      ),
+                  ],
                 ),
               );
             },
@@ -189,5 +207,37 @@ class _MemberOrbState extends State<MemberOrb> {
       return 'glowed ${diff.inHours}h ago';
     }
     return 'glowed ${diff.inDays}d ago';
+  }
+}
+
+class _ReactionBadge extends StatelessWidget {
+  const _ReactionBadge({required this.reaction, required this.diameter});
+
+  final LumiReactionType reaction;
+  final double diameter;
+
+  @override
+  Widget build(BuildContext context) {
+    final double size = (diameter * 0.34).clamp(22, 30);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.deepNight.withValues(alpha: 0.92),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.28),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Text(
+        reaction.emoji,
+        style: TextStyle(fontSize: size * 0.52, height: 1),
+      ),
+    );
   }
 }

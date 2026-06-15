@@ -1,8 +1,11 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/di/injection.dart';
+import 'package:lumi/core/services/acknowledged_reactions_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
 import 'package:lumi/core/services/pending_lumi_notification_service.dart';
 import 'package:lumi/core/utils/lumi_push_payload.dart';
@@ -22,6 +25,7 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
+import 'package:lumi/features/lumi/presentation/widgets/sent_lumi_reaction_overlay.dart';
 import 'package:lumi/features/rituals/domain/entities/ritual_preferences.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 import 'package:lumi/features/rituals/domain/services/ritual_suggestion_engine.dart';
@@ -221,34 +225,52 @@ class HomePage extends StatelessWidget {
                                   16,
                                   156,
                                 ),
-                                child: BlocSelector<LumiBloc, LumiState,
-                                    Map<String, int>>(
-                                  selector: (LumiState lumiState) =>
-                                      _unreadCounts(lumiState.items),
+                                child: ListenableBuilder(
+                                  listenable: sl<AcknowledgedReactionsService>(),
                                   builder: (
                                     BuildContext context,
-                                    Map<String, int> unreadByMemberId,
+                                    Widget? child,
                                   ) {
-                                    return OrbGrid(
-                                      members: gridMembers,
-                                      unreadByMemberId: unreadByMemberId,
-                                      onTap: (CircleMember? member) {
-                                        if (member != null) {
-                                          _openComposer(context, member);
-                                          return;
-                                        }
-                                        _handleEmptySlotTap(
-                                          context,
-                                          availableSlots: availableSlots,
-                                          activeMembersLimit:
-                                              activeMembersLimit,
-                                          isSubscriber: isSubscriber,
+                                    return BlocSelector<LumiBloc, LumiState,
+                                        Map<String, int>>(
+                                      selector: (LumiState lumiState) =>
+                                          _unreadCounts(lumiState.items),
+                                      builder: (
+                                        BuildContext context,
+                                        Map<String, int> unreadByMemberId,
+                                      ) {
+                                        final Map<String, LumiReactionType>
+                                        reactionBadges =
+                                            _reactionBadgesByMemberId(
+                                          context
+                                              .read<LumiBloc>()
+                                              .state
+                                              .items,
                                         );
-                                      },
-                                      onLongPress: (CircleMember? member) {
-                                        if (member != null) {
-                                          _openDetails(context, member);
-                                        }
+                                        return OrbGrid(
+                                          members: gridMembers,
+                                          unreadByMemberId: unreadByMemberId,
+                                          reactionBadgesByMemberId:
+                                              reactionBadges,
+                                          onTap: (CircleMember? member) {
+                                            if (member != null) {
+                                              _openComposer(context, member);
+                                              return;
+                                            }
+                                            _handleEmptySlotTap(
+                                              context,
+                                              availableSlots: availableSlots,
+                                              activeMembersLimit:
+                                                  activeMembersLimit,
+                                              isSubscriber: isSubscriber,
+                                            );
+                                          },
+                                          onLongPress: (CircleMember? member) {
+                                            if (member != null) {
+                                              _openDetails(context, member);
+                                            }
+                                          },
+                                        );
                                       },
                                     );
                                   },
@@ -344,6 +366,7 @@ class HomePage extends StatelessWidget {
                             );
                           },
                         ),
+                        const _SentReactionOverlayHost(),
                       ],
                     ),
                   );
@@ -393,6 +416,35 @@ class HomePage extends StatelessWidget {
       }
     }
     return counts;
+  }
+
+  static Map<String, LumiReactionType> _reactionBadgesByMemberId(
+    List<Lumi> items,
+  ) {
+    final Set<String> acknowledged =
+        sl<AcknowledgedReactionsService>().acknowledgedIds;
+    final Map<String, LumiReactionType> badges = <String, LumiReactionType>{};
+    for (final Lumi lumi in items) {
+      if (!lumi.hasReaction ||
+          acknowledged.contains(lumi.id) ||
+          lumi.reaction == null ||
+          badges.containsKey(lumi.memberId)) {
+        continue;
+      }
+      badges[lumi.memberId] = lumi.reaction!;
+    }
+    return badges;
+  }
+
+  static Lumi? _latestUnacknowledgedReaction(List<Lumi> items) {
+    final Set<String> acknowledged =
+        sl<AcknowledgedReactionsService>().acknowledgedIds;
+    for (final Lumi lumi in items) {
+      if (lumi.hasReaction && !acknowledged.contains(lumi.id)) {
+        return lumi;
+      }
+    }
+    return null;
   }
 
   void _openComposer(BuildContext context, CircleMember member) {
@@ -513,7 +565,7 @@ class _PendingLumiPushHostState extends State<_PendingLumiPushHost> {
     }
     context.read<LumiBloc>().add(
       LumiEvent.watchRecent(
-        memberId: payload.recipientCircleMemberId,
+        memberId: payload.focusMemberId,
       ),
     );
   }
@@ -893,6 +945,60 @@ class _ComposeButton extends StatelessWidget {
         ),
         child: const Icon(Icons.wb_incandescent_outlined, color: Colors.white),
       ),
+    );
+  }
+}
+
+class _SentReactionOverlayHost extends StatefulWidget {
+  const _SentReactionOverlayHost();
+
+  @override
+  State<_SentReactionOverlayHost> createState() =>
+      _SentReactionOverlayHostState();
+}
+
+class _SentReactionOverlayHostState extends State<_SentReactionOverlayHost> {
+  late final AcknowledgedReactionsService _acknowledgedService;
+
+  @override
+  void initState() {
+    super.initState();
+    _acknowledgedService = sl<AcknowledgedReactionsService>();
+    _acknowledgedService.addListener(_rebuild);
+    unawaited(_acknowledgedService.ensureLoaded());
+  }
+
+  @override
+  void dispose() {
+    _acknowledgedService.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<LumiBloc, LumiState, Lumi?>(
+      selector: (LumiState lumiState) {
+        for (final Lumi item in lumiState.items) {
+          if (item.isAwaitingReply) {
+            return null;
+          }
+        }
+        return HomePage._latestUnacknowledgedReaction(lumiState.items);
+      },
+      builder: (BuildContext context, Lumi? reactionLumi) {
+        if (reactionLumi == null) {
+          return const SizedBox.shrink();
+        }
+        return Positioned.fill(
+          child: SentLumiReactionOverlay(lumi: reactionLumi),
+        );
+      },
     );
   }
 }

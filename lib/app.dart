@@ -220,7 +220,7 @@ class _PushNotificationCoordinatorState
     }
     context.read<LumiBloc>().add(
       LumiEvent.watchRecent(
-        memberId: payload.recipientCircleMemberId,
+        memberId: payload.focusMemberId,
       ),
     );
   }

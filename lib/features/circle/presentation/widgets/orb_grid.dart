@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/widgets/member_orb.dart';
+import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 
 class OrbGrid extends StatelessWidget {
   const OrbGrid({
@@ -10,12 +11,14 @@ class OrbGrid extends StatelessWidget {
     required this.onLongPress,
     super.key,
     this.unreadByMemberId = const <String, int>{},
+    this.reactionBadgesByMemberId = const <String, LumiReactionType>{},
   });
 
   final List<CircleMember> members;
   final ValueChanged<CircleMember?> onTap;
   final ValueChanged<CircleMember?> onLongPress;
   final Map<String, int> unreadByMemberId;
+  final Map<String, LumiReactionType> reactionBadgesByMemberId;
 
   static const List<_OrbPosition> _positions = <_OrbPosition>[
     _OrbPosition(x: 0.50, y: 0.20, size: 96),
@@ -68,6 +71,9 @@ class OrbGrid extends StatelessWidget {
                 unreadCount: member == null
                     ? 0
                     : unreadByMemberId[member.id] ?? 0,
+                reactionBadge: member == null
+                    ? null
+                    : reactionBadgesByMemberId[member.id],
                 onTap: () => onTap(member),
                 onLongPress: () => onLongPress(member),
               ),
