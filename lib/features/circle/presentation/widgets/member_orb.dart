@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
+import 'package:lumi/core/widgets/orb_pulse.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 
 class MemberOrb extends StatefulWidget {
@@ -76,11 +77,24 @@ class _MemberOrbState extends State<MemberOrb> {
         currentMember.paceCount >= LumiLimits.maxLumisPerPairPerDay - 1;
     final bool memorial = currentMember.status == CircleStatus.memorial;
     final DateTime now = DateTime.now();
+    final bool hasIncomingLumi = widget.unreadCount > 0;
     final double intensity = _intensityFor(
       currentMember.lastInteractionAt,
       now,
       unreadCount: widget.unreadCount,
     );
+    final Widget? memorialChild = memorial
+        ? Container(
+            width: widget.diameter,
+            height: widget.diameter,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+              ),
+            ),
+          )
+        : null;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -88,22 +102,26 @@ class _MemberOrbState extends State<MemberOrb> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          GlowOrb(
-            color: memorial ? color.withValues(alpha: 0.7) : color,
-            size: widget.diameter,
-            intensity: nearLimit ? 0.72 : intensity,
-            child: memorial
-                ? Container(
-                    width: widget.diameter,
-                    height: widget.diameter,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                      ),
-                    ),
-                  )
-                : null,
+          OrbPulse(
+            isActive: hasIncomingLumi && !memorial,
+            childBuilder: (
+              BuildContext context,
+              double scale,
+              double intensityMultiplier,
+            ) {
+              final double orbIntensity = nearLimit
+                  ? 0.72
+                  : intensity * intensityMultiplier;
+              return Transform.scale(
+                scale: scale,
+                child: GlowOrb(
+                  color: memorial ? color.withValues(alpha: 0.7) : color,
+                  size: widget.diameter,
+                  intensity: orbIntensity,
+                  child: memorialChild,
+                ),
+              );
+            },
           ),
           const SizedBox(height: 8),
           Text(
