@@ -12,6 +12,7 @@ class OrbGrid extends StatelessWidget {
     super.key,
     this.unreadByMemberId = const <String, int>{},
     this.reactionBadgesByMemberId = const <String, LumiReactionType>{},
+    this.nameGlowByMemberId = const <String, bool>{},
   });
 
   final List<CircleMember> members;
@@ -19,6 +20,7 @@ class OrbGrid extends StatelessWidget {
   final ValueChanged<CircleMember?> onLongPress;
   final Map<String, int> unreadByMemberId;
   final Map<String, LumiReactionType> reactionBadgesByMemberId;
+  final Map<String, bool> nameGlowByMemberId;
 
   static const List<_OrbPosition> _positions = <_OrbPosition>[
     _OrbPosition(x: 0.50, y: 0.20, size: 96),
@@ -74,6 +76,9 @@ class OrbGrid extends StatelessWidget {
                 reactionBadge: member == null
                     ? null
                     : reactionBadgesByMemberId[member.id],
+                nameGlowActive: member == null
+                    ? false
+                    : nameGlowByMemberId[member.id] ?? false,
                 onTap: () => onTap(member),
                 onLongPress: () => onLongPress(member),
               ),

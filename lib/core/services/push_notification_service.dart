@@ -11,6 +11,7 @@ import 'package:lumi/core/config/environment_config.dart';
 import 'package:lumi/core/config/firebase_options_factory.dart';
 import 'package:lumi/core/network/appwrite_client.dart';
 import 'package:lumi/core/services/haptics_service.dart';
+import 'package:lumi/core/services/member_haptic_preferences_service.dart';
 import 'package:lumi/core/services/notification_service.dart';
 import 'package:lumi/core/services/pending_lumi_notification_service.dart';
 import 'package:lumi/core/services/preferences_service.dart';
@@ -34,12 +35,14 @@ class PushNotificationService {
     required PendingLumiNotificationService pendingLumiNotificationService,
     required PreferencesService preferencesService,
     required HapticsService hapticsService,
+    required MemberHapticPreferencesService memberHapticPreferencesService,
     Account? account,
     FirebaseMessaging? messaging,
   }) : _notificationService = notificationService,
        _pendingLumiNotificationService = pendingLumiNotificationService,
        _preferencesService = preferencesService,
        _hapticsService = hapticsService,
+       _memberHapticPreferencesService = memberHapticPreferencesService,
        _account = account ?? Account(client),
        _messaging = messaging ?? FirebaseMessaging.instance;
 
@@ -51,6 +54,7 @@ class PushNotificationService {
   final PendingLumiNotificationService _pendingLumiNotificationService;
   final PreferencesService _preferencesService;
   final HapticsService _hapticsService;
+  final MemberHapticPreferencesService _memberHapticPreferencesService;
   final Account _account;
   final FirebaseMessaging _messaging;
 
@@ -220,7 +224,11 @@ class PushNotificationService {
       if (payload.isReaction) {
         await _hapticsService.playSoftSelection();
       } else {
-        await _hapticsService.playIncomingLumi();
+        final String? memberId = payload.recipientCircleMemberId;
+        final pattern = _memberHapticPreferencesService.patternFor(
+          memberId ?? '',
+        );
+        await _hapticsService.playSignatureIncoming(pattern);
       }
     }
 

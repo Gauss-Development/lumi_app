@@ -1,10 +1,33 @@
 import 'package:flutter/services.dart';
 
+import 'package:lumi/core/domain/entities/signature_haptic_pattern.dart';
+
 class HapticsService {
   const HapticsService();
 
   Future<void> playIncomingLumi() async {
-    await HapticFeedback.mediumImpact();
+    await playSignatureIncoming(SignatureHapticPattern.warm);
+  }
+
+  Future<void> playSignatureIncoming(SignatureHapticPattern pattern) async {
+    switch (pattern) {
+      case SignatureHapticPattern.gentle:
+        await HapticFeedback.lightImpact();
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+        await HapticFeedback.selectionClick();
+      case SignatureHapticPattern.warm:
+        await HapticFeedback.mediumImpact();
+      case SignatureHapticPattern.bright:
+        await HapticFeedback.selectionClick();
+        await Future<void>.delayed(const Duration(milliseconds: 45));
+        await HapticFeedback.lightImpact();
+        await Future<void>.delayed(const Duration(milliseconds: 45));
+        await HapticFeedback.lightImpact();
+      case SignatureHapticPattern.deep:
+        await HapticFeedback.heavyImpact();
+        await Future<void>.delayed(const Duration(milliseconds: 70));
+        await HapticFeedback.mediumImpact();
+    }
   }
 
   Future<void> playSoftSelection() async {

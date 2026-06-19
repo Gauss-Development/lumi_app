@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/error/failures.dart';
+import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/services/haptics_service.dart';
+import 'package:lumi/core/services/member_haptic_preferences_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
@@ -29,7 +31,9 @@ class IncomingLumiOverlay extends StatefulWidget {
 }
 
 class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
-  final HapticsService _hapticsService = const HapticsService();
+  final HapticsService _hapticsService = sl<HapticsService>();
+  final MemberHapticPreferencesService _memberHaptics =
+      sl<MemberHapticPreferencesService>();
   bool _pulseActive = false;
   bool _isSubmitting = false;
 
@@ -46,7 +50,8 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
       case LumiType.pure:
       case LumiType.light:
       case LumiType.doodle:
-        await _hapticsService.playIncomingLumi();
+        final pattern = _memberHaptics.patternFor(widget.lumi.memberId);
+        await _hapticsService.playSignatureIncoming(pattern);
     }
   }
 

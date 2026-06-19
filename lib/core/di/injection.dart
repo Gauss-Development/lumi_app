@@ -11,6 +11,7 @@ import 'package:lumi/core/services/invite_deep_link_service.dart';
 import 'package:lumi/core/services/notification_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
 import 'package:lumi/core/services/acknowledged_reactions_service.dart';
+import 'package:lumi/core/services/member_haptic_preferences_service.dart';
 import 'package:lumi/core/services/pending_lumi_notification_service.dart';
 import 'package:lumi/core/services/push_notification_service.dart';
 import 'package:lumi/core/services/preferences_service.dart';
@@ -118,12 +119,16 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<AcknowledgedReactionsService>(
     () => AcknowledgedReactionsService(sl<PreferencesService>()),
   );
+  sl.registerLazySingleton<MemberHapticPreferencesService>(
+    () => MemberHapticPreferencesService(sl<PreferencesService>()),
+  );
   sl.registerLazySingleton<PushNotificationService>(
     () => PushNotificationService(
       notificationService: sl<NotificationService>(),
       pendingLumiNotificationService: sl<PendingLumiNotificationService>(),
       preferencesService: sl<PreferencesService>(),
       hapticsService: sl<HapticsService>(),
+      memberHapticPreferencesService: sl<MemberHapticPreferencesService>(),
     ),
   );
   sl.registerLazySingleton<RevenueCatService>(
@@ -393,4 +398,5 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   );
 
   await sl<AcknowledgedReactionsService>().ensureLoaded();
+  await sl<MemberHapticPreferencesService>().ensureLoaded();
 }

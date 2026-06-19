@@ -9,6 +9,7 @@ import 'package:lumi/core/services/acknowledged_reactions_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
 import 'package:lumi/core/services/pending_lumi_notification_service.dart';
 import 'package:lumi/core/utils/lumi_push_payload.dart';
+import 'package:lumi/core/utils/lumi_receipt_glow.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/widget_bridge_service.dart';
@@ -232,12 +233,12 @@ class HomePage extends StatelessWidget {
                                     Widget? child,
                                   ) {
                                     return BlocSelector<LumiBloc, LumiState,
-                                        Map<String, int>>(
+                                        _OrbLumiVisuals>(
                                       selector: (LumiState lumiState) =>
-                                          _unreadCounts(lumiState.items),
+                                          _orbLumiVisuals(lumiState.items),
                                       builder: (
                                         BuildContext context,
-                                        Map<String, int> unreadByMemberId,
+                                        _OrbLumiVisuals visuals,
                                       ) {
                                         final Map<String, LumiReactionType>
                                         reactionBadges =
@@ -249,9 +250,11 @@ class HomePage extends StatelessWidget {
                                         );
                                         return OrbGrid(
                                           members: gridMembers,
-                                          unreadByMemberId: unreadByMemberId,
+                                          unreadByMemberId: visuals.unreadByMemberId,
                                           reactionBadgesByMemberId:
                                               reactionBadges,
+                                          nameGlowByMemberId:
+                                              visuals.nameGlowByMemberId,
                                           onTap: (CircleMember? member) {
                                             if (member != null) {
                                               _openComposer(context, member);
@@ -416,6 +419,22 @@ class HomePage extends StatelessWidget {
       }
     }
     return counts;
+  }
+
+  static _OrbLumiVisuals _orbLumiVisuals(List<Lumi> items) {
+    final DateTime now = DateTime.now();
+    final Map<String, DateTime> receipts =
+        latestIncomingReceiptByMemberId(items);
+    final Map<String, bool> glow = <String, bool>{};
+    for (final MapEntry<String, DateTime> entry in receipts.entries) {
+      if (memberNameGlowActive(entry.value, now)) {
+        glow[entry.key] = true;
+      }
+    }
+    return _OrbLumiVisuals(
+      unreadByMemberId: _unreadCounts(items),
+      nameGlowByMemberId: glow,
+    );
   }
 
   static Map<String, LumiReactionType> _reactionBadgesByMemberId(
@@ -1000,5 +1019,43 @@ class _SentReactionOverlayHostState extends State<_SentReactionOverlayHost> {
         );
       },
     );
+  }
+}
+
+class _OrbLumiVisuals {
+  const _OrbLumiVisuals({
+    required this.unreadByMemberId,
+    required this.nameGlowByMemberId,
+  });
+
+  final Map<String, int> unreadByMemberId;
+  final Map<String, bool> nameGlowByMemberId;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is _OrbLumiVisuals &&
+        _mapEquals(unreadByMemberId, other.unreadByMemberId) &&
+        _mapEquals(nameGlowByMemberId, other.nameGlowByMemberId);
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    Object.hashAll(unreadByMemberId.entries),
+    Object.hashAll(nameGlowByMemberId.entries),
+  );
+
+  static bool _mapEquals<K, V>(Map<K, V> a, Map<K, V> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (final MapEntry<K, V> entry in a.entries) {
+      if (b[entry.key] != entry.value) {
+        return false;
+      }
+    }
+    return true;
   }
 }
