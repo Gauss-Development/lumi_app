@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -113,6 +115,31 @@ class _LumiAppState extends State<LumiApp> {
               context.read<SubscriptionBloc>().add(
                 const SubscriptionEvent.loadRequested(),
               );
+              unawaited(sl<PushNotificationService>().registerForAuthenticatedUser());
+            },
+          ),
+          BlocListener<ProfileSetupBloc, ProfileSetupState>(
+            listenWhen: (ProfileSetupState previous, ProfileSetupState current) {
+              return current.status == ProfileSetupStatus.ready &&
+                  current.restoredFromCloud &&
+                  current.isProfileComplete &&
+                  previous.status != ProfileSetupStatus.ready;
+            },
+            listener: (BuildContext context, ProfileSetupState state) {
+              final OnboardingState onboarding =
+                  context.read<OnboardingBloc>().state;
+              if (onboarding.completed) {
+                return;
+              }
+              if (onboarding.stage == OnboardingStage.profile) {
+                context.read<OnboardingBloc>().add(
+                  const OnboardingEvent.completeProfile(),
+                );
+                return;
+              }
+              context.read<OnboardingBloc>().add(
+                const OnboardingEvent.restoreForReturningUser(),
+              );
             },
           ),
           BlocListener<ProfileSetupBloc, ProfileSetupState>(
@@ -152,6 +179,7 @@ class _LumiAppState extends State<LumiApp> {
               return wasAuthenticated && !isAuthenticated;
             },
             listener: (BuildContext context, AuthState state) async {
+              await sl<PushNotificationService>().unregister();
               await sl<RevenueCatService>().logOut();
               if (!context.mounted) return;
               context.read<ProfileSetupBloc>().add(
@@ -163,12 +191,64 @@ class _LumiAppState extends State<LumiApp> {
             },
           ),
         ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light(),
-          routerConfig: _router,
+        child: _PushNotificationCoordinator(
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light(),
+            routerConfig: _router,
+          ),
         ),
       ),
     );
   }
+}
+
+class _PushNotificationCoordinator extends StatefulWidget {
+  const _PushNotificationCoordinator({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_PushNotificationCoordinator> createState() =>
+      _PushNotificationCoordinatorState();
+}
+
+class _PushNotificationCoordinatorState
+    extends State<_PushNotificationCoordinator> {
+  @override
+  void initState() {
+    super.initState();
+    final PushNotificationService pushService = sl<PushNotificationService>();
+    pushService.setOnTap(_handlePushTap);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      final bool isAuthenticated = context.read<AuthBloc>().state.maybeWhen(
+        authenticated: (_) => true,
+        orElse: () => false,
+      );
+      if (isAuthenticated) {
+        unawaited(pushService.registerForAuthenticatedUser());
+      }
+    });
+  }
+
+  void _handlePushTap(LumiPushPayload payload) {
+    if (!mounted) {
+      return;
+    }
+    context.read<LumiBloc>().add(
+      LumiEvent.watchRecent(memberId: payload.senderMemberId),
+    );
+  }
+
+  @override
+  void dispose() {
+    sl<PushNotificationService>().setOnTap(null);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

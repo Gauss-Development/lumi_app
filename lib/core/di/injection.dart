@@ -108,6 +108,17 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<NotificationService>(
     () => NotificationService(FlutterLocalNotificationsPlugin()),
   );
+  sl.registerLazySingleton<PendingLumiNotificationService>(
+    () => PendingLumiNotificationService(sl<PreferencesService>()),
+  );
+  sl.registerLazySingleton<PushNotificationService>(
+    () => PushNotificationService(
+      notificationService: sl<NotificationService>(),
+      pendingLumiNotificationService: sl<PendingLumiNotificationService>(),
+      preferencesService: sl<PreferencesService>(),
+      hapticsService: sl<HapticsService>(),
+    ),
+  );
   sl.registerLazySingleton<RevenueCatService>(
     () => RevenueCatService(config: environment, flavor: environment.flavor),
   );

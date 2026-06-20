@@ -165,6 +165,9 @@ Future<dynamic> main(dynamic context) async {
       senderMemberId: senderMemberId,
       recipientMemberId: recipientMemberId,
       type: data['type'] as String,
+      senderName: memberData['displayName'] as String? ?? 'Someone',
+      senderColorValue:
+          memberData['signatureColorValue'] as int? ?? _defaultColorValue,
     );
 
     return _json(context, _rowMap(lumi, _lumisCollection), 201);
@@ -193,18 +196,25 @@ Future<void> _sendPushNotification({
   required String senderMemberId,
   required String recipientMemberId,
   required String type,
+  required String senderName,
+  required int senderColorValue,
 }) async {
+  final String trimmedSenderName = senderName.trim().isEmpty
+      ? 'Someone'
+      : senderName.trim();
   try {
     await Messaging(client).createPush(
       messageId: ID.unique(),
       title: 'Lumi',
-      body: 'You received a Lumi.',
+      body: 'A Lumi from $trimmedSenderName',
       users: <String>[recipientUserId],
       data: <String, dynamic>{
         'lumiId': lumiId,
         'senderMemberId': senderMemberId,
         'recipientMemberId': recipientMemberId,
         'type': type,
+        'senderName': trimmedSenderName,
+        'senderColorValue': senderColorValue.toString(),
       },
       draft: false,
     );
