@@ -46,7 +46,7 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
         orElse: () => false,
       );
       if (!isLoading) {
-        add(LumiEvent.watchRecent(memberId: state.currentMemberId));
+        add(const LumiEvent.watchRecent());
       }
     });
   }
@@ -76,12 +76,12 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
         ),
       );
     }
-    final result = await _getRecentLumisUseCase(memberId: event.memberId);
+    final result = await _getRecentLumisUseCase();
     result.fold(
       (Failure failure) => emit(
         LumiState.failure(
           failure: failure,
-          selectedMemberId: event.memberId,
+          selectedMemberId: event.memberId ?? state.currentMemberId,
           recentLumis: state.recentLumis,
         ),
       ),
