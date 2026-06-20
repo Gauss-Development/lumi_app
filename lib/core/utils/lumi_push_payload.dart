@@ -52,9 +52,6 @@ class LumiPushPayload extends Equatable {
 
   String get body => privacySafeBody(senderName: senderName);
 
-  /// Member row id on the recipient's circle (the orb that should glow).
-  String? get recipientCircleMemberId => recipientMemberId;
-
   Map<String, String> toStorageMap() {
     return <String, String>{
       if (lumiId != null) 'lumiId': lumiId!,

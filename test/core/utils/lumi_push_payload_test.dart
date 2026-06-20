@@ -35,16 +35,6 @@ void main() {
       );
     });
 
-    test('recipientCircleMemberId maps to recipient orb on receiver device', () {
-      const LumiPushPayload payload = LumiPushPayload(
-        lumiId: 'lumi-1',
-        senderMemberId: 'member-a-to-b',
-        recipientMemberId: 'member-b-to-a',
-      );
-
-      expect(payload.recipientCircleMemberId, 'member-b-to-a');
-    });
-
     test('round-trips through storage map', () {
       const LumiPushPayload original = LumiPushPayload(
         lumiId: 'lumi-9',

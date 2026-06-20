@@ -10,8 +10,6 @@ import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/invite_deep_link_service.dart';
 import 'package:lumi/core/services/notification_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
-import 'package:lumi/core/services/pending_lumi_notification_service.dart';
-import 'package:lumi/core/services/push_notification_service.dart';
 import 'package:lumi/core/services/preferences_service.dart';
 import 'package:lumi/core/services/revenuecat_service.dart';
 import 'package:lumi/core/services/secure_key_store.dart';

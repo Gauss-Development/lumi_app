@@ -4,8 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
-import 'package:lumi/core/services/pending_lumi_notification_service.dart';
-import 'package:lumi/core/utils/lumi_push_payload.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/widget_bridge_service.dart';
@@ -30,11 +28,6 @@ import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.da
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
-import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
-import 'package:lumi/features/subscription/domain/entitlement_features.dart';
-import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -153,7 +146,6 @@ class HomePage extends StatelessWidget {
                     child: Stack(
                       children: <Widget>[
                         const _PendingInviteHost(),
-                        const _PendingLumiPushHost(),
                         _WidgetSyncEffect(members: members),
                         Column(
                           children: <Widget>[
@@ -328,7 +320,9 @@ class HomePage extends StatelessWidget {
                         BlocSelector<LumiBloc, LumiState, Lumi?>(
                           selector: (LumiState lumiState) {
                             for (final Lumi item in lumiState.items) {
-                              if (item.isAwaitingReply) {
+                              if (item.isIncoming &&
+                                  item.deliveryStatus !=
+                                      LumiDeliveryStatus.seen) {
                                 return item;
                               }
                             }
@@ -388,7 +382,8 @@ class HomePage extends StatelessWidget {
   static Map<String, int> _unreadCounts(List<Lumi> items) {
     final Map<String, int> counts = <String, int>{};
     for (final Lumi lumi in items) {
-      if (lumi.isIncoming && lumi.isAwaitingReply) {
+      if (lumi.isIncoming &&
+          lumi.deliveryStatus != LumiDeliveryStatus.seen) {
         counts[lumi.memberId] = (counts[lumi.memberId] ?? 0) + 1;
       }
     }
@@ -486,40 +481,6 @@ class HomePage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
   }
-}
-
-class _PendingLumiPushHost extends StatefulWidget {
-  const _PendingLumiPushHost();
-
-  @override
-  State<_PendingLumiPushHost> createState() => _PendingLumiPushHostState();
-}
-
-class _PendingLumiPushHostState extends State<_PendingLumiPushHost> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _consumePendingPush());
-  }
-
-  Future<void> _consumePendingPush() async {
-    if (!mounted) {
-      return;
-    }
-    final LumiPushPayload? payload =
-        await sl<PendingLumiNotificationService>().consume();
-    if (payload == null || !mounted) {
-      return;
-    }
-    context.read<LumiBloc>().add(
-      LumiEvent.watchRecent(
-        memberId: payload.recipientCircleMemberId,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _PendingInviteHost extends StatefulWidget {
