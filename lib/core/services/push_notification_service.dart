@@ -224,7 +224,6 @@ class PushNotificationService {
       payload: payload,
       notificationId: _notificationIdFor(payload),
     );
-    _onTap?.call(payload);
   }
 
   Future<void> _handleOpenedMessage(RemoteMessage message) async {
