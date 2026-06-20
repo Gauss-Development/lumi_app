@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/app_constants.dart';
 import 'package:lumi/core/constants/lumi_limits.dart';
-import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/lumi/domain/usecases/get_doodle_draft_usecase.dart';
@@ -302,20 +301,25 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                                   padding: EdgeInsets.only(
                                     right: type == LumiType.values.last ? 0 : 8,
                                   ),
-                                  child: Semantics(
-                                    button: true,
-                                    selected: _selectedType == type,
-                                    label: _modeLabel(type),
-                                    child: GestureDetector(
-                                      onTap: () => _selectType(context, type),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(
-                                          milliseconds: 180,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 12,
-                                        ),
-                                        decoration: BoxDecoration(
+                                  child: GestureDetector(
+                                    onTap: () => _selectType(context, type),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 180,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _selectedType == type
+                                            ? selectedColor.withValues(
+                                                alpha: 0.14,
+                                              )
+                                            : Colors.white.withValues(
+                                                alpha: 0.03,
+                                              ),
+                                        borderRadius: BorderRadius.circular(18),
+                                        border: Border.all(
                                           color: _selectedType == type
                                               ? selectedColor.withValues(
                                                   alpha: 0.14,
@@ -467,24 +471,37 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                   ),
                 ],
                 const SizedBox(height: 24),
-                Semantics(
-                  button: true,
-                  enabled: canSend,
-                  label: canSend
-                      ? 'Send ${_modeLabel(_selectedType)} to ${widget.member.displayName}'
-                      : 'Send disabled',
-                  child: PrimaryGlowButton(
-                    label: 'Send Lumi',
-                    glowColor: selectedColor,
-                    onPressed: canSend
-                        ? () async {
-                            switch (_selectedType) {
-                              case LumiType.pure:
-                                context.read<LumiBloc>().add(
-                                  LumiEvent.sendPureRequested(
-                                    senderId: senderId,
-                                    memberId: widget.member.id,
-                                    colorValue: _selectedColorValue,
+                PrimaryGlowButton(
+                  label: 'Send Lumi',
+                  glowColor: selectedColor,
+                  onPressed: canSend
+                      ? () {
+                          switch (_selectedType) {
+                            case LumiType.pure:
+                              context.read<LumiBloc>().add(
+                                LumiEvent.sendPureRequested(
+                                  senderId: senderId,
+                                  memberId: widget.member.id,
+                                  colorValue: _selectedColorValue,
+                                ),
+                              );
+                            case LumiType.light:
+                              context.read<LumiBloc>().add(
+                                LumiEvent.sendLightRequested(
+                                  senderId: senderId,
+                                  memberId: widget.member.id,
+                                  colorValue: _selectedColorValue,
+                                  intensity: 0.8,
+                                ),
+                              );
+                            case LumiType.pulse:
+                              context.read<LumiBloc>().add(
+                                LumiEvent.sendPulseRequested(
+                                  senderId: senderId,
+                                  memberId: widget.member.id,
+                                  colorValue: _selectedColorValue,
+                                  pulsePattern: PulsePattern(
+                                    List<int>.of(_pulseBeats),
                                   ),
                                 );
                               case LumiType.light:

@@ -91,15 +91,11 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
         ),
       ),
       (List<Lumi> lumis) {
-        if (_sameLumis(lumis, state.recentLumis) &&
-            event.memberId == state.currentMemberId) {
+        if (_sameLumis(lumis, state.recentLumis)) {
           return;
         }
         emit(
-          LumiState.loaded(
-            selectedMemberId: event.memberId ?? state.currentMemberId,
-            recentLumis: lumis,
-          ),
+          LumiState.loaded(selectedMemberId: event.memberId, recentLumis: lumis),
         );
       },
     );

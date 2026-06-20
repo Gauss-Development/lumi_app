@@ -48,6 +48,29 @@ class _MemberOrbState extends State<MemberOrb> {
   }
 
   @override
+  State<MemberOrb> createState() => _MemberOrbState();
+}
+
+class _MemberOrbState extends State<MemberOrb> {
+  Timer? _subtitleTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _subtitleTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subtitleTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.member == null) {
       return GestureDetector(
@@ -77,24 +100,7 @@ class _MemberOrbState extends State<MemberOrb> {
         currentMember.paceCount >= LumiLimits.maxLumisPerPairPerDay - 1;
     final bool memorial = currentMember.status == CircleStatus.memorial;
     final DateTime now = DateTime.now();
-    final bool hasIncomingLumi = widget.unreadCount > 0;
-    final double intensity = _intensityFor(
-      currentMember.lastInteractionAt,
-      now,
-      unreadCount: widget.unreadCount,
-    );
-    final Widget? memorialChild = memorial
-        ? Container(
-            width: widget.diameter,
-            height: widget.diameter,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
-            ),
-          )
-        : null;
+    final double intensity = _intensityFor(currentMember.lastInteractionAt, now);
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -102,26 +108,22 @@ class _MemberOrbState extends State<MemberOrb> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          OrbPulse(
-            isActive: hasIncomingLumi && !memorial,
-            childBuilder: (
-              BuildContext context,
-              double scale,
-              double intensityMultiplier,
-            ) {
-              final double orbIntensity = nearLimit
-                  ? 0.72
-                  : intensity * intensityMultiplier;
-              return Transform.scale(
-                scale: scale,
-                child: GlowOrb(
-                  color: memorial ? color.withValues(alpha: 0.7) : color,
-                  size: widget.diameter,
-                  intensity: orbIntensity,
-                  child: memorialChild,
-                ),
-              );
-            },
+          GlowOrb(
+            color: memorial ? color.withValues(alpha: 0.7) : color,
+            size: widget.diameter,
+            intensity: nearLimit ? 0.72 : intensity,
+            child: memorial
+                ? Container(
+                    width: widget.diameter,
+                    height: widget.diameter,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(height: 8),
           Text(
@@ -147,22 +149,14 @@ class _MemberOrbState extends State<MemberOrb> {
     );
   }
 
-  static double _intensityFor(
-    DateTime? lastSeen,
-    DateTime now, {
-    int unreadCount = 0,
-  }) {
-    final double activityIntensity = switch (lastSeen) {
+  static double _intensityFor(DateTime? lastSeen, DateTime now) {
+    return switch (lastSeen) {
       null => 0.82,
       final DateTime seen when now.difference(seen).inHours < 1 => 1.1,
       final DateTime seen when now.difference(seen).inHours < 6 => 1.0,
       final DateTime seen when now.difference(seen).inHours < 24 => 0.92,
       _ => 0.8,
     };
-    if (unreadCount > 0) {
-      return activityIntensity < 1.18 ? 1.18 : activityIntensity;
-    }
-    return activityIntensity;
   }
 
   String _subtitle(CircleMember member, DateTime now) {
