@@ -7,8 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/router/app_router.dart';
 import 'package:lumi/core/services/invite_deep_link_service.dart';
-import 'package:lumi/core/services/push_notification_service.dart';
-import 'package:lumi/core/utils/lumi_push_payload.dart';
 import 'package:lumi/core/services/revenuecat_service.dart';
 import 'package:lumi/core/theme/app_theme.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
@@ -43,7 +41,6 @@ class _LumiAppState extends State<LumiApp> {
 
   @override
   void dispose() {
-    unawaited(sl<PushNotificationService>().dispose());
     _inviteDeepLinkService.dispose();
     _authBloc.close();
     _router.dispose();
@@ -145,6 +142,30 @@ class _LumiAppState extends State<LumiApp> {
               );
             },
           ),
+          BlocListener<ProfileSetupBloc, ProfileSetupState>(
+            listenWhen: (ProfileSetupState previous, ProfileSetupState current) {
+              return current.status == ProfileSetupStatus.ready &&
+                  current.restoredFromCloud &&
+                  current.isProfileComplete &&
+                  previous.status != ProfileSetupStatus.ready;
+            },
+            listener: (BuildContext context, ProfileSetupState state) {
+              final OnboardingState onboarding =
+                  context.read<OnboardingBloc>().state;
+              if (onboarding.completed) {
+                return;
+              }
+              if (onboarding.stage == OnboardingStage.profile) {
+                context.read<OnboardingBloc>().add(
+                  const OnboardingEvent.completeProfile(),
+                );
+                return;
+              }
+              context.read<OnboardingBloc>().add(
+                const OnboardingEvent.restoreForReturningUser(),
+              );
+            },
+          ),
           BlocListener<AuthBloc, AuthState>(
             listenWhen: (AuthState previous, AuthState current) {
               final bool wasAuthenticated = previous.maybeWhen(
@@ -193,11 +214,10 @@ class _PushNotificationCoordinator extends StatefulWidget {
 }
 
 class _PushNotificationCoordinatorState
-    extends State<_PushNotificationCoordinator> with WidgetsBindingObserver {
+    extends State<_PushNotificationCoordinator> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     final PushNotificationService pushService = sl<PushNotificationService>();
     pushService.setOnTap(_handlePushTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -219,22 +239,12 @@ class _PushNotificationCoordinatorState
       return;
     }
     context.read<LumiBloc>().add(
-      LumiEvent.watchRecent(
-        memberId: payload.focusMemberId,
-      ),
+      LumiEvent.watchRecent(memberId: payload.senderMemberId),
     );
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && mounted) {
-      context.read<LumiBloc>().add(const LumiEvent.watchRecent());
-    }
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     sl<PushNotificationService>().setOnTap(null);
     super.dispose();
   }

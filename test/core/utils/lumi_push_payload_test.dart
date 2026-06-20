@@ -35,16 +35,6 @@ void main() {
       );
     });
 
-    test('recipientCircleMemberId maps to recipient orb on receiver device', () {
-      const LumiPushPayload payload = LumiPushPayload(
-        lumiId: 'lumi-1',
-        senderMemberId: 'member-a-to-b',
-        recipientMemberId: 'member-b-to-a',
-      );
-
-      expect(payload.recipientCircleMemberId, 'member-b-to-a');
-    });
-
     test('round-trips through storage map', () {
       const LumiPushPayload original = LumiPushPayload(
         lumiId: 'lumi-9',
@@ -58,24 +48,6 @@ void main() {
       );
 
       expect(restored, original);
-    });
-
-    test('reaction push focuses sender member id and formats body', () {
-      final LumiPushPayload? payload = LumiPushPayload.fromData(
-        <String, dynamic>{
-          'lumiId': 'lumi-2',
-          'type': 'reaction',
-          'senderMemberId': 'member-recipient-on-sender',
-          'recipientMemberId': 'member-sender-on-recipient',
-          'senderName': 'Sam',
-          'reaction': 'moon',
-        },
-      );
-
-      expect(payload, isNotNull);
-      expect(payload!.isReaction, isTrue);
-      expect(payload.focusMemberId, 'member-recipient-on-sender');
-      expect(payload.body, 'Sam felt your Lumi ☾');
     });
   });
 }

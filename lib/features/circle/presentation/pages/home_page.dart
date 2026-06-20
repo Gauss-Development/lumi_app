@@ -5,11 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/di/injection.dart';
-import 'package:lumi/core/services/acknowledged_reactions_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
-import 'package:lumi/core/services/pending_lumi_notification_service.dart';
-import 'package:lumi/core/utils/lumi_push_payload.dart';
-import 'package:lumi/core/utils/lumi_receipt_glow.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/widget_bridge_service.dart';
@@ -35,11 +31,6 @@ import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.da
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
-import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
-import 'package:lumi/features/subscription/domain/entitlement_features.dart';
-import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -158,7 +149,6 @@ class HomePage extends StatelessWidget {
                     child: Stack(
                       children: <Widget>[
                         const _PendingInviteHost(),
-                        const _PendingLumiPushHost(),
                         _WidgetSyncEffect(members: members),
                         Column(
                           children: <Widget>[
@@ -226,54 +216,34 @@ class HomePage extends StatelessWidget {
                                   16,
                                   156,
                                 ),
-                                child: ListenableBuilder(
-                                  listenable: sl<AcknowledgedReactionsService>(),
+                                child: BlocSelector<LumiBloc, LumiState,
+                                    Map<String, int>>(
+                                  selector: (LumiState lumiState) =>
+                                      _unreadCounts(lumiState.items),
                                   builder: (
                                     BuildContext context,
-                                    Widget? child,
+                                    Map<String, int> unreadByMemberId,
                                   ) {
-                                    return BlocSelector<LumiBloc, LumiState,
-                                        _OrbLumiVisuals>(
-                                      selector: (LumiState lumiState) =>
-                                          _orbLumiVisuals(lumiState.items),
-                                      builder: (
-                                        BuildContext context,
-                                        _OrbLumiVisuals visuals,
-                                      ) {
-                                        final Map<String, LumiReactionType>
-                                        reactionBadges =
-                                            _reactionBadgesByMemberId(
-                                          context
-                                              .read<LumiBloc>()
-                                              .state
-                                              .items,
+                                    return OrbGrid(
+                                      members: gridMembers,
+                                      unreadByMemberId: unreadByMemberId,
+                                      onTap: (CircleMember? member) {
+                                        if (member != null) {
+                                          _openComposer(context, member);
+                                          return;
+                                        }
+                                        _handleEmptySlotTap(
+                                          context,
+                                          availableSlots: availableSlots,
+                                          activeMembersLimit:
+                                              activeMembersLimit,
+                                          isSubscriber: isSubscriber,
                                         );
-                                        return OrbGrid(
-                                          members: gridMembers,
-                                          unreadByMemberId: visuals.unreadByMemberId,
-                                          reactionBadgesByMemberId:
-                                              reactionBadges,
-                                          nameGlowByMemberId:
-                                              visuals.nameGlowByMemberId,
-                                          onTap: (CircleMember? member) {
-                                            if (member != null) {
-                                              _openComposer(context, member);
-                                              return;
-                                            }
-                                            _handleEmptySlotTap(
-                                              context,
-                                              availableSlots: availableSlots,
-                                              activeMembersLimit:
-                                                  activeMembersLimit,
-                                              isSubscriber: isSubscriber,
-                                            );
-                                          },
-                                          onLongPress: (CircleMember? member) {
-                                            if (member != null) {
-                                              _openDetails(context, member);
-                                            }
-                                          },
-                                        );
+                                      },
+                                      onLongPress: (CircleMember? member) {
+                                        if (member != null) {
+                                          _openDetails(context, member);
+                                        }
                                       },
                                     );
                                   },
@@ -353,7 +323,9 @@ class HomePage extends StatelessWidget {
                         BlocSelector<LumiBloc, LumiState, Lumi?>(
                           selector: (LumiState lumiState) {
                             for (final Lumi item in lumiState.items) {
-                              if (item.isAwaitingReply) {
+                              if (item.isIncoming &&
+                                  item.deliveryStatus !=
+                                      LumiDeliveryStatus.seen) {
                                 return item;
                               }
                             }
@@ -414,56 +386,12 @@ class HomePage extends StatelessWidget {
   static Map<String, int> _unreadCounts(List<Lumi> items) {
     final Map<String, int> counts = <String, int>{};
     for (final Lumi lumi in items) {
-      if (lumi.isIncoming && lumi.isAwaitingReply) {
+      if (lumi.isIncoming &&
+          lumi.deliveryStatus != LumiDeliveryStatus.seen) {
         counts[lumi.memberId] = (counts[lumi.memberId] ?? 0) + 1;
       }
     }
     return counts;
-  }
-
-  static _OrbLumiVisuals _orbLumiVisuals(List<Lumi> items) {
-    final DateTime now = DateTime.now();
-    final Map<String, DateTime> receipts =
-        latestIncomingReceiptByMemberId(items);
-    final Map<String, bool> glow = <String, bool>{};
-    for (final MapEntry<String, DateTime> entry in receipts.entries) {
-      if (memberNameGlowActive(entry.value, now)) {
-        glow[entry.key] = true;
-      }
-    }
-    return _OrbLumiVisuals(
-      unreadByMemberId: _unreadCounts(items),
-      nameGlowByMemberId: glow,
-    );
-  }
-
-  static Map<String, LumiReactionType> _reactionBadgesByMemberId(
-    List<Lumi> items,
-  ) {
-    final Set<String> acknowledged =
-        sl<AcknowledgedReactionsService>().acknowledgedIds;
-    final Map<String, LumiReactionType> badges = <String, LumiReactionType>{};
-    for (final Lumi lumi in items) {
-      if (!lumi.hasReaction ||
-          acknowledged.contains(lumi.id) ||
-          lumi.reaction == null ||
-          badges.containsKey(lumi.memberId)) {
-        continue;
-      }
-      badges[lumi.memberId] = lumi.reaction!;
-    }
-    return badges;
-  }
-
-  static Lumi? _latestUnacknowledgedReaction(List<Lumi> items) {
-    final Set<String> acknowledged =
-        sl<AcknowledgedReactionsService>().acknowledgedIds;
-    for (final Lumi lumi in items) {
-      if (lumi.hasReaction && !acknowledged.contains(lumi.id)) {
-        return lumi;
-      }
-    }
-    return null;
   }
 
   void _openComposer(BuildContext context, CircleMember member) {
@@ -557,40 +485,6 @@ class HomePage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
   }
-}
-
-class _PendingLumiPushHost extends StatefulWidget {
-  const _PendingLumiPushHost();
-
-  @override
-  State<_PendingLumiPushHost> createState() => _PendingLumiPushHostState();
-}
-
-class _PendingLumiPushHostState extends State<_PendingLumiPushHost> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _consumePendingPush());
-  }
-
-  Future<void> _consumePendingPush() async {
-    if (!mounted) {
-      return;
-    }
-    final LumiPushPayload? payload =
-        await sl<PendingLumiNotificationService>().consume();
-    if (payload == null || !mounted) {
-      return;
-    }
-    context.read<LumiBloc>().add(
-      LumiEvent.watchRecent(
-        memberId: payload.focusMemberId,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _PendingInviteHost extends StatefulWidget {
@@ -1019,43 +913,5 @@ class _SentReactionOverlayHostState extends State<_SentReactionOverlayHost> {
         );
       },
     );
-  }
-}
-
-class _OrbLumiVisuals {
-  const _OrbLumiVisuals({
-    required this.unreadByMemberId,
-    required this.nameGlowByMemberId,
-  });
-
-  final Map<String, int> unreadByMemberId;
-  final Map<String, bool> nameGlowByMemberId;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    return other is _OrbLumiVisuals &&
-        _mapEquals(unreadByMemberId, other.unreadByMemberId) &&
-        _mapEquals(nameGlowByMemberId, other.nameGlowByMemberId);
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    Object.hashAll(unreadByMemberId.entries),
-    Object.hashAll(nameGlowByMemberId.entries),
-  );
-
-  static bool _mapEquals<K, V>(Map<K, V> a, Map<K, V> b) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (final MapEntry<K, V> entry in a.entries) {
-      if (b[entry.key] != entry.value) {
-        return false;
-      }
-    }
-    return true;
   }
 }

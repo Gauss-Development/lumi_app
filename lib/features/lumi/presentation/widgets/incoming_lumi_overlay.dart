@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/error/failures.dart';
-import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/member_haptic_preferences_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
@@ -13,8 +12,8 @@ import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
+import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
 import 'package:lumi/features/lumi/presentation/widgets/reaction_tray.dart';
-import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
 import 'package:lumi/features/shelf/domain/entities/kept_lumi.dart';
 import 'package:lumi/features/shelf/presentation/bloc/shelf_bloc.dart';
 import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
@@ -111,21 +110,36 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
     );
   }
 
-  Future<void> _react(BuildContext context, LumiReactionType reaction) async {
-    if (_isSubmitting) {
-      return;
-    }
-    setState(() => _isSubmitting = true);
-    await _hapticsService.playSoftSelection();
-    if (!context.mounted) {
-      return;
-    }
+  void _react(BuildContext context, LumiReactionType reaction) {
     context.read<LumiBloc>().add(
       LumiEvent.reactRequested(
         memberId: widget.lumi.memberId,
         lumiId: widget.lumi.id,
         reaction: reaction,
       ),
+    );
+    _hapticsService.playSoftSelection();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Sent ${reaction.emoji} back to ${_senderName(context)}'),
+        ),
+      );
+    _markSeen(context);
+  }
+
+  CircleMember? _senderMember(BuildContext context) {
+    return context.read<CircleBloc>().state.maybeMap(
+      loaded: (loaded) {
+        for (final member in loaded.members) {
+          if (member.id == widget.lumi.memberId) {
+            return member;
+          }
+        }
+        return null;
+      },
+      orElse: () => null,
     );
     if (!context.mounted) {
       return;
@@ -246,22 +260,61 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
                 icon: const Icon(Icons.close_rounded, size: 18),
               ),
             ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'A glow from',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.textSecondary,
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'A glow from',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _senderName(context),
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  const SizedBox(height: 36),
+                  RepaintBoundary(
+                    child: AnimatedScale(
+                      scale: _pulseActive ? 1.08 : 1,
+                      duration: const Duration(milliseconds: 90),
+                      curve: Curves.easeOut,
+                      child: GlowOrb(
+                        color: color,
+                        size: 300,
+                        intensity: _pulseActive ? 1.22 : 1.05,
+                        child: widget.lumi.type == LumiType.doodle
+                            ? CustomPaint(
+                                size: const Size(220, 220),
+                                painter: _DoodlePreviewPainter(
+                                  stroke: widget.lumi.doodleStroke,
+                                  color: color,
+                                ),
+                              )
+                            : null,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _senderName(context),
-                      style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  const SizedBox(height: 28),
+                  Text(
+                    'Send a feeling back',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.textFaint,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ReactionTray(onSelected: (reaction) => _react(context, reaction)),
+                  const SizedBox(height: 36),
+                  Text(
+                    _bodyCopy(widget.lumi.type),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
                     ),
                     const SizedBox(height: 36),
                     RepaintBoundary(
