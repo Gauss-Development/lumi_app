@@ -51,8 +51,55 @@ Future<void> main() async {
   await _provisionKeptLumis();
   await _provisionSettings();
   await _provisionSendLumiFunction();
+  await _provisionReactLumiFunction();
 
   stdout.writeln('\nProvisioning complete.');
+}
+
+Future<void> _provisionReactLumiFunction() async {
+  const String id = 'react_lumi';
+  const String name = 'React to Lumi';
+  const List<String> execute = <String>['users'];
+  const List<String> scopes = <String>[
+    'databases.read',
+    'databases.write',
+    'rows.read',
+    'rows.write',
+    'messages.write',
+  ];
+
+  try {
+    await functions.create(
+      functionId: id,
+      name: name,
+      runtime: enums.Runtime.dart35,
+      execute: execute,
+      timeout: 15,
+      enabled: true,
+      logging: true,
+      entrypoint: 'lib/main.dart',
+      commands: 'dart pub get',
+      scopes: scopes,
+    );
+    stdout.writeln('+ function $id');
+  } on AppwriteException catch (e) {
+    _onConflictOrRethrow(e, '= function $id');
+    await functions.update(
+      functionId: id,
+      name: name,
+      runtime: enums.Runtime.dart35,
+      execute: execute,
+      timeout: 15,
+      enabled: true,
+      logging: true,
+      entrypoint: 'lib/main.dart',
+      commands: 'dart pub get',
+      scopes: scopes,
+    );
+    stdout.writeln('  ~ function $id config');
+  }
+
+  await _ensureFunctionVariable(id, 'APPWRITE_ENDPOINT', _endpoint);
 }
 
 Future<void> _provisionSendLumiFunction() async {

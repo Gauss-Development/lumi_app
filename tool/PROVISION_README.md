@@ -57,9 +57,9 @@ The key is read from the process environment so it never lands in a file.
 APPWRITE_PROVISIONING_API_KEY=<your-server-key> dart run tool/deploy_appwrite_functions.dart
 ```
 
-This uploads `functions/send_lumi` and activates the deployment. The Function
-creates `lumis` rows server-side with strict sender/recipient permissions and
-attempts an Appwrite Messaging push after the row is created.
+This uploads `functions/send_lumi` and `functions/react_lumi` and activates
+the deployments. The Functions create `lumis` rows server-side with strict
+sender/recipient permissions and attempt Appwrite Messaging push after writes.
 
 ### 4. Verify
 

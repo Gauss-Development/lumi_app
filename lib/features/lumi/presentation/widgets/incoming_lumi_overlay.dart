@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
-import 'package:lumi/features/circle/domain/entities/circle_member.dart';
+import 'package:lumi/core/widgets/primary_glow_button.dart';
+import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
+import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
@@ -28,6 +31,7 @@ class IncomingLumiOverlay extends StatefulWidget {
 class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
   final HapticsService _hapticsService = const HapticsService();
   bool _pulseActive = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -71,7 +75,7 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
   String _senderName(BuildContext context) {
     return context.read<CircleBloc>().state.maybeMap(
       loaded: (loaded) {
-        for (final member in loaded.members) {
+        for (final CircleMember member in loaded.members) {
           if (member.id == widget.lumi.memberId) {
             return member.displayName;
           }
@@ -79,6 +83,17 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
         return widget.lumi.memberId;
       },
       orElse: () => widget.lumi.memberId,
+    );
+  }
+
+  int _signatureColorValue(BuildContext context) {
+    return context.read<ProfileSetupBloc>().state.signatureColorValue;
+  }
+
+  String? _currentUserId(BuildContext context) {
+    return context.read<AuthBloc>().state.maybeWhen(
+      authenticated: (session) => session.userId,
+      orElse: () => null,
     );
   }
 
@@ -122,27 +137,53 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
       },
       orElse: () => null,
     );
-  }
-
-  Future<void> _reply(BuildContext context) async {
-    final CircleMember? member = _senderMember(context);
-    if (member == null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Unable to find this circle member.')),
-        );
+    if (!context.mounted) {
       return;
     }
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => LumiComposerSheet(member: member),
-    );
-    if (context.mounted) {
-      _markSeen(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            'Sent ${reaction.emoji} back to ${_senderName(context)}',
+          ),
+        ),
+      );
+    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
+  }
+
+  Future<void> _lumiBack(BuildContext context) async {
+    if (_isSubmitting) {
+      return;
     }
+    final String? senderId = _currentUserId(context);
+    if (senderId == null) {
+      return;
+    }
+    setState(() => _isSubmitting = true);
+    await _hapticsService.playSendLumi();
+    if (!context.mounted) {
+      return;
+    }
+    context.read<LumiBloc>().add(
+      LumiEvent.replyWithPureLumiRequested(
+        senderId: senderId,
+        memberId: widget.lumi.memberId,
+        incomingLumiId: widget.lumi.id,
+        colorValue: _signatureColorValue(context),
+      ),
+    );
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Sent your Lumi back to ${_senderName(context)}'),
+        ),
+      );
+    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
   }
 
   void _keepOnShelf(BuildContext context) {
@@ -172,25 +213,48 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
   @override
   Widget build(BuildContext context) {
     final Color color = Color(widget.lumi.colorValue);
+    final Color replyColor = Color(_signatureColorValue(context));
     final EdgeInsets safe = MediaQuery.paddingOf(context);
 
-    return Material(
-      color: Colors.black.withValues(alpha: 0.58),
-      child: Stack(
-        children: <Widget>[
-          Positioned(
-            top: safe.top + 8,
-            right: 24,
-            child: IconButton(
-              onPressed: () => _markSeen(context),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.04),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+    return BlocListener<LumiBloc, LumiState>(
+      listenWhen: (LumiState previous, LumiState current) {
+        if (!_isSubmitting) {
+          return false;
+        }
+        final Failure? failure = current.maybeMap(
+          failure: (state) => state.failure,
+          orElse: () => null,
+        );
+        return failure != null;
+      },
+      listener: (BuildContext context, LumiState state) {
+        state.mapOrNull(
+          failure: (failure) {
+            setState(() => _isSubmitting = false);
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(failure.failure.message)));
+          },
+        );
+      },
+      child: Material(
+        color: Colors.black.withValues(alpha: 0.58),
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              top: safe.top + 8,
+              right: 24,
+              child: IconButton(
+                onPressed: _isSubmitting ? null : () => _markSeen(context),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.04),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                  ),
                 ),
+                icon: const Icon(Icons.close_rounded, size: 18),
               ),
-              icon: const Icon(Icons.close_rounded, size: 18),
             ),
           ),
           Center(
@@ -248,59 +312,76 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 36),
+                    RepaintBoundary(
+                      child: AnimatedScale(
+                        scale: _pulseActive ? 1.08 : 1,
+                        duration: const Duration(milliseconds: 90),
+                        curve: Curves.easeOut,
+                        child: GlowOrb(
+                          color: color,
+                          size: 300,
+                          intensity: widget.lumi.type == LumiType.light
+                              ? widget.lumi.intensity.clamp(0.55, 1.2)
+                              : (_pulseActive ? 1.22 : 1.05),
+                          child: widget.lumi.type == LumiType.doodle
+                              ? CustomPaint(
+                                  size: const Size(220, 220),
+                                  painter: _DoodlePreviewPainter(
+                                    stroke: widget.lumi.doodleStroke,
+                                    color: color,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      'Send a feeling back',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.textFaint,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ReactionTray(
+                      enabled: !_isSubmitting,
+                      onSelected: (reaction) => _react(context, reaction),
+                    ),
+                    const SizedBox(height: 28),
+                    PrimaryGlowButton(
+                      label: _isSubmitting ? 'Sending…' : 'Lumi back',
+                      glowColor: replyColor,
+                      onPressed: _isSubmitting ? null : () => _lumiBack(context),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      _bodyCopy(widget.lumi.type),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: safe.bottom + 16,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () => _reply(context),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white.withValues(alpha: 0.75),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      icon: const Icon(Icons.reply_rounded, size: 16),
-                      label: const Text('Reply'),
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 28,
-                    color: Colors.white.withValues(alpha: 0.1),
-                  ),
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () => _keepOnShelf(context),
-                      style: TextButton.styleFrom(
-                        foregroundColor: color,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      icon: const Icon(
-                        Icons.bookmark_outline_rounded,
-                        size: 16,
-                      ),
-                      label: const Text('Keep on shelf'),
-                    ),
-                  ),
-                ],
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: safe.bottom + 16,
+              child: TextButton.icon(
+                onPressed: _isSubmitting ? null : () => _keepOnShelf(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: color,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                icon: const Icon(Icons.bookmark_outline_rounded, size: 16),
+                label: const Text('Keep on shelf'),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

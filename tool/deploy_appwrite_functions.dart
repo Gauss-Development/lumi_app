@@ -12,6 +12,7 @@ import 'package:dart_appwrite/dart_appwrite.dart';
 const String _projectId = '69ff68eb0033441e4041';
 const String _endpoint = 'https://sfo.cloud.appwrite.io/v1';
 const String _sendLumiFunctionId = 'send_lumi';
+const String _reactLumiFunctionId = 'react_lumi';
 
 Future<void> main() async {
   final String? apiKey = Platform.environment['APPWRITE_PROVISIONING_API_KEY'];
@@ -33,6 +34,14 @@ Future<void> main() async {
     functions: functions,
     functionId: _sendLumiFunctionId,
     sourceDir: Directory('functions/send_lumi'),
+    entrypoint: 'lib/main.dart',
+    commands: 'dart pub get',
+  );
+
+  await _deployFunction(
+    functions: functions,
+    functionId: _reactLumiFunctionId,
+    sourceDir: Directory('functions/react_lumi'),
     entrypoint: 'lib/main.dart',
     commands: 'dart pub get',
   );

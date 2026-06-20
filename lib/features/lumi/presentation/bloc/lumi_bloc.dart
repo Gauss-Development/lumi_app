@@ -7,6 +7,7 @@ import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/domain/usecases/get_recent_lumis_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/mark_lumi_seen_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/reply_with_pure_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/react_to_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/clear_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dart';
@@ -19,12 +20,14 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     required GetRecentLumisUseCase getRecentLumisUseCase,
     required SendLumiUseCase sendLumiUseCase,
     required ReactToLumiUseCase reactToLumiUseCase,
+    required ReplyWithPureLumiUseCase replyWithPureLumiUseCase,
     required MarkLumiSeenUseCase markLumiSeenUseCase,
     required SaveDoodleDraftUseCase saveDoodleDraftUseCase,
     required ClearDoodleDraftUseCase clearDoodleDraftUseCase,
   }) : _getRecentLumisUseCase = getRecentLumisUseCase,
        _sendLumiUseCase = sendLumiUseCase,
        _reactToLumiUseCase = reactToLumiUseCase,
+       _replyWithPureLumiUseCase = replyWithPureLumiUseCase,
        _markLumiSeenUseCase = markLumiSeenUseCase,
        _saveDoodleDraftUseCase = saveDoodleDraftUseCase,
        _clearDoodleDraftUseCase = clearDoodleDraftUseCase,
@@ -35,6 +38,7 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     on<_SendPulseRequested>(_onSendPulseRequested);
     on<_SendDoodleRequested>(_onSendDoodleRequested);
     on<_ReactRequested>(_onReactRequested);
+    on<_ReplyWithPureLumiRequested>(_onReplyWithPureLumiRequested);
     on<_MarkSeenRequested>(_onMarkSeenRequested);
     on<_SaveDoodleDraftRequested>(_onSaveDoodleDraftRequested);
     _pollTimer = Timer.periodic(const Duration(seconds: 12), (_) {
@@ -54,6 +58,7 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
   final GetRecentLumisUseCase _getRecentLumisUseCase;
   final SendLumiUseCase _sendLumiUseCase;
   final ReactToLumiUseCase _reactToLumiUseCase;
+  final ReplyWithPureLumiUseCase _replyWithPureLumiUseCase;
   final MarkLumiSeenUseCase _markLumiSeenUseCase;
   final SaveDoodleDraftUseCase _saveDoodleDraftUseCase;
   final ClearDoodleDraftUseCase _clearDoodleDraftUseCase;
@@ -214,6 +219,30 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     );
   }
 
+  Future<void> _onReplyWithPureLumiRequested(
+    _ReplyWithPureLumiRequested event,
+    Emitter<LumiState> emit,
+  ) async {
+    final result = await _replyWithPureLumiUseCase(
+      ReplyWithPureLumiParams(
+        senderId: event.senderId,
+        memberId: event.memberId,
+        incomingLumiId: event.incomingLumiId,
+        colorValue: event.colorValue,
+      ),
+    );
+    await result.fold(
+      (Failure failure) async => emit(
+        LumiState.failure(
+          failure: failure,
+          selectedMemberId: event.memberId,
+          recentLumis: state.recentLumis,
+        ),
+      ),
+      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+    );
+  }
+
   Future<void> _onMarkSeenRequested(
     _MarkSeenRequested event,
     Emitter<LumiState> emit,
@@ -304,6 +333,12 @@ sealed class LumiEvent with _$LumiEvent {
     required String lumiId,
     required LumiReactionType reaction,
   }) = _ReactRequested;
+  const factory LumiEvent.replyWithPureLumiRequested({
+    required String senderId,
+    required String memberId,
+    required String incomingLumiId,
+    required int colorValue,
+  }) = _ReplyWithPureLumiRequested;
   const factory LumiEvent.markSeenRequested({
     required String memberId,
     required String lumiId,

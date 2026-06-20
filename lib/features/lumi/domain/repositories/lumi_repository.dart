@@ -21,6 +21,13 @@ abstract class LumiRepository {
     required LumiReactionType reaction,
   });
 
+  Future<Either<Failure, Lumi>> replyWithPureLumi({
+    required String senderId,
+    required String memberId,
+    required String incomingLumiId,
+    required int colorValue,
+  });
+
   Future<Either<Failure, Lumi>> markSeen(String lumiId);
 
   Future<Either<Failure, DoodleStroke>> saveDoodleDraft(DoodleStroke stroke);

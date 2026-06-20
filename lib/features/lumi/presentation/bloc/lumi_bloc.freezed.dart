@@ -55,7 +55,7 @@ extension LumiEventPatterns on LumiEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _WatchRecent value)?  watchRecent,TResult Function( _SendPureRequested value)?  sendPureRequested,TResult Function( _SendLightRequested value)?  sendLightRequested,TResult Function( _SendPulseRequested value)?  sendPulseRequested,TResult Function( _SendDoodleRequested value)?  sendDoodleRequested,TResult Function( _ReactRequested value)?  reactRequested,TResult Function( _MarkSeenRequested value)?  markSeenRequested,TResult Function( _SaveDoodleDraftRequested value)?  saveDoodleDraftRequested,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _WatchRecent value)?  watchRecent,TResult Function( _SendPureRequested value)?  sendPureRequested,TResult Function( _SendLightRequested value)?  sendLightRequested,TResult Function( _SendPulseRequested value)?  sendPulseRequested,TResult Function( _SendDoodleRequested value)?  sendDoodleRequested,TResult Function( _ReactRequested value)?  reactRequested,TResult Function( _ReplyWithPureLumiRequested value)?  replyWithPureLumiRequested,TResult Function( _MarkSeenRequested value)?  markSeenRequested,TResult Function( _SaveDoodleDraftRequested value)?  saveDoodleDraftRequested,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _WatchRecent() when watchRecent != null:
@@ -64,7 +64,8 @@ return sendPureRequested(_that);case _SendLightRequested() when sendLightRequest
 return sendLightRequested(_that);case _SendPulseRequested() when sendPulseRequested != null:
 return sendPulseRequested(_that);case _SendDoodleRequested() when sendDoodleRequested != null:
 return sendDoodleRequested(_that);case _ReactRequested() when reactRequested != null:
-return reactRequested(_that);case _MarkSeenRequested() when markSeenRequested != null:
+return reactRequested(_that);case _ReplyWithPureLumiRequested() when replyWithPureLumiRequested != null:
+return replyWithPureLumiRequested(_that);case _MarkSeenRequested() when markSeenRequested != null:
 return markSeenRequested(_that);case _SaveDoodleDraftRequested() when saveDoodleDraftRequested != null:
 return saveDoodleDraftRequested(_that);case _:
   return orElse();
@@ -84,7 +85,7 @@ return saveDoodleDraftRequested(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _WatchRecent value)  watchRecent,required TResult Function( _SendPureRequested value)  sendPureRequested,required TResult Function( _SendLightRequested value)  sendLightRequested,required TResult Function( _SendPulseRequested value)  sendPulseRequested,required TResult Function( _SendDoodleRequested value)  sendDoodleRequested,required TResult Function( _ReactRequested value)  reactRequested,required TResult Function( _MarkSeenRequested value)  markSeenRequested,required TResult Function( _SaveDoodleDraftRequested value)  saveDoodleDraftRequested,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _WatchRecent value)  watchRecent,required TResult Function( _SendPureRequested value)  sendPureRequested,required TResult Function( _SendLightRequested value)  sendLightRequested,required TResult Function( _SendPulseRequested value)  sendPulseRequested,required TResult Function( _SendDoodleRequested value)  sendDoodleRequested,required TResult Function( _ReactRequested value)  reactRequested,required TResult Function( _ReplyWithPureLumiRequested value)  replyWithPureLumiRequested,required TResult Function( _MarkSeenRequested value)  markSeenRequested,required TResult Function( _SaveDoodleDraftRequested value)  saveDoodleDraftRequested,}){
 final _that = this;
 switch (_that) {
 case _WatchRecent():
@@ -93,7 +94,8 @@ return sendPureRequested(_that);case _SendLightRequested():
 return sendLightRequested(_that);case _SendPulseRequested():
 return sendPulseRequested(_that);case _SendDoodleRequested():
 return sendDoodleRequested(_that);case _ReactRequested():
-return reactRequested(_that);case _MarkSeenRequested():
+return reactRequested(_that);case _ReplyWithPureLumiRequested():
+return replyWithPureLumiRequested(_that);case _MarkSeenRequested():
 return markSeenRequested(_that);case _SaveDoodleDraftRequested():
 return saveDoodleDraftRequested(_that);}
 }
@@ -109,7 +111,7 @@ return saveDoodleDraftRequested(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _WatchRecent value)?  watchRecent,TResult? Function( _SendPureRequested value)?  sendPureRequested,TResult? Function( _SendLightRequested value)?  sendLightRequested,TResult? Function( _SendPulseRequested value)?  sendPulseRequested,TResult? Function( _SendDoodleRequested value)?  sendDoodleRequested,TResult? Function( _ReactRequested value)?  reactRequested,TResult? Function( _MarkSeenRequested value)?  markSeenRequested,TResult? Function( _SaveDoodleDraftRequested value)?  saveDoodleDraftRequested,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _WatchRecent value)?  watchRecent,TResult? Function( _SendPureRequested value)?  sendPureRequested,TResult? Function( _SendLightRequested value)?  sendLightRequested,TResult? Function( _SendPulseRequested value)?  sendPulseRequested,TResult? Function( _SendDoodleRequested value)?  sendDoodleRequested,TResult? Function( _ReactRequested value)?  reactRequested,TResult? Function( _ReplyWithPureLumiRequested value)?  replyWithPureLumiRequested,TResult? Function( _MarkSeenRequested value)?  markSeenRequested,TResult? Function( _SaveDoodleDraftRequested value)?  saveDoodleDraftRequested,}){
 final _that = this;
 switch (_that) {
 case _WatchRecent() when watchRecent != null:
@@ -118,7 +120,8 @@ return sendPureRequested(_that);case _SendLightRequested() when sendLightRequest
 return sendLightRequested(_that);case _SendPulseRequested() when sendPulseRequested != null:
 return sendPulseRequested(_that);case _SendDoodleRequested() when sendDoodleRequested != null:
 return sendDoodleRequested(_that);case _ReactRequested() when reactRequested != null:
-return reactRequested(_that);case _MarkSeenRequested() when markSeenRequested != null:
+return reactRequested(_that);case _ReplyWithPureLumiRequested() when replyWithPureLumiRequested != null:
+return replyWithPureLumiRequested(_that);case _MarkSeenRequested() when markSeenRequested != null:
 return markSeenRequested(_that);case _SaveDoodleDraftRequested() when saveDoodleDraftRequested != null:
 return saveDoodleDraftRequested(_that);case _:
   return null;
@@ -137,7 +140,7 @@ return saveDoodleDraftRequested(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? memberId)?  watchRecent,TResult Function( String senderId,  String memberId,  int colorValue)?  sendPureRequested,TResult Function( String senderId,  String memberId,  int colorValue,  double intensity)?  sendLightRequested,TResult Function( String senderId,  String memberId,  int colorValue,  PulsePattern pulsePattern)?  sendPulseRequested,TResult Function( String senderId,  String memberId,  int colorValue,  DoodleStroke doodleStroke)?  sendDoodleRequested,TResult Function( String memberId,  String lumiId,  LumiReactionType reaction)?  reactRequested,TResult Function( String memberId,  String lumiId)?  markSeenRequested,TResult Function( DoodleStroke stroke)?  saveDoodleDraftRequested,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? memberId)?  watchRecent,TResult Function( String senderId,  String memberId,  int colorValue)?  sendPureRequested,TResult Function( String senderId,  String memberId,  int colorValue,  double intensity)?  sendLightRequested,TResult Function( String senderId,  String memberId,  int colorValue,  PulsePattern pulsePattern)?  sendPulseRequested,TResult Function( String senderId,  String memberId,  int colorValue,  DoodleStroke doodleStroke)?  sendDoodleRequested,TResult Function( String memberId,  String lumiId,  LumiReactionType reaction)?  reactRequested,TResult Function( String senderId,  String memberId,  String incomingLumiId,  int colorValue)?  replyWithPureLumiRequested,TResult Function( String memberId,  String lumiId)?  markSeenRequested,TResult Function( DoodleStroke stroke)?  saveDoodleDraftRequested,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WatchRecent() when watchRecent != null:
 return watchRecent(_that.memberId);case _SendPureRequested() when sendPureRequested != null:
@@ -145,7 +148,8 @@ return sendPureRequested(_that.senderId,_that.memberId,_that.colorValue);case _S
 return sendLightRequested(_that.senderId,_that.memberId,_that.colorValue,_that.intensity);case _SendPulseRequested() when sendPulseRequested != null:
 return sendPulseRequested(_that.senderId,_that.memberId,_that.colorValue,_that.pulsePattern);case _SendDoodleRequested() when sendDoodleRequested != null:
 return sendDoodleRequested(_that.senderId,_that.memberId,_that.colorValue,_that.doodleStroke);case _ReactRequested() when reactRequested != null:
-return reactRequested(_that.memberId,_that.lumiId,_that.reaction);case _MarkSeenRequested() when markSeenRequested != null:
+return reactRequested(_that.memberId,_that.lumiId,_that.reaction);case _ReplyWithPureLumiRequested() when replyWithPureLumiRequested != null:
+return replyWithPureLumiRequested(_that.senderId,_that.memberId,_that.incomingLumiId,_that.colorValue);case _MarkSeenRequested() when markSeenRequested != null:
 return markSeenRequested(_that.memberId,_that.lumiId);case _SaveDoodleDraftRequested() when saveDoodleDraftRequested != null:
 return saveDoodleDraftRequested(_that.stroke);case _:
   return orElse();
@@ -165,7 +169,7 @@ return saveDoodleDraftRequested(_that.stroke);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? memberId)  watchRecent,required TResult Function( String senderId,  String memberId,  int colorValue)  sendPureRequested,required TResult Function( String senderId,  String memberId,  int colorValue,  double intensity)  sendLightRequested,required TResult Function( String senderId,  String memberId,  int colorValue,  PulsePattern pulsePattern)  sendPulseRequested,required TResult Function( String senderId,  String memberId,  int colorValue,  DoodleStroke doodleStroke)  sendDoodleRequested,required TResult Function( String memberId,  String lumiId,  LumiReactionType reaction)  reactRequested,required TResult Function( String memberId,  String lumiId)  markSeenRequested,required TResult Function( DoodleStroke stroke)  saveDoodleDraftRequested,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? memberId)  watchRecent,required TResult Function( String senderId,  String memberId,  int colorValue)  sendPureRequested,required TResult Function( String senderId,  String memberId,  int colorValue,  double intensity)  sendLightRequested,required TResult Function( String senderId,  String memberId,  int colorValue,  PulsePattern pulsePattern)  sendPulseRequested,required TResult Function( String senderId,  String memberId,  int colorValue,  DoodleStroke doodleStroke)  sendDoodleRequested,required TResult Function( String memberId,  String lumiId,  LumiReactionType reaction)  reactRequested,required TResult Function( String senderId,  String memberId,  String incomingLumiId,  int colorValue)  replyWithPureLumiRequested,required TResult Function( String memberId,  String lumiId)  markSeenRequested,required TResult Function( DoodleStroke stroke)  saveDoodleDraftRequested,}) {final _that = this;
 switch (_that) {
 case _WatchRecent():
 return watchRecent(_that.memberId);case _SendPureRequested():
@@ -173,7 +177,8 @@ return sendPureRequested(_that.senderId,_that.memberId,_that.colorValue);case _S
 return sendLightRequested(_that.senderId,_that.memberId,_that.colorValue,_that.intensity);case _SendPulseRequested():
 return sendPulseRequested(_that.senderId,_that.memberId,_that.colorValue,_that.pulsePattern);case _SendDoodleRequested():
 return sendDoodleRequested(_that.senderId,_that.memberId,_that.colorValue,_that.doodleStroke);case _ReactRequested():
-return reactRequested(_that.memberId,_that.lumiId,_that.reaction);case _MarkSeenRequested():
+return reactRequested(_that.memberId,_that.lumiId,_that.reaction);case _ReplyWithPureLumiRequested():
+return replyWithPureLumiRequested(_that.senderId,_that.memberId,_that.incomingLumiId,_that.colorValue);case _MarkSeenRequested():
 return markSeenRequested(_that.memberId,_that.lumiId);case _SaveDoodleDraftRequested():
 return saveDoodleDraftRequested(_that.stroke);}
 }
@@ -189,7 +194,7 @@ return saveDoodleDraftRequested(_that.stroke);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? memberId)?  watchRecent,TResult? Function( String senderId,  String memberId,  int colorValue)?  sendPureRequested,TResult? Function( String senderId,  String memberId,  int colorValue,  double intensity)?  sendLightRequested,TResult? Function( String senderId,  String memberId,  int colorValue,  PulsePattern pulsePattern)?  sendPulseRequested,TResult? Function( String senderId,  String memberId,  int colorValue,  DoodleStroke doodleStroke)?  sendDoodleRequested,TResult? Function( String memberId,  String lumiId,  LumiReactionType reaction)?  reactRequested,TResult? Function( String memberId,  String lumiId)?  markSeenRequested,TResult? Function( DoodleStroke stroke)?  saveDoodleDraftRequested,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? memberId)?  watchRecent,TResult? Function( String senderId,  String memberId,  int colorValue)?  sendPureRequested,TResult? Function( String senderId,  String memberId,  int colorValue,  double intensity)?  sendLightRequested,TResult? Function( String senderId,  String memberId,  int colorValue,  PulsePattern pulsePattern)?  sendPulseRequested,TResult? Function( String senderId,  String memberId,  int colorValue,  DoodleStroke doodleStroke)?  sendDoodleRequested,TResult? Function( String memberId,  String lumiId,  LumiReactionType reaction)?  reactRequested,TResult? Function( String senderId,  String memberId,  String incomingLumiId,  int colorValue)?  replyWithPureLumiRequested,TResult? Function( String memberId,  String lumiId)?  markSeenRequested,TResult? Function( DoodleStroke stroke)?  saveDoodleDraftRequested,}) {final _that = this;
 switch (_that) {
 case _WatchRecent() when watchRecent != null:
 return watchRecent(_that.memberId);case _SendPureRequested() when sendPureRequested != null:
@@ -197,7 +202,8 @@ return sendPureRequested(_that.senderId,_that.memberId,_that.colorValue);case _S
 return sendLightRequested(_that.senderId,_that.memberId,_that.colorValue,_that.intensity);case _SendPulseRequested() when sendPulseRequested != null:
 return sendPulseRequested(_that.senderId,_that.memberId,_that.colorValue,_that.pulsePattern);case _SendDoodleRequested() when sendDoodleRequested != null:
 return sendDoodleRequested(_that.senderId,_that.memberId,_that.colorValue,_that.doodleStroke);case _ReactRequested() when reactRequested != null:
-return reactRequested(_that.memberId,_that.lumiId,_that.reaction);case _MarkSeenRequested() when markSeenRequested != null:
+return reactRequested(_that.memberId,_that.lumiId,_that.reaction);case _ReplyWithPureLumiRequested() when replyWithPureLumiRequested != null:
+return replyWithPureLumiRequested(_that.senderId,_that.memberId,_that.incomingLumiId,_that.colorValue);case _MarkSeenRequested() when markSeenRequested != null:
 return markSeenRequested(_that.memberId,_that.lumiId);case _SaveDoodleDraftRequested() when saveDoodleDraftRequested != null:
 return saveDoodleDraftRequested(_that.stroke);case _:
   return null;
@@ -623,6 +629,78 @@ memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_
 as String,lumiId: null == lumiId ? _self.lumiId : lumiId // ignore: cast_nullable_to_non_nullable
 as String,reaction: null == reaction ? _self.reaction : reaction // ignore: cast_nullable_to_non_nullable
 as LumiReactionType,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _ReplyWithPureLumiRequested implements LumiEvent {
+  const _ReplyWithPureLumiRequested({required this.senderId, required this.memberId, required this.incomingLumiId, required this.colorValue});
+  
+
+ final  String senderId;
+ final  String memberId;
+ final  String incomingLumiId;
+ final  int colorValue;
+
+/// Create a copy of LumiEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ReplyWithPureLumiRequestedCopyWith<_ReplyWithPureLumiRequested> get copyWith => __$ReplyWithPureLumiRequestedCopyWithImpl<_ReplyWithPureLumiRequested>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReplyWithPureLumiRequested&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.memberId, memberId) || other.memberId == memberId)&&(identical(other.incomingLumiId, incomingLumiId) || other.incomingLumiId == incomingLumiId)&&(identical(other.colorValue, colorValue) || other.colorValue == colorValue));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,senderId,memberId,incomingLumiId,colorValue);
+
+@override
+String toString() {
+  return 'LumiEvent.replyWithPureLumiRequested(senderId: $senderId, memberId: $memberId, incomingLumiId: $incomingLumiId, colorValue: $colorValue)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ReplyWithPureLumiRequestedCopyWith<$Res> implements $LumiEventCopyWith<$Res> {
+  factory _$ReplyWithPureLumiRequestedCopyWith(_ReplyWithPureLumiRequested value, $Res Function(_ReplyWithPureLumiRequested) _then) = __$ReplyWithPureLumiRequestedCopyWithImpl;
+@useResult
+$Res call({
+ String senderId, String memberId, String incomingLumiId, int colorValue
+});
+
+
+
+
+}
+/// @nodoc
+class __$ReplyWithPureLumiRequestedCopyWithImpl<$Res>
+    implements _$ReplyWithPureLumiRequestedCopyWith<$Res> {
+  __$ReplyWithPureLumiRequestedCopyWithImpl(this._self, this._then);
+
+  final _ReplyWithPureLumiRequested _self;
+  final $Res Function(_ReplyWithPureLumiRequested) _then;
+
+/// Create a copy of LumiEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? senderId = null,Object? memberId = null,Object? incomingLumiId = null,Object? colorValue = null,}) {
+  return _then(_ReplyWithPureLumiRequested(
+senderId: null == senderId ? _self.senderId : senderId // ignore: cast_nullable_to_non_nullable
+as String,memberId: null == memberId ? _self.memberId : memberId // ignore: cast_nullable_to_non_nullable
+as String,incomingLumiId: null == incomingLumiId ? _self.incomingLumiId : incomingLumiId // ignore: cast_nullable_to_non_nullable
+as String,colorValue: null == colorValue ? _self.colorValue : colorValue // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
