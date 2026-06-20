@@ -7,8 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/router/app_router.dart';
 import 'package:lumi/core/services/invite_deep_link_service.dart';
-import 'package:lumi/core/services/push_notification_service.dart';
-import 'package:lumi/core/utils/lumi_push_payload.dart';
 import 'package:lumi/core/services/revenuecat_service.dart';
 import 'package:lumi/core/theme/app_theme.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
@@ -43,7 +41,6 @@ class _LumiAppState extends State<LumiApp> {
 
   @override
   void dispose() {
-    unawaited(sl<PushNotificationService>().dispose());
     _inviteDeepLinkService.dispose();
     _authBloc.close();
     _router.dispose();
@@ -119,6 +116,30 @@ class _LumiAppState extends State<LumiApp> {
                 const SubscriptionEvent.loadRequested(),
               );
               unawaited(sl<PushNotificationService>().registerForAuthenticatedUser());
+            },
+          ),
+          BlocListener<ProfileSetupBloc, ProfileSetupState>(
+            listenWhen: (ProfileSetupState previous, ProfileSetupState current) {
+              return current.status == ProfileSetupStatus.ready &&
+                  current.restoredFromCloud &&
+                  current.isProfileComplete &&
+                  previous.status != ProfileSetupStatus.ready;
+            },
+            listener: (BuildContext context, ProfileSetupState state) {
+              final OnboardingState onboarding =
+                  context.read<OnboardingBloc>().state;
+              if (onboarding.completed) {
+                return;
+              }
+              if (onboarding.stage == OnboardingStage.profile) {
+                context.read<OnboardingBloc>().add(
+                  const OnboardingEvent.completeProfile(),
+                );
+                return;
+              }
+              context.read<OnboardingBloc>().add(
+                const OnboardingEvent.restoreForReturningUser(),
+              );
             },
           ),
           BlocListener<ProfileSetupBloc, ProfileSetupState>(
