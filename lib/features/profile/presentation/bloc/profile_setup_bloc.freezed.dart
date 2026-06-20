@@ -260,6 +260,13 @@ as String?,
   ));
 }
 
+/// @nodoc
+abstract mixin class _$StartedCopyWith<$Res> implements $ProfileSetupEventCopyWith<$Res> {
+  factory _$StartedCopyWith(_Started value, $Res Function(_Started) _then) = __$StartedCopyWithImpl;
+@useResult
+$Res call({
+ String? userId, String? displayNameHint
+});
 
 }
 

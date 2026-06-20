@@ -50,6 +50,15 @@ class CircleRepositoryImpl implements CircleRepository {
   Future<Either<Failure, CircleMember>> acceptInvitation({
     required String inviteCode,
   }) async {
+    final int availableSlots = (await getAvailableSlots()).getOrElse(() => 0);
+    if (availableSlots <= 0) {
+      return const Left(
+        PermissionFailure(
+          'Your circle is full. Make room before accepting another invite.',
+        ),
+      );
+    }
+
     try {
       final CircleMember member = await _remoteDataSource.acceptInvitation(
         inviteCode,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/router/app_router.dart';
+import 'package:lumi/core/services/invite_deep_link_service.dart';
 import 'package:lumi/core/services/revenuecat_service.dart';
 import 'package:lumi/core/theme/app_theme.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
@@ -26,16 +27,19 @@ class LumiApp extends StatefulWidget {
 class _LumiAppState extends State<LumiApp> {
   late final AuthBloc _authBloc;
   late final GoRouter _router;
+  late final InviteDeepLinkService _inviteDeepLinkService;
 
   @override
   void initState() {
     super.initState();
     _authBloc = sl<AuthBloc>()..add(const AuthEvent.started());
     _router = createAppRouter(_authBloc);
+    _inviteDeepLinkService = sl<InviteDeepLinkService>()..start();
   }
 
   @override
   void dispose() {
+    _inviteDeepLinkService.dispose();
     _authBloc.close();
     _router.dispose();
     super.dispose();

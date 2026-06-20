@@ -41,6 +41,21 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="appwrite-callback-69ff68eb0033441e4041" />
             </intent-filter>
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="lumi" android:host="invite" />
+            </intent-filter>
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="lumi.family"
+                    android:pathPrefix="/invite" />
+            </intent-filter>
         </activity>
         <receiver
             android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"

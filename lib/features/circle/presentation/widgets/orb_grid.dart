@@ -9,11 +9,13 @@ class OrbGrid extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
     super.key,
+    this.unreadByMemberId = const <String, int>{},
   });
 
   final List<CircleMember> members;
   final ValueChanged<CircleMember?> onTap;
   final ValueChanged<CircleMember?> onLongPress;
+  final Map<String, int> unreadByMemberId;
 
   static const List<_OrbPosition> _positions = <_OrbPosition>[
     _OrbPosition(x: 0.50, y: 0.20, size: 96),
@@ -63,6 +65,9 @@ class OrbGrid extends StatelessWidget {
               child: MemberOrb(
                 member: member,
                 diameter: position.size,
+                unreadCount: member == null
+                    ? 0
+                    : unreadByMemberId[member.id] ?? 0,
                 onTap: () => onTap(member),
                 onLongPress: () => onLongPress(member),
               ),

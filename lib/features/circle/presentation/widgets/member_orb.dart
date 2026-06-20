@@ -14,12 +14,37 @@ class MemberOrb extends StatefulWidget {
     required this.onLongPress,
     super.key,
     this.diameter = 88,
+    this.unreadCount = 0,
   });
 
   final CircleMember? member;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final double diameter;
+  final int unreadCount;
+
+  @override
+  State<MemberOrb> createState() => _MemberOrbState();
+}
+
+class _MemberOrbState extends State<MemberOrb> {
+  Timer? _subtitleTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _subtitleTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subtitleTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   State<MemberOrb> createState() => _MemberOrbState();
@@ -56,11 +81,11 @@ class _MemberOrbState extends State<MemberOrb> {
               height: widget.diameter,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                color: Colors.white.withValues(alpha: 0.015),
-              ),
-              child: const Center(
-                child: Icon(Icons.add, color: AppColors.textFaint, size: 18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1.2,
+                ),
+                color: Colors.white.withValues(alpha: 0.02),
               ),
             ),
           ],

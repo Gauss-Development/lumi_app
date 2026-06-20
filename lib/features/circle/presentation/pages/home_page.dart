@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/di/injection.dart';
+import 'package:lumi/core/services/pending_invite_service.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/widget_bridge_service.dart';
@@ -11,7 +12,7 @@ import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
-import 'package:lumi/features/circle/presentation/widgets/circle_empty_state.dart';
+import 'package:lumi/features/circle/presentation/widgets/circle_full_sheet.dart';
 import 'package:lumi/features/circle/presentation/widgets/invite_sheet.dart';
 import 'package:lumi/features/circle/presentation/widgets/member_detail_sheet.dart';
 import 'package:lumi/features/circle/presentation/widgets/orb_grid.dart';
@@ -27,8 +28,6 @@ import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.da
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
-import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -39,19 +38,27 @@ class HomePage extends StatelessWidget {
         BlocListener<CircleBloc, CircleState>(
           listenWhen: (CircleState prev, CircleState curr) {
             final bool prevShown = prev.maybeMap(
-              loaded: (loaded) => loaded.showUpgradePrompt,
+              loaded: (loaded) => loaded.showCircleCapMessage,
               orElse: () => false,
             );
             final bool currShown = curr.maybeMap(
-              loaded: (loaded) => loaded.showUpgradePrompt,
+              loaded: (loaded) => loaded.showCircleCapMessage,
               orElse: () => false,
             );
             return !prevShown && currShown;
           },
           listener: (BuildContext context, CircleState state) {
-            PaywallSheet.show(context);
-            context.read<CircleBloc>().add(
-              const CircleEvent.dismissUpgradePrompt(),
+            state.mapOrNull(
+              loaded: (loaded) {
+                CircleFullSheet.show(
+                  context,
+                  activeMembersLimit: loaded.activeMembersLimit,
+                  requiresUpgrade: !loaded.isSubscriber,
+                );
+                context.read<CircleBloc>().add(
+                  const CircleEvent.dismissCircleCapMessage(),
+                );
+              },
             );
           },
         ),
@@ -117,10 +124,15 @@ class HomePage extends StatelessWidget {
                 (
                   List<CircleMember> members,
                   int availableSlots,
+                  int activeMembersLimit,
+                  bool isSubscriber,
                   pendingInvitation,
-                  bool showUpgradePrompt,
+                  bool showCircleCapMessage,
                   transientFailure,
                 ) {
+                  final List<CircleMember> gridMembers = members
+                      .take(LumiLimits.circleCap)
+                      .toList(growable: false);
                   final List<CircleMember> activeMembers = members
                       .where((CircleMember member) => member.isActive)
                       .toList(growable: false);
@@ -133,6 +145,7 @@ class HomePage extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     child: Stack(
                       children: <Widget>[
+                        const _PendingInviteHost(),
                         _WidgetSyncEffect(members: members),
                         Column(
                           children: <Widget>[
@@ -192,67 +205,58 @@ class HomePage extends StatelessWidget {
                             ),
                             if (activeMembers.isNotEmpty)
                               _RitualPromptHost(members: activeMembers),
-                            if (members.isEmpty)
-                              Expanded(
-                                child: LayoutBuilder(
-                                  builder:
-                                      (
-                                        BuildContext context,
-                                        BoxConstraints constraints,
-                                      ) {
-                                        return SingleChildScrollView(
-                                          physics:
-                                              const ClampingScrollPhysics(),
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              minHeight: constraints.maxHeight,
-                                            ),
-                                            child: IntrinsicHeight(
-                                              child: Center(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 24,
-                                                        vertical: 24,
-                                                      ),
-                                                  child: CircleEmptyState(
-                                                    onInviteTap: () =>
-                                                        _showInviteSheet(
-                                                          context,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  24,
+                                  16,
+                                  156,
+                                ),
+                                child: BlocSelector<LumiBloc, LumiState,
+                                    Map<String, int>>(
+                                  selector: (LumiState lumiState) =>
+                                      _unreadCounts(lumiState.items),
+                                  builder: (
+                                    BuildContext context,
+                                    Map<String, int> unreadByMemberId,
+                                  ) {
+                                    return OrbGrid(
+                                      members: gridMembers,
+                                      unreadByMemberId: unreadByMemberId,
+                                      onTap: (CircleMember? member) {
+                                        if (member != null) {
+                                          _openComposer(context, member);
+                                          return;
+                                        }
+                                        _handleEmptySlotTap(
+                                          context,
+                                          availableSlots: availableSlots,
+                                          activeMembersLimit:
+                                              activeMembersLimit,
+                                          isSubscriber: isSubscriber,
                                         );
                                       },
+                                      onLongPress: (CircleMember? member) {
+                                        if (member != null) {
+                                          _openDetails(context, member);
+                                        }
+                                      },
+                                    );
+                                  },
                                 ),
-                              )
-                            else
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    16,
-                                    24,
-                                    16,
-                                    156,
-                                  ),
-                                  child: OrbGrid(
-                                    members: members,
-                                    onTap: (CircleMember? member) {
-                                      if (member != null) {
-                                        _openComposer(context, member);
-                                      } else {
-                                        _showInviteSheet(context);
-                                      }
-                                    },
-                                    onLongPress: (CircleMember? member) {
-                                      if (member != null) {
-                                        _openDetails(context, member);
-                                      }
-                                    },
-                                  ),
+                              ),
+                            ),
+                            if (activeMembers.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                                child: Text(
+                                  'Tap an empty light to invite someone close.',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: AppColors.textFaint),
                                 ),
                               ),
                             if (pendingInvitation != null)
@@ -298,7 +302,13 @@ class HomePage extends StatelessWidget {
                                           activeMembers.first,
                                         );
                                       } else {
-                                        _showInviteSheet(context);
+                                        _handleEmptySlotTap(
+                                          context,
+                                          availableSlots: availableSlots,
+                                          activeMembersLimit:
+                                              activeMembersLimit,
+                                          isSubscriber: isSubscriber,
+                                        );
                                       }
                                     },
                                   ),
@@ -338,13 +348,46 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  void _showInviteSheet(BuildContext context) {
+  void _handleEmptySlotTap(
+    BuildContext context, {
+    required int availableSlots,
+    required int activeMembersLimit,
+    required bool isSubscriber,
+  }) {
+    if (availableSlots <= 0) {
+      CircleFullSheet.show(
+        context,
+        activeMembersLimit: activeMembersLimit,
+        requiresUpgrade: !isSubscriber,
+      );
+      return;
+    }
+    _showInviteSheet(context);
+  }
+
+  void _showInviteSheet(BuildContext context, {String? initialCode}) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const InviteSheet(),
+      builder: (_) => InviteSheet(
+        initialCode: initialCode,
+        initialMode: initialCode == null
+            ? InviteSheetMode.send
+            : InviteSheetMode.receive,
+      ),
     );
+  }
+
+  static Map<String, int> _unreadCounts(List<Lumi> items) {
+    final Map<String, int> counts = <String, int>{};
+    for (final Lumi lumi in items) {
+      if (lumi.isIncoming &&
+          lumi.deliveryStatus != LumiDeliveryStatus.seen) {
+        counts[lumi.memberId] = (counts[lumi.memberId] ?? 0) + 1;
+      }
+    }
+    return counts;
   }
 
   void _openComposer(BuildContext context, CircleMember member) {
@@ -437,6 +480,46 @@ class HomePage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
   }
+}
+
+class _PendingInviteHost extends StatefulWidget {
+  const _PendingInviteHost();
+
+  @override
+  State<_PendingInviteHost> createState() => _PendingInviteHostState();
+}
+
+class _PendingInviteHostState extends State<_PendingInviteHost> {
+  bool _handled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openPendingInvite());
+  }
+
+  Future<void> _openPendingInvite() async {
+    if (_handled || !mounted) {
+      return;
+    }
+    final String? code = await sl<PendingInviteService>().consume();
+    if (code == null || code.isEmpty || !mounted) {
+      return;
+    }
+    _handled = true;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => InviteSheet(
+        initialCode: code,
+        initialMode: InviteSheetMode.receive,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _WidgetSyncEffect extends StatefulWidget {

@@ -25,6 +25,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "10.0.1"
+  app_links:
+    dependency: "direct main"
+    description:
+      name: app_links
+      sha256: a350a5b37579b7227aaf9a59c07114617cd4283852e193f743b2b3d2d7483c18
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.1.1"
+  app_links_linux:
+    dependency: transitive
+    description:
+      name: app_links_linux
+      sha256: f5f7173a78609f3dfd4c2ff2c95bd559ab43c80a87dc6a095921d96c05688c81
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
+  app_links_platform_interface:
+    dependency: transitive
+    description:
+      name: app_links_platform_interface
+      sha256: "05f5379577c513b534a29ddea68176a4d4802c46180ee8e2e966257158772a3f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
+  app_links_web:
+    dependency: transitive
+    description:
+      name: app_links_web
+      sha256: af060ed76183f9e2b87510a9480e56a5352b6c249778d07bd2c95fc35632a555
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   appwrite:
     dependency: "direct main"
     description:
@@ -209,6 +241,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.15.0"
+  cross_file:
+    dependency: transitive
+    description:
+      name: cross_file
+      sha256: "28bb3ae56f117b5aec029d702a90f57d285cd975c3c5c281eaca38dbc47c5937"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.5+2"
   crypto:
     dependency: transitive
     description:
@@ -406,6 +446,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.1"
+  flutter_contacts:
+    dependency: "direct main"
+    description:
+      name: flutter_contacts
+      sha256: fae4ff556cded9c5f91a6f9d204f796d0fcda897a79175a39bbdf223c73682dd
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   flutter_dotenv:
     dependency: "direct main"
     description:
@@ -613,6 +661,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  gtk:
+    dependency: transitive
+    description:
+      name: gtk
+      sha256: "4ff85b2a16724029dd9e5bbb5a94b6918f9973f74ba571c949d2002801879cf5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   home_widget:
     dependency: "direct main"
     description:
@@ -1037,6 +1093,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.0"
+  share_plus:
+    dependency: "direct main"
+    description:
+      name: share_plus
+      sha256: "223873d106614442ea6f20db5a038685cc5b32a2fba81cdecaefbbae0523f7fa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "12.0.2"
+  share_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: share_plus_platform_interface
+      sha256: "88023e53a13429bd65d8e85e11a9b484f49d4c190abbd96c7932b74d6927cc9a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -1330,6 +1402,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.5"
+  uuid:
+    dependency: transitive
+    description:
+      name: uuid
+      sha256: "1fef9e8e11e2991bb773070d4656b7bd5d850967a2456cfc83cf47925ba79489"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.5.3"
   vector_math:
     dependency: transitive
     description:
