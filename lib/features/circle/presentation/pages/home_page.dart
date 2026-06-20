@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,6 +22,7 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/lumi/presentation/widgets/incoming_lumi_overlay.dart';
 import 'package:lumi/features/lumi/presentation/widgets/lumi_composer_sheet.dart';
+import 'package:lumi/features/lumi/presentation/widgets/sent_lumi_reaction_overlay.dart';
 import 'package:lumi/features/rituals/domain/entities/ritual_preferences.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 import 'package:lumi/features/rituals/domain/services/ritual_suggestion_engine.dart';
@@ -338,6 +341,7 @@ class HomePage extends StatelessWidget {
                             );
                           },
                         ),
+                        const _SentReactionOverlayHost(),
                       ],
                     ),
                   );
@@ -854,6 +858,60 @@ class _ComposeButton extends StatelessWidget {
         ),
         child: const Icon(Icons.wb_incandescent_outlined, color: Colors.white),
       ),
+    );
+  }
+}
+
+class _SentReactionOverlayHost extends StatefulWidget {
+  const _SentReactionOverlayHost();
+
+  @override
+  State<_SentReactionOverlayHost> createState() =>
+      _SentReactionOverlayHostState();
+}
+
+class _SentReactionOverlayHostState extends State<_SentReactionOverlayHost> {
+  late final AcknowledgedReactionsService _acknowledgedService;
+
+  @override
+  void initState() {
+    super.initState();
+    _acknowledgedService = sl<AcknowledgedReactionsService>();
+    _acknowledgedService.addListener(_rebuild);
+    unawaited(_acknowledgedService.ensureLoaded());
+  }
+
+  @override
+  void dispose() {
+    _acknowledgedService.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<LumiBloc, LumiState, Lumi?>(
+      selector: (LumiState lumiState) {
+        for (final Lumi item in lumiState.items) {
+          if (item.isAwaitingReply) {
+            return null;
+          }
+        }
+        return HomePage._latestUnacknowledgedReaction(lumiState.items);
+      },
+      builder: (BuildContext context, Lumi? reactionLumi) {
+        if (reactionLumi == null) {
+          return const SizedBox.shrink();
+        }
+        return Positioned.fill(
+          child: SentLumiReactionOverlay(lumi: reactionLumi),
+        );
+      },
     );
   }
 }

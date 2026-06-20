@@ -385,4 +385,6 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
       removeKeptLumi: sl<RemoveKeptLumiUseCase>(),
     ),
   );
+
+  await sl<AcknowledgedReactionsService>().ensureLoaded();
 }

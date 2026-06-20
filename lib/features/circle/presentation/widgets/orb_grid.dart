@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/widgets/member_orb.dart';
+import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 
 class OrbGrid extends StatelessWidget {
   const OrbGrid({
