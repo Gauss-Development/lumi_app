@@ -131,7 +131,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? userId,  String? displayNameHint)?  started,TResult Function( String value)?  displayNameChanged,TResult Function( String value)?  avatarStyleChanged,TResult Function( int value,  String? userId)?  signatureColorChanged,TResult Function( String userId)?  submitted,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? userId,  String? displayNameHint)?  started,TResult Function( String value)?  displayNameChanged,TResult Function( String value)?  avatarStyleChanged,TResult Function( int value,  String? userId)?  signatureColorChanged,TResult Function( String userId)?  submitted,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
 return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged() when displayNameChanged != null:
@@ -157,7 +157,7 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? userId,  String? displayNameHint)  started,required TResult Function( String value)  displayNameChanged,required TResult Function( String value)  avatarStyleChanged,required TResult Function( int value,  String? userId)  signatureColorChanged,required TResult Function( String userId)  submitted,required TResult Function()  reset,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? userId,  String? displayNameHint)  started,required TResult Function( String value)  displayNameChanged,required TResult Function( String value)  avatarStyleChanged,required TResult Function( int value,  String? userId)  signatureColorChanged,required TResult Function( String userId)  submitted,}) {final _that = this;
 switch (_that) {
 case _Started():
 return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged():
@@ -179,7 +179,7 @@ return reset();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? userId,  String? displayNameHint)?  started,TResult? Function( String value)?  displayNameChanged,TResult? Function( String value)?  avatarStyleChanged,TResult? Function( int value,  String? userId)?  signatureColorChanged,TResult? Function( String userId)?  submitted,TResult? Function()?  reset,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? userId,  String? displayNameHint)?  started,TResult? Function( String value)?  displayNameChanged,TResult? Function( String value)?  avatarStyleChanged,TResult? Function( int value,  String? userId)?  signatureColorChanged,TResult? Function( String userId)?  submitted,}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
 return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged() when displayNameChanged != null:
@@ -239,6 +239,29 @@ $Res call({
 });
 
 
+
+
+}
+/// @nodoc
+class __$StartedCopyWithImpl<$Res>
+    implements _$StartedCopyWith<$Res> {
+  __$StartedCopyWithImpl(this._self, this._then);
+
+  final _Started _self;
+  final $Res Function(_Started) _then;
+
+/// Create a copy of ProfileSetupEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? userId = freezed,Object? displayNameHint = freezed,}) {
+  return _then(_Started(
+userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,displayNameHint: freezed == displayNameHint ? _self.displayNameHint : displayNameHint // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
 
 
 }
