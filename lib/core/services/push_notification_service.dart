@@ -217,18 +217,13 @@ class PushNotificationService {
     }
 
     if (_preferencesService.readBool(_hapticsEnabledKey, fallback: true)) {
-      if (payload.isReaction) {
-        await _hapticsService.playSoftSelection();
-      } else {
-        await _hapticsService.playIncomingLumi();
-      }
+      await _hapticsService.playIncomingLumi();
     }
 
     await _notificationService.showIncomingLumi(
       payload: payload,
       notificationId: _notificationIdFor(payload),
     );
-    _onTap?.call(payload);
   }
 
   Future<void> _handleOpenedMessage(RemoteMessage message) async {
