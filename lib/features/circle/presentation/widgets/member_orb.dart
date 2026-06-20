@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
+import 'package:lumi/core/widgets/orb_pulse.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 
 class MemberOrb extends StatefulWidget {
