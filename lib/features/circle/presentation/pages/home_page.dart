@@ -28,11 +28,6 @@ import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.da
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
-import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
-import 'package:lumi/features/subscription/domain/entitlement_features.dart';
-import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
