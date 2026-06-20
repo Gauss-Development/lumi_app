@@ -55,7 +55,7 @@ extension OnboardingEventPatterns on OnboardingEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _Advance value)?  advance,TResult Function( _Back value)?  back,TResult Function( _JumpTo value)?  jumpTo,TResult Function( _CompleteProfile value)?  completeProfile,TResult Function( _CompletePermissions value)?  completePermissions,TResult Function( _CompleteWalkthrough value)?  completeWalkthrough,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _Advance value)?  advance,TResult Function( _Back value)?  back,TResult Function( _JumpTo value)?  jumpTo,TResult Function( _CompleteProfile value)?  completeProfile,TResult Function( _CompletePermissions value)?  completePermissions,TResult Function( _CompleteWalkthrough value)?  completeWalkthrough,TResult Function( _RestoreForReturningUser value)?  restoreForReturningUser,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -65,7 +65,8 @@ return back(_that);case _JumpTo() when jumpTo != null:
 return jumpTo(_that);case _CompleteProfile() when completeProfile != null:
 return completeProfile(_that);case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that);case _CompleteWalkthrough() when completeWalkthrough != null:
-return completeWalkthrough(_that);case _:
+return completeWalkthrough(_that);case _RestoreForReturningUser() when restoreForReturningUser != null:
+return restoreForReturningUser(_that);case _:
   return orElse();
 
 }
@@ -83,7 +84,7 @@ return completeWalkthrough(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _Advance value)  advance,required TResult Function( _Back value)  back,required TResult Function( _JumpTo value)  jumpTo,required TResult Function( _CompleteProfile value)  completeProfile,required TResult Function( _CompletePermissions value)  completePermissions,required TResult Function( _CompleteWalkthrough value)  completeWalkthrough,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _Advance value)  advance,required TResult Function( _Back value)  back,required TResult Function( _JumpTo value)  jumpTo,required TResult Function( _CompleteProfile value)  completeProfile,required TResult Function( _CompletePermissions value)  completePermissions,required TResult Function( _CompleteWalkthrough value)  completeWalkthrough,required TResult Function( _RestoreForReturningUser value)  restoreForReturningUser,}){
 final _that = this;
 switch (_that) {
 case _Started():
@@ -93,7 +94,8 @@ return back(_that);case _JumpTo():
 return jumpTo(_that);case _CompleteProfile():
 return completeProfile(_that);case _CompletePermissions():
 return completePermissions(_that);case _CompleteWalkthrough():
-return completeWalkthrough(_that);}
+return completeWalkthrough(_that);case _RestoreForReturningUser():
+return restoreForReturningUser(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -107,7 +109,7 @@ return completeWalkthrough(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _Advance value)?  advance,TResult? Function( _Back value)?  back,TResult? Function( _JumpTo value)?  jumpTo,TResult? Function( _CompleteProfile value)?  completeProfile,TResult? Function( _CompletePermissions value)?  completePermissions,TResult? Function( _CompleteWalkthrough value)?  completeWalkthrough,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _Advance value)?  advance,TResult? Function( _Back value)?  back,TResult? Function( _JumpTo value)?  jumpTo,TResult? Function( _CompleteProfile value)?  completeProfile,TResult? Function( _CompletePermissions value)?  completePermissions,TResult? Function( _CompleteWalkthrough value)?  completeWalkthrough,TResult? Function( _RestoreForReturningUser value)?  restoreForReturningUser,}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -117,7 +119,8 @@ return back(_that);case _JumpTo() when jumpTo != null:
 return jumpTo(_that);case _CompleteProfile() when completeProfile != null:
 return completeProfile(_that);case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that);case _CompleteWalkthrough() when completeWalkthrough != null:
-return completeWalkthrough(_that);case _:
+return completeWalkthrough(_that);case _RestoreForReturningUser() when restoreForReturningUser != null:
+return restoreForReturningUser(_that);case _:
   return null;
 
 }
@@ -134,7 +137,7 @@ return completeWalkthrough(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  advance,TResult Function()?  back,TResult Function( OnboardingStage stage)?  jumpTo,TResult Function()?  completeProfile,TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult Function()?  completeWalkthrough,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  advance,TResult Function()?  back,TResult Function( OnboardingStage stage)?  jumpTo,TResult Function()?  completeProfile,TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult Function()?  completeWalkthrough,TResult Function()?  restoreForReturningUser,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
 return started();case _Advance() when advance != null:
@@ -143,7 +146,8 @@ return back();case _JumpTo() when jumpTo != null:
 return jumpTo(_that.stage);case _CompleteProfile() when completeProfile != null:
 return completeProfile();case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough() when completeWalkthrough != null:
-return completeWalkthrough();case _:
+return completeWalkthrough();case _RestoreForReturningUser() when restoreForReturningUser != null:
+return restoreForReturningUser();case _:
   return orElse();
 
 }
@@ -161,7 +165,7 @@ return completeWalkthrough();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  advance,required TResult Function()  back,required TResult Function( OnboardingStage stage)  jumpTo,required TResult Function()  completeProfile,required TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  completePermissions,required TResult Function()  completeWalkthrough,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  advance,required TResult Function()  back,required TResult Function( OnboardingStage stage)  jumpTo,required TResult Function()  completeProfile,required TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  completePermissions,required TResult Function()  completeWalkthrough,required TResult Function()  restoreForReturningUser,}) {final _that = this;
 switch (_that) {
 case _Started():
 return started();case _Advance():
@@ -170,7 +174,8 @@ return back();case _JumpTo():
 return jumpTo(_that.stage);case _CompleteProfile():
 return completeProfile();case _CompletePermissions():
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough():
-return completeWalkthrough();}
+return completeWalkthrough();case _RestoreForReturningUser():
+return restoreForReturningUser();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -184,7 +189,7 @@ return completeWalkthrough();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  advance,TResult? Function()?  back,TResult? Function( OnboardingStage stage)?  jumpTo,TResult? Function()?  completeProfile,TResult? Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult? Function()?  completeWalkthrough,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  advance,TResult? Function()?  back,TResult? Function( OnboardingStage stage)?  jumpTo,TResult? Function()?  completeProfile,TResult? Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult? Function()?  completeWalkthrough,TResult? Function()?  restoreForReturningUser,}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
 return started();case _Advance() when advance != null:
@@ -193,7 +198,8 @@ return back();case _JumpTo() when jumpTo != null:
 return jumpTo(_that.stage);case _CompleteProfile() when completeProfile != null:
 return completeProfile();case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough() when completeWalkthrough != null:
-return completeWalkthrough();case _:
+return completeWalkthrough();case _RestoreForReturningUser() when restoreForReturningUser != null:
+return restoreForReturningUser();case _:
   return null;
 
 }
@@ -489,6 +495,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'OnboardingEvent.completeWalkthrough()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class _RestoreForReturningUser implements OnboardingEvent {
+  const _RestoreForReturningUser();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RestoreForReturningUser);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'OnboardingEvent.restoreForReturningUser()';
 }
 
 

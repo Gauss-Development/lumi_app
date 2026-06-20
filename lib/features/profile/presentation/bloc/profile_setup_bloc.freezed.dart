@@ -55,7 +55,7 @@ extension ProfileSetupEventPatterns on ProfileSetupEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _DisplayNameChanged value)?  displayNameChanged,TResult Function( _AvatarStyleChanged value)?  avatarStyleChanged,TResult Function( _SignatureColorChanged value)?  signatureColorChanged,TResult Function( _Submitted value)?  submitted,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _DisplayNameChanged value)?  displayNameChanged,TResult Function( _AvatarStyleChanged value)?  avatarStyleChanged,TResult Function( _SignatureColorChanged value)?  signatureColorChanged,TResult Function( _Submitted value)?  submitted,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -63,7 +63,8 @@ return started(_that);case _DisplayNameChanged() when displayNameChanged != null
 return displayNameChanged(_that);case _AvatarStyleChanged() when avatarStyleChanged != null:
 return avatarStyleChanged(_that);case _SignatureColorChanged() when signatureColorChanged != null:
 return signatureColorChanged(_that);case _Submitted() when submitted != null:
-return submitted(_that);case _:
+return submitted(_that);case _Reset() when reset != null:
+return reset(_that);case _:
   return orElse();
 
 }
@@ -81,7 +82,7 @@ return submitted(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _DisplayNameChanged value)  displayNameChanged,required TResult Function( _AvatarStyleChanged value)  avatarStyleChanged,required TResult Function( _SignatureColorChanged value)  signatureColorChanged,required TResult Function( _Submitted value)  submitted,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _DisplayNameChanged value)  displayNameChanged,required TResult Function( _AvatarStyleChanged value)  avatarStyleChanged,required TResult Function( _SignatureColorChanged value)  signatureColorChanged,required TResult Function( _Submitted value)  submitted,required TResult Function( _Reset value)  reset,}){
 final _that = this;
 switch (_that) {
 case _Started():
@@ -89,7 +90,8 @@ return started(_that);case _DisplayNameChanged():
 return displayNameChanged(_that);case _AvatarStyleChanged():
 return avatarStyleChanged(_that);case _SignatureColorChanged():
 return signatureColorChanged(_that);case _Submitted():
-return submitted(_that);}
+return submitted(_that);case _Reset():
+return reset(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -103,7 +105,7 @@ return submitted(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _DisplayNameChanged value)?  displayNameChanged,TResult? Function( _AvatarStyleChanged value)?  avatarStyleChanged,TResult? Function( _SignatureColorChanged value)?  signatureColorChanged,TResult? Function( _Submitted value)?  submitted,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _DisplayNameChanged value)?  displayNameChanged,TResult? Function( _AvatarStyleChanged value)?  avatarStyleChanged,TResult? Function( _SignatureColorChanged value)?  signatureColorChanged,TResult? Function( _Submitted value)?  submitted,TResult? Function( _Reset value)?  reset,}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -111,7 +113,8 @@ return started(_that);case _DisplayNameChanged() when displayNameChanged != null
 return displayNameChanged(_that);case _AvatarStyleChanged() when avatarStyleChanged != null:
 return avatarStyleChanged(_that);case _SignatureColorChanged() when signatureColorChanged != null:
 return signatureColorChanged(_that);case _Submitted() when submitted != null:
-return submitted(_that);case _:
+return submitted(_that);case _Reset() when reset != null:
+return reset(_that);case _:
   return null;
 
 }
@@ -135,7 +138,8 @@ return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged() wh
 return displayNameChanged(_that.value);case _AvatarStyleChanged() when avatarStyleChanged != null:
 return avatarStyleChanged(_that.value);case _SignatureColorChanged() when signatureColorChanged != null:
 return signatureColorChanged(_that.value,_that.userId);case _Submitted() when submitted != null:
-return submitted(_that.userId);case _:
+return submitted(_that.userId);case _Reset() when reset != null:
+return reset();case _:
   return orElse();
 
 }
@@ -160,7 +164,8 @@ return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged():
 return displayNameChanged(_that.value);case _AvatarStyleChanged():
 return avatarStyleChanged(_that.value);case _SignatureColorChanged():
 return signatureColorChanged(_that.value,_that.userId);case _Submitted():
-return submitted(_that.userId);}
+return submitted(_that.userId);case _Reset():
+return reset();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -181,7 +186,8 @@ return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged() wh
 return displayNameChanged(_that.value);case _AvatarStyleChanged() when avatarStyleChanged != null:
 return avatarStyleChanged(_that.value);case _SignatureColorChanged() when signatureColorChanged != null:
 return signatureColorChanged(_that.value,_that.userId);case _Submitted() when submitted != null:
-return submitted(_that.userId);case _:
+return submitted(_that.userId);case _Reset() when reset != null:
+return reset();case _:
   return null;
 
 }
@@ -233,6 +239,29 @@ $Res call({
 });
 
 
+
+
+}
+/// @nodoc
+class __$StartedCopyWithImpl<$Res>
+    implements _$StartedCopyWith<$Res> {
+  __$StartedCopyWithImpl(this._self, this._then);
+
+  final _Started _self;
+  final $Res Function(_Started) _then;
+
+/// Create a copy of ProfileSetupEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? userId = freezed,Object? displayNameHint = freezed,}) {
+  return _then(_Started(
+userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,displayNameHint: freezed == displayNameHint ? _self.displayNameHint : displayNameHint // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
 
 
 }
@@ -522,6 +551,38 @@ as String,
 
 
 }
+
+/// @nodoc
+
+
+class _Reset implements ProfileSetupEvent {
+  const _Reset();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Reset);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'ProfileSetupEvent.reset()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 mixin _$ProfileSetupState {

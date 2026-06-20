@@ -22,6 +22,7 @@ class ProfileSetupBloc extends Bloc<ProfileSetupEvent, ProfileSetupState> {
     on<_AvatarStyleChanged>(_onAvatarStyleChanged);
     on<_SignatureColorChanged>(_onSignatureColorChanged);
     on<_Submitted>(_onSubmitted);
+    on<_Reset>(_onReset);
   }
 
   final GetProfileUseCase _getProfileUseCase;
@@ -114,6 +115,10 @@ class ProfileSetupBloc extends Bloc<ProfileSetupEvent, ProfileSetupState> {
       (_) => emit(state.copyWith(status: ProfileSetupStatus.saved)),
     );
   }
+
+  void _onReset(_Reset event, Emitter<ProfileSetupState> emit) {
+    emit(const ProfileSetupState());
+  }
 }
 
 enum ProfileSetupStatus { initial, loading, ready, saving, saved, failure }
@@ -134,6 +139,7 @@ sealed class ProfileSetupEvent with _$ProfileSetupEvent {
   }) = _SignatureColorChanged;
   const factory ProfileSetupEvent.submitted({required String userId}) =
       _Submitted;
+  const factory ProfileSetupEvent.reset() = _Reset;
 }
 
 @freezed

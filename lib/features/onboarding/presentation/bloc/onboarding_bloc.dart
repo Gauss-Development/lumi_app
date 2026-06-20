@@ -20,6 +20,8 @@ sealed class OnboardingEvent with _$OnboardingEvent {
     required bool hapticsGranted,
   }) = _CompletePermissions;
   const factory OnboardingEvent.completeWalkthrough() = _CompleteWalkthrough;
+  const factory OnboardingEvent.restoreForReturningUser() =
+      _RestoreForReturningUser;
 }
 
 @freezed
@@ -42,6 +44,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<_CompleteProfile>(_onCompleteProfile);
     on<_CompletePermissions>(_onCompletePermissions);
     on<_CompleteWalkthrough>(_onCompleteWalkthrough);
+    on<_RestoreForReturningUser>(_onRestoreForReturningUser);
   }
 
   final PreferencesService _preferencesService;
@@ -99,6 +102,17 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     _CompleteWalkthrough event,
     Emitter<OnboardingState> emit,
   ) async {
+    await _markOnboardingComplete(emit);
+  }
+
+  Future<void> _onRestoreForReturningUser(
+    _RestoreForReturningUser event,
+    Emitter<OnboardingState> emit,
+  ) async {
+    await _markOnboardingComplete(emit);
+  }
+
+  Future<void> _markOnboardingComplete(Emitter<OnboardingState> emit) async {
     await _preferencesService.setBool(_onboardingCompleteKey, true);
     emit(
       state.copyWith(
