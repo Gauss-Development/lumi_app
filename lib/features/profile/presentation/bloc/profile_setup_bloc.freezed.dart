@@ -128,10 +128,10 @@ return submitted(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function( String value)?  displayNameChanged,TResult Function( String value)?  avatarStyleChanged,TResult Function( int value,  String? userId)?  signatureColorChanged,TResult Function( String userId)?  submitted,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String? userId,  String? displayNameHint)?  started,TResult Function( String value)?  displayNameChanged,TResult Function( String value)?  avatarStyleChanged,TResult Function( int value,  String? userId)?  signatureColorChanged,TResult Function( String userId)?  submitted,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started();case _DisplayNameChanged() when displayNameChanged != null:
+return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged() when displayNameChanged != null:
 return displayNameChanged(_that.value);case _AvatarStyleChanged() when avatarStyleChanged != null:
 return avatarStyleChanged(_that.value);case _SignatureColorChanged() when signatureColorChanged != null:
 return signatureColorChanged(_that.value,_that.userId);case _Submitted() when submitted != null:
@@ -153,10 +153,10 @@ return submitted(_that.userId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function( String value)  displayNameChanged,required TResult Function( String value)  avatarStyleChanged,required TResult Function( int value,  String? userId)  signatureColorChanged,required TResult Function( String userId)  submitted,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String? userId,  String? displayNameHint)  started,required TResult Function( String value)  displayNameChanged,required TResult Function( String value)  avatarStyleChanged,required TResult Function( int value,  String? userId)  signatureColorChanged,required TResult Function( String userId)  submitted,}) {final _that = this;
 switch (_that) {
 case _Started():
-return started();case _DisplayNameChanged():
+return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged():
 return displayNameChanged(_that.value);case _AvatarStyleChanged():
 return avatarStyleChanged(_that.value);case _SignatureColorChanged():
 return signatureColorChanged(_that.value,_that.userId);case _Submitted():
@@ -174,10 +174,10 @@ return submitted(_that.userId);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function( String value)?  displayNameChanged,TResult? Function( String value)?  avatarStyleChanged,TResult? Function( int value,  String? userId)?  signatureColorChanged,TResult? Function( String userId)?  submitted,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String? userId,  String? displayNameHint)?  started,TResult? Function( String value)?  displayNameChanged,TResult? Function( String value)?  avatarStyleChanged,TResult? Function( int value,  String? userId)?  signatureColorChanged,TResult? Function( String userId)?  submitted,}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started();case _DisplayNameChanged() when displayNameChanged != null:
+return started(_that.userId,_that.displayNameHint);case _DisplayNameChanged() when displayNameChanged != null:
 return displayNameChanged(_that.value);case _AvatarStyleChanged() when avatarStyleChanged != null:
 return avatarStyleChanged(_that.value);case _SignatureColorChanged() when signatureColorChanged != null:
 return signatureColorChanged(_that.value,_that.userId);case _Submitted() when submitted != null:
@@ -193,33 +193,69 @@ return submitted(_that.userId);case _:
 
 
 class _Started implements ProfileSetupEvent {
-  const _Started();
+  const _Started({this.userId, this.displayNameHint});
   
 
+ final  String? userId;
+ final  String? displayNameHint;
 
-
+/// Create a copy of ProfileSetupEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StartedCopyWith<_Started> get copyWith => __$StartedCopyWithImpl<_Started>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Started);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Started&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.displayNameHint, displayNameHint) || other.displayNameHint == displayNameHint));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,userId,displayNameHint);
 
 @override
 String toString() {
-  return 'ProfileSetupEvent.started()';
+  return 'ProfileSetupEvent.started(userId: $userId, displayNameHint: $displayNameHint)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class _$StartedCopyWith<$Res> implements $ProfileSetupEventCopyWith<$Res> {
+  factory _$StartedCopyWith(_Started value, $Res Function(_Started) _then) = __$StartedCopyWithImpl;
+@useResult
+$Res call({
+ String? userId, String? displayNameHint
+});
 
 
+
+
+}
+/// @nodoc
+class __$StartedCopyWithImpl<$Res>
+    implements _$StartedCopyWith<$Res> {
+  __$StartedCopyWithImpl(this._self, this._then);
+
+  final _Started _self;
+  final $Res Function(_Started) _then;
+
+/// Create a copy of ProfileSetupEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? userId = freezed,Object? displayNameHint = freezed,}) {
+  return _then(_Started(
+userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,displayNameHint: freezed == displayNameHint ? _self.displayNameHint : displayNameHint // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
@@ -490,7 +526,7 @@ as String,
 /// @nodoc
 mixin _$ProfileSetupState {
 
- ProfileSetupStatus get status; String get displayName; String get avatarStyle; int get signatureColorValue; String? get errorMessage;
+ ProfileSetupStatus get status; String get displayName; String get avatarStyle; int get signatureColorValue; bool get restoredFromCloud; String? get errorMessage;
 /// Create a copy of ProfileSetupState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -501,16 +537,16 @@ $ProfileSetupStateCopyWith<ProfileSetupState> get copyWith => _$ProfileSetupStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileSetupState&&(identical(other.status, status) || other.status == status)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarStyle, avatarStyle) || other.avatarStyle == avatarStyle)&&(identical(other.signatureColorValue, signatureColorValue) || other.signatureColorValue == signatureColorValue)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileSetupState&&(identical(other.status, status) || other.status == status)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarStyle, avatarStyle) || other.avatarStyle == avatarStyle)&&(identical(other.signatureColorValue, signatureColorValue) || other.signatureColorValue == signatureColorValue)&&(identical(other.restoredFromCloud, restoredFromCloud) || other.restoredFromCloud == restoredFromCloud)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,displayName,avatarStyle,signatureColorValue,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,displayName,avatarStyle,signatureColorValue,restoredFromCloud,errorMessage);
 
 @override
 String toString() {
-  return 'ProfileSetupState(status: $status, displayName: $displayName, avatarStyle: $avatarStyle, signatureColorValue: $signatureColorValue, errorMessage: $errorMessage)';
+  return 'ProfileSetupState(status: $status, displayName: $displayName, avatarStyle: $avatarStyle, signatureColorValue: $signatureColorValue, restoredFromCloud: $restoredFromCloud, errorMessage: $errorMessage)';
 }
 
 
@@ -521,7 +557,7 @@ abstract mixin class $ProfileSetupStateCopyWith<$Res>  {
   factory $ProfileSetupStateCopyWith(ProfileSetupState value, $Res Function(ProfileSetupState) _then) = _$ProfileSetupStateCopyWithImpl;
 @useResult
 $Res call({
- ProfileSetupStatus status, String displayName, String avatarStyle, int signatureColorValue, String? errorMessage
+ ProfileSetupStatus status, String displayName, String avatarStyle, int signatureColorValue, bool restoredFromCloud, String? errorMessage
 });
 
 
@@ -538,13 +574,14 @@ class _$ProfileSetupStateCopyWithImpl<$Res>
 
 /// Create a copy of ProfileSetupState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? displayName = null,Object? avatarStyle = null,Object? signatureColorValue = null,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? displayName = null,Object? avatarStyle = null,Object? signatureColorValue = null,Object? restoredFromCloud = null,Object? errorMessage = freezed,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProfileSetupStatus,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,avatarStyle: null == avatarStyle ? _self.avatarStyle : avatarStyle // ignore: cast_nullable_to_non_nullable
 as String,signatureColorValue: null == signatureColorValue ? _self.signatureColorValue : signatureColorValue // ignore: cast_nullable_to_non_nullable
-as int,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as int,restoredFromCloud: null == restoredFromCloud ? _self.restoredFromCloud : restoredFromCloud // ignore: cast_nullable_to_non_nullable
+as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -627,10 +664,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ProfileSetupStatus status,  String displayName,  String avatarStyle,  int signatureColorValue,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ProfileSetupStatus status,  String displayName,  String avatarStyle,  int signatureColorValue,  bool restoredFromCloud,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileSetupState() when $default != null:
-return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signatureColorValue,_that.errorMessage);case _:
+return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signatureColorValue,_that.restoredFromCloud,_that.errorMessage);case _:
   return orElse();
 
 }
@@ -648,10 +685,10 @@ return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signature
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ProfileSetupStatus status,  String displayName,  String avatarStyle,  int signatureColorValue,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ProfileSetupStatus status,  String displayName,  String avatarStyle,  int signatureColorValue,  bool restoredFromCloud,  String? errorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileSetupState():
-return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signatureColorValue,_that.errorMessage);}
+return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signatureColorValue,_that.restoredFromCloud,_that.errorMessage);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -665,10 +702,10 @@ return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signature
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ProfileSetupStatus status,  String displayName,  String avatarStyle,  int signatureColorValue,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ProfileSetupStatus status,  String displayName,  String avatarStyle,  int signatureColorValue,  bool restoredFromCloud,  String? errorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileSetupState() when $default != null:
-return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signatureColorValue,_that.errorMessage);case _:
+return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signatureColorValue,_that.restoredFromCloud,_that.errorMessage);case _:
   return null;
 
 }
@@ -680,13 +717,14 @@ return $default(_that.status,_that.displayName,_that.avatarStyle,_that.signature
 
 
 class _ProfileSetupState extends ProfileSetupState {
-  const _ProfileSetupState({this.status = ProfileSetupStatus.initial, this.displayName = '', this.avatarStyle = 'generatedGlow', this.signatureColorValue = 0xFFFF7D6B, this.errorMessage}): super._();
+  const _ProfileSetupState({this.status = ProfileSetupStatus.initial, this.displayName = '', this.avatarStyle = 'avatar_0', this.signatureColorValue = 0xFFFF7D6B, this.restoredFromCloud = false, this.errorMessage}): super._();
   
 
 @override@JsonKey() final  ProfileSetupStatus status;
 @override@JsonKey() final  String displayName;
 @override@JsonKey() final  String avatarStyle;
 @override@JsonKey() final  int signatureColorValue;
+@override@JsonKey() final  bool restoredFromCloud;
 @override final  String? errorMessage;
 
 /// Create a copy of ProfileSetupState
@@ -699,16 +737,16 @@ _$ProfileSetupStateCopyWith<_ProfileSetupState> get copyWith => __$ProfileSetupS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileSetupState&&(identical(other.status, status) || other.status == status)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarStyle, avatarStyle) || other.avatarStyle == avatarStyle)&&(identical(other.signatureColorValue, signatureColorValue) || other.signatureColorValue == signatureColorValue)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileSetupState&&(identical(other.status, status) || other.status == status)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.avatarStyle, avatarStyle) || other.avatarStyle == avatarStyle)&&(identical(other.signatureColorValue, signatureColorValue) || other.signatureColorValue == signatureColorValue)&&(identical(other.restoredFromCloud, restoredFromCloud) || other.restoredFromCloud == restoredFromCloud)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,displayName,avatarStyle,signatureColorValue,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,displayName,avatarStyle,signatureColorValue,restoredFromCloud,errorMessage);
 
 @override
 String toString() {
-  return 'ProfileSetupState(status: $status, displayName: $displayName, avatarStyle: $avatarStyle, signatureColorValue: $signatureColorValue, errorMessage: $errorMessage)';
+  return 'ProfileSetupState(status: $status, displayName: $displayName, avatarStyle: $avatarStyle, signatureColorValue: $signatureColorValue, restoredFromCloud: $restoredFromCloud, errorMessage: $errorMessage)';
 }
 
 
@@ -719,7 +757,7 @@ abstract mixin class _$ProfileSetupStateCopyWith<$Res> implements $ProfileSetupS
   factory _$ProfileSetupStateCopyWith(_ProfileSetupState value, $Res Function(_ProfileSetupState) _then) = __$ProfileSetupStateCopyWithImpl;
 @override @useResult
 $Res call({
- ProfileSetupStatus status, String displayName, String avatarStyle, int signatureColorValue, String? errorMessage
+ ProfileSetupStatus status, String displayName, String avatarStyle, int signatureColorValue, bool restoredFromCloud, String? errorMessage
 });
 
 
@@ -736,13 +774,14 @@ class __$ProfileSetupStateCopyWithImpl<$Res>
 
 /// Create a copy of ProfileSetupState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? displayName = null,Object? avatarStyle = null,Object? signatureColorValue = null,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? displayName = null,Object? avatarStyle = null,Object? signatureColorValue = null,Object? restoredFromCloud = null,Object? errorMessage = freezed,}) {
   return _then(_ProfileSetupState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProfileSetupStatus,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,avatarStyle: null == avatarStyle ? _self.avatarStyle : avatarStyle // ignore: cast_nullable_to_non_nullable
 as String,signatureColorValue: null == signatureColorValue ? _self.signatureColorValue : signatureColorValue // ignore: cast_nullable_to_non_nullable
-as int,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as int,restoredFromCloud: null == restoredFromCloud ? _self.restoredFromCloud : restoredFromCloud // ignore: cast_nullable_to_non_nullable
+as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

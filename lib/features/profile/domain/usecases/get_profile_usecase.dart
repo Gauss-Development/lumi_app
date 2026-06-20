@@ -9,7 +9,7 @@ class GetProfileUseCase {
 
   final ProfileRepository _repository;
 
-  Future<Either<Failure, UserProfile?>> call() {
-    return _repository.getProfile();
+  Future<Either<Failure, UserProfile?>> call({String? userId}) {
+    return _repository.getProfile(userId: userId);
   }
 }

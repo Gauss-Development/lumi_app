@@ -140,6 +140,7 @@ Future<void> _provisionUsers() async {
   ]);
   await _ensureStringAttr(id, 'userId', size: 64, required: true);
   await _ensureStringAttr(id, 'email', size: 320, required: true);
+  await _ensureStringAttr(id, 'phone', size: 32);
   await _ensureStringAttr(id, 'name', size: 128);
   await _ensureStringAttr(id, 'displayName', size: 128);
   await _ensureStringAttr(id, 'avatarStyle', size: 64);

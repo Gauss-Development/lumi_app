@@ -4,6 +4,7 @@ import 'package:appwrite/models.dart' as models;
 
 import 'package:lumi/core/network/appwrite_client.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
+import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
 
 const String _databaseId = 'lumi';
 const String _usersCollectionId = 'users';
@@ -33,6 +34,13 @@ abstract class AuthRemoteDataSource {
   });
 
   Future<AuthSession> signInWithGoogle();
+
+  Future<PhoneOtpChallenge> requestPhoneOtp({required String phone});
+
+  Future<AuthSession> verifyPhoneOtp({
+    required String userId,
+    required String otp,
+  });
 
   Future<void> signOut();
 }
@@ -117,6 +125,38 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  Future<PhoneOtpChallenge> requestPhoneOtp({required String phone}) async {
+    try {
+      final models.Token token = await _account.createPhoneToken(
+        userId: ID.unique(),
+        phone: phone,
+      );
+      return PhoneOtpChallenge(userId: token.userId, phone: phone);
+    } on AppwriteException catch (e) {
+      throw AuthDataSourceException(
+        e.message ?? 'Could not send a verification code.',
+      );
+    }
+  }
+
+  @override
+  Future<AuthSession> verifyPhoneOtp({
+    required String userId,
+    required String otp,
+  }) async {
+    try {
+      await _account.createSession(userId: userId, secret: otp.trim());
+      final models.User user = await _account.get();
+      await _ensureUserDocument(user);
+      return _mapUser(user);
+    } on AppwriteException catch (e) {
+      throw AuthDataSourceException(
+        e.message ?? 'That code did not work. Try again.',
+      );
+    }
+  }
+
+  @override
   Future<void> signOut() async {
     try {
       await _account.deleteSession(sessionId: 'current');
@@ -136,7 +176,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         rowId: user.$id,
         data: <String, dynamic>{
           'userId': user.$id,
-          'email': user.email,
+          'email': _resolvedEmail(user),
+          'phone': user.phone,
           'name': user.name,
           'displayName': user.name,
           'avatarStyle': _defaultAvatarStyle,
@@ -155,11 +196,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  String _resolvedEmail(models.User user) {
+    if (user.email.trim().isNotEmpty) {
+      return user.email;
+    }
+    return '${user.$id}@phone.lumi.app';
+  }
+
   AuthSession _mapUser(models.User user) {
     final dynamic prefsRaw = user.prefs.data['avatarUrl'];
     return AuthSession(
       userId: user.$id,
-      email: user.email,
+      email: _resolvedEmail(user),
+      phone: user.phone,
       name: user.name,
       photoUrl: prefsRaw is String && prefsRaw.isNotEmpty ? prefsRaw : null,
     );

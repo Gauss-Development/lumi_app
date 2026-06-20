@@ -9,8 +9,11 @@ import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/presentation/pages/home_page.dart';
 import 'package:lumi/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:lumi/core/utils/permission_utils.dart';
 import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
 import 'package:lumi/features/profile/presentation/widgets/profile_setup_card.dart';
+import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class OnboardingFlowPage extends StatelessWidget {
   const OnboardingFlowPage({super.key});
@@ -18,12 +21,24 @@ class OnboardingFlowPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProfileSetupBloc, ProfileSetupState>(
-      listener: (BuildContext context, ProfileSetupState state) {
-        if (state.status == ProfileSetupStatus.saved) {
-          context.read<OnboardingBloc>().add(
-            const OnboardingEvent.completeProfile(),
-          );
+      listenWhen: (ProfileSetupState previous, ProfileSetupState current) {
+        if (current.status == ProfileSetupStatus.saved) {
+          return true;
         }
+        return current.status == ProfileSetupStatus.ready &&
+            current.restoredFromCloud &&
+            current.isProfileComplete &&
+            previous.status != ProfileSetupStatus.ready;
+      },
+      listener: (BuildContext context, ProfileSetupState state) {
+        final OnboardingStage stage =
+            context.read<OnboardingBloc>().state.stage;
+        if (stage != OnboardingStage.profile) {
+          return;
+        }
+        context.read<OnboardingBloc>().add(
+          const OnboardingEvent.completeProfile(),
+        );
       },
       child: BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (BuildContext context, OnboardingState onboardingState) {
@@ -88,8 +103,32 @@ class _WelcomeStep extends StatelessWidget {
   }
 }
 
-class _ProfileStep extends StatelessWidget {
+class _ProfileStep extends StatefulWidget {
   const _ProfileStep();
+
+  @override
+  State<_ProfileStep> createState() => _ProfileStepState();
+}
+
+class _ProfileStepState extends State<_ProfileStep> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final AuthState authState = context.read<AuthBloc>().state;
+      authState.maybeWhen(
+        authenticated: (session) {
+          context.read<ProfileSetupBloc>().add(
+            ProfileSetupEvent.started(
+              userId: session.userId,
+              displayNameHint: session.name,
+            ),
+          );
+        },
+        orElse: () {},
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,8 +183,48 @@ class _ProfileStep extends StatelessWidget {
   }
 }
 
-class _PermissionsStep extends StatelessWidget {
+class _PermissionsStep extends StatefulWidget {
   const _PermissionsStep();
+
+  @override
+  State<_PermissionsStep> createState() => _PermissionsStepState();
+}
+
+class _PermissionsStepState extends State<_PermissionsStep> {
+  bool _isRequesting = false;
+
+  Future<void> _finishSetup() async {
+    if (_isRequesting) {
+      return;
+    }
+    setState(() => _isRequesting = true);
+
+    final PermissionStatus notificationStatus =
+        await PermissionUtils.requestNotifications();
+    final PermissionStatus contactsStatus =
+        await PermissionUtils.requestContacts();
+
+    final bool notificationsGranted = notificationStatus.isGranted;
+    final bool contactsGranted = contactsStatus.isGranted;
+    const bool hapticsGranted = true;
+
+    if (mounted) {
+      context.read<SettingsBloc>().add(
+        SettingsEvent.notificationsToggled(notificationsGranted),
+      );
+      context.read<SettingsBloc>().add(
+        SettingsEvent.hapticsToggled(hapticsGranted),
+      );
+      context.read<OnboardingBloc>().add(
+        OnboardingEvent.completePermissions(
+          notificationsGranted: notificationsGranted,
+          contactsGranted: contactsGranted,
+          hapticsGranted: hapticsGranted,
+        ),
+      );
+      setState(() => _isRequesting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,17 +267,9 @@ class _PermissionsStep extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           PrimaryGlowButton(
-            label: 'Finish setup',
+            label: _isRequesting ? 'Just a moment...' : 'Finish setup',
             glowColor: AppColors.peach,
-            onPressed: () {
-              context.read<OnboardingBloc>().add(
-                const OnboardingEvent.completePermissions(
-                  notificationsGranted: true,
-                  contactsGranted: false,
-                  hapticsGranted: true,
-                ),
-              );
-            },
+            onPressed: _isRequesting ? null : _finishSetup,
           ),
         ],
       ),

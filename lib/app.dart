@@ -50,10 +50,7 @@ class _LumiAppState extends State<LumiApp> {
           create: (_) =>
               sl<OnboardingBloc>()..add(const OnboardingEvent.started()),
         ),
-        BlocProvider<ProfileSetupBloc>(
-          create: (_) =>
-              sl<ProfileSetupBloc>()..add(const ProfileSetupEvent.started()),
-        ),
+        BlocProvider<ProfileSetupBloc>(create: (_) => sl<ProfileSetupBloc>()),
         BlocProvider<CircleBloc>(
           create: (_) =>
               sl<CircleBloc>()..add(const CircleEvent.loadRequested()),

@@ -35,7 +35,7 @@ class ProfileSetupBloc extends Bloc<ProfileSetupEvent, ProfileSetupState> {
     emit(
       state.copyWith(status: ProfileSetupStatus.loading, errorMessage: null),
     );
-    final result = await _getProfileUseCase();
+    final result = await _getProfileUseCase(userId: event.userId);
     result.fold(
       (failure) => emit(
         state.copyWith(
@@ -43,14 +43,21 @@ class ProfileSetupBloc extends Bloc<ProfileSetupEvent, ProfileSetupState> {
           errorMessage: failure.message,
         ),
       ),
-      (profile) => emit(
-        state.copyWith(
-          status: ProfileSetupStatus.ready,
-          displayName: profile?.displayName ?? '',
-          avatarStyle: profile?.avatarStyle ?? UserProfile.avatarOptions.first,
-          signatureColorValue: profile?.signatureColorValue ?? 0xFFFF7D6B,
-        ),
-      ),
+      (profile) {
+        final String displayName = (profile?.displayName ?? '').trim().isNotEmpty
+            ? profile!.displayName
+            : (event.displayNameHint ?? '');
+        emit(
+          state.copyWith(
+            status: ProfileSetupStatus.ready,
+            displayName: displayName,
+            avatarStyle: profile?.avatarStyle ?? UserProfile.avatarOptions.first,
+            signatureColorValue:
+                profile?.signatureColorValue ?? 0xFFFF7D6B,
+            restoredFromCloud: profile != null,
+          ),
+        );
+      },
     );
   }
 
@@ -113,7 +120,10 @@ enum ProfileSetupStatus { initial, loading, ready, saving, saved, failure }
 
 @freezed
 sealed class ProfileSetupEvent with _$ProfileSetupEvent {
-  const factory ProfileSetupEvent.started() = _Started;
+  const factory ProfileSetupEvent.started({
+    String? userId,
+    String? displayNameHint,
+  }) = _Started;
   const factory ProfileSetupEvent.displayNameChanged(String value) =
       _DisplayNameChanged;
   const factory ProfileSetupEvent.avatarStyleChanged(String value) =
@@ -133,11 +143,13 @@ sealed class ProfileSetupState with _$ProfileSetupState {
   const factory ProfileSetupState({
     @Default(ProfileSetupStatus.initial) ProfileSetupStatus status,
     @Default('') String displayName,
-    @Default('generatedGlow') String avatarStyle,
+    @Default('avatar_0') String avatarStyle,
     @Default(0xFFFF7D6B) int signatureColorValue,
+    @Default(false) bool restoredFromCloud,
     String? errorMessage,
   }) = _ProfileSetupState;
 
   bool get isSaving => status == ProfileSetupStatus.saving;
   bool get isSaved => status == ProfileSetupStatus.saved;
+  bool get isProfileComplete => displayName.trim().isNotEmpty;
 }
