@@ -8,6 +8,7 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/domain/usecases/get_recent_lumis_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/mark_lumi_seen_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/react_to_lumi_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/clear_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
 
@@ -20,11 +21,13 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     required ReactToLumiUseCase reactToLumiUseCase,
     required MarkLumiSeenUseCase markLumiSeenUseCase,
     required SaveDoodleDraftUseCase saveDoodleDraftUseCase,
+    required ClearDoodleDraftUseCase clearDoodleDraftUseCase,
   }) : _getRecentLumisUseCase = getRecentLumisUseCase,
        _sendLumiUseCase = sendLumiUseCase,
        _reactToLumiUseCase = reactToLumiUseCase,
        _markLumiSeenUseCase = markLumiSeenUseCase,
        _saveDoodleDraftUseCase = saveDoodleDraftUseCase,
+       _clearDoodleDraftUseCase = clearDoodleDraftUseCase,
        super(const LumiState.initial()) {
     on<_WatchRecent>(_onWatchRecent);
     on<_SendPureRequested>(_onSendPureRequested);
@@ -53,6 +56,7 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
   final ReactToLumiUseCase _reactToLumiUseCase;
   final MarkLumiSeenUseCase _markLumiSeenUseCase;
   final SaveDoodleDraftUseCase _saveDoodleDraftUseCase;
+  final ClearDoodleDraftUseCase _clearDoodleDraftUseCase;
   Timer? _pollTimer;
 
   Future<void> _onWatchRecent(
@@ -183,7 +187,10 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
           recentLumis: state.recentLumis,
         ),
       ),
-      (_) async => add(LumiEvent.watchRecent(memberId: event.memberId)),
+      (_) async {
+        await _clearDoodleDraftUseCase();
+        add(LumiEvent.watchRecent(memberId: event.memberId));
+      },
     );
   }
 

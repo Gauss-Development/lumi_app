@@ -476,6 +476,7 @@ class HomePage extends StatelessWidget {
         colorValue: member.signatureColorValue,
       ),
     );
+    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
@@ -644,6 +645,19 @@ class _RitualPromptHost extends StatelessWidget {
       return;
     }
 
+    final EntitlementStatus entitlement = context
+        .read<SubscriptionBloc>()
+        .state
+        .maybeWhen(
+          loaded: (EntitlementStatus status, _) => status,
+          orElse: () => const EntitlementStatus.free(),
+        );
+    if (suggestion.kind == RitualKind.evening &&
+        !entitlement.canSendLumiType(LumiType.light)) {
+      PaywallSheet.show(context);
+      return;
+    }
+
     final Set<String> targetIds = suggestion.memberIds.toSet();
     final List<CircleMember> targets = members
         .where((CircleMember member) => targetIds.contains(member.id))
@@ -679,6 +693,7 @@ class _RitualPromptHost extends StatelessWidget {
     }
 
     context.read<RitualsCubit>().markSent(suggestion.kind);
+    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(

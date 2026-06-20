@@ -8,6 +8,13 @@ const String _databaseId = 'lumi';
 const String _membersCollection = 'circle_members';
 const String _lumisCollection = 'lumis';
 const int _defaultColorValue = 0xFFFF7D6B;
+const int _paceLimitPerDay = 5;
+const Set<String> _allowedTypes = <String>{
+  'pure',
+  'light',
+  'pulse',
+  'doodle',
+};
 
 Future<dynamic> main(dynamic context) async {
   try {
@@ -84,18 +91,47 @@ Future<dynamic> main(dynamic context) async {
           409);
     }
 
+    if (_isAtPaceLimit(memberData)) {
+      return _json(
+          context,
+          <String, dynamic>{
+            'error':
+                'Gentle limit reached for this person today. Try again tomorrow.',
+          },
+          429);
+    }
+
+    final String type = _requiredString(body, 'type');
+    if (!_allowedTypes.contains(type)) {
+      return _json(
+          context,
+          <String, dynamic>{'error': 'Unsupported Lumi type.'},
+          400);
+    }
+
+    final String? pulsePatternJson = body['pulsePatternJson'] as String?;
+    final String? doodleStrokeJson = body['doodleStrokeJson'] as String?;
+    _validatePayload(
+      type: type,
+      pulsePatternJson: pulsePatternJson,
+      doodleStrokeJson: doodleStrokeJson,
+    );
+
+    final double intensity =
+        ((body['intensity'] as num?)?.toDouble() ?? 0.7).clamp(0.2, 1.0);
+
     final Map<String, dynamic> data = <String, dynamic>{
       'senderId': senderUserId,
       'recipientId': recipientUserId,
       'senderMemberId': senderMemberId,
       'recipientMemberId': recipientMemberId,
       'circleId': senderMemberId,
-      'type': _requiredString(body, 'type'),
+      'type': type,
       'colorValue': body['colorValue'] as int? ?? _defaultColorValue,
-      'intensity': (body['intensity'] as num?)?.toDouble() ?? 0.7,
+      'intensity': intensity,
       'deliveryStatus': body['deliveryStatus'] as String? ?? 'delivered',
-      'pulsePatternJson': body['pulsePatternJson'] as String?,
-      'doodleStrokeJson': body['doodleStrokeJson'] as String?,
+      'pulsePatternJson': pulsePatternJson,
+      'doodleStrokeJson': doodleStrokeJson,
       'createdAt': DateTime.now().toUtc().toIso8601String(),
     };
 
@@ -110,6 +146,16 @@ Future<dynamic> main(dynamic context) async {
         Permission.update(Role.user(recipientUserId)),
         Permission.delete(Role.user(senderUserId)),
       ],
+    );
+
+    await databases.updateDocument(
+      databaseId: _databaseId,
+      collectionId: _membersCollection,
+      documentId: senderMemberId,
+      data: <String, dynamic>{
+        'paceCount': _nextPaceCount(memberData),
+        'lastInteractionAt': DateTime.now().toUtc().toIso8601String(),
+      },
     );
 
     await _sendPushNotification(
@@ -235,6 +281,74 @@ String _requiredString(Map<String, dynamic> body, String key) {
 Map<String, dynamic> _documentData(models.Document document) {
   return Map<String, dynamic>.from(document.data)
     ..removeWhere((String key, Object? value) => key.startsWith(r'$'));
+}
+
+bool _isAtPaceLimit(Map<String, dynamic> memberData) {
+  final int paceCount = memberData['paceCount'] as int? ?? 0;
+  final String? lastInteractionRaw =
+      memberData['lastInteractionAt'] as String?;
+  if (lastInteractionRaw == null || lastInteractionRaw.isEmpty) {
+    return false;
+  }
+  final DateTime lastInteraction = DateTime.parse(lastInteractionRaw).toUtc();
+  final Duration since = DateTime.now().toUtc().difference(lastInteraction);
+  if (since.inHours >= 24) {
+    return false;
+  }
+  return paceCount >= _paceLimitPerDay;
+}
+
+int _nextPaceCount(Map<String, dynamic> memberData) {
+  final int paceCount = memberData['paceCount'] as int? ?? 0;
+  final String? lastInteractionRaw =
+      memberData['lastInteractionAt'] as String?;
+  if (lastInteractionRaw == null || lastInteractionRaw.isEmpty) {
+    return 1;
+  }
+  final DateTime lastInteraction = DateTime.parse(lastInteractionRaw).toUtc();
+  final Duration since = DateTime.now().toUtc().difference(lastInteraction);
+  if (since.inHours >= 24) {
+    return 1;
+  }
+  return paceCount + 1;
+}
+
+void _validatePayload({
+  required String type,
+  required String? pulsePatternJson,
+  required String? doodleStrokeJson,
+}) {
+  switch (type) {
+    case 'pulse':
+      if (pulsePatternJson == null || pulsePatternJson.isEmpty) {
+        throw const FormatException('pulsePatternJson is required for pulse.');
+      }
+      final Object? decoded = jsonDecode(pulsePatternJson);
+      if (decoded is! Map) {
+        throw const FormatException('pulsePatternJson must be an object.');
+      }
+      final List<dynamic> beats =
+          decoded['beats'] as List<dynamic>? ?? <dynamic>[];
+      if (beats.length < 2) {
+        throw const FormatException('Pulse needs at least two beat intervals.');
+      }
+    case 'doodle':
+      if (doodleStrokeJson == null || doodleStrokeJson.isEmpty) {
+        throw const FormatException('doodleStrokeJson is required for doodle.');
+      }
+      final Object? decoded = jsonDecode(doodleStrokeJson);
+      if (decoded is! Map) {
+        throw const FormatException('doodleStrokeJson must be an object.');
+      }
+      final List<dynamic> points =
+          decoded['points'] as List<dynamic>? ?? <dynamic>[];
+      if (points.length < 2) {
+        throw const FormatException('Doodle needs at least two points.');
+      }
+    case 'light':
+    case 'pure':
+      return;
+  }
 }
 
 Map<String, dynamic> _rowMap(models.Document document, String tableId) {

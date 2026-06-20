@@ -138,4 +138,18 @@ class LumiLocalDataSource {
     );
     return stroke;
   }
+
+  Future<DoodleStroke?> loadDoodleDraft() async {
+    final String? raw = _preferencesService.readString(_doodleDraftKey);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    final Map<String, dynamic> decoded =
+        jsonDecode(raw) as Map<String, dynamic>;
+    return DoodleStroke.fromJson(decoded);
+  }
+
+  Future<void> clearDoodleDraft() {
+    return _preferencesService.remove(_doodleDraftKey);
+  }
 }

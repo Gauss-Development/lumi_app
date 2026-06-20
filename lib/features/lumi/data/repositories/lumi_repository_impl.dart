@@ -55,14 +55,6 @@ class LumiRepositoryImpl implements LumiRepository {
         doodleStroke: doodleStroke,
         queued: queued,
       );
-      try {
-        await _localDataSource.touchMemberActivity(
-          memberId: recipientId,
-          queued: queued,
-        );
-      } catch (_) {
-        // Activity metadata should not make an already-created Lumi look failed.
-      }
       return Right(lumi);
     } catch (e) {
       return Left(UnexpectedFailure('Unable to send your Lumi. ($e)'));
@@ -100,6 +92,25 @@ class LumiRepositoryImpl implements LumiRepository {
       return Right(await _localDataSource.saveDoodleDraft(stroke));
     } catch (_) {
       return const Left(UnexpectedFailure('Unable to save doodle draft.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, DoodleStroke?>> getDoodleDraft() async {
+    try {
+      return Right(await _localDataSource.loadDoodleDraft());
+    } catch (_) {
+      return const Left(UnexpectedFailure('Unable to load doodle draft.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearDoodleDraft() async {
+    try {
+      await _localDataSource.clearDoodleDraft();
+      return const Right(unit);
+    } catch (_) {
+      return const Left(UnexpectedFailure('Unable to clear doodle draft.'));
     }
   }
 
