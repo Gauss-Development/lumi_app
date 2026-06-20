@@ -144,7 +144,17 @@ class _MemberOrbState extends State<MemberOrb> {
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: 13,
-              color: Colors.white.withValues(alpha: memorial ? 0.65 : 0.85),
+              color: widget.nameGlowActive && !memorial
+                  ? color
+                  : Colors.white.withValues(alpha: memorial ? 0.65 : 0.85),
+              fontWeight:
+                  widget.nameGlowActive && !memorial ? FontWeight.w600 : null,
+              shadows: widget.nameGlowActive && !memorial
+                  ? <Shadow>[
+                      Shadow(color: color.withValues(alpha: 0.85), blurRadius: 14),
+                      Shadow(color: color.withValues(alpha: 0.45), blurRadius: 28),
+                    ]
+                  : null,
             ),
           ),
           Text(

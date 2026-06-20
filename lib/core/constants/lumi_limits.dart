@@ -3,6 +3,7 @@ class LumiLimits {
 
   static const int circleCap = 12;
   static const int maxCircleMembers = circleCap;
+  static const int nameGlowHours = 6;
   static const int freeTierMemberCap = 3;
   static const int freeTierMembers = freeTierMemberCap;
   static const int paceLimitPerPairPer24Hours = 5;
