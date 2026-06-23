@@ -213,7 +213,7 @@ class _PermissionsStepState extends State<_PermissionsStep> {
         SettingsEvent.notificationsToggled(notificationsGranted),
       );
       context.read<SettingsBloc>().add(
-        SettingsEvent.hapticsToggled(hapticsGranted),
+        const SettingsEvent.hapticsToggled(hapticsGranted),
       );
       context.read<OnboardingBloc>().add(
         OnboardingEvent.completePermissions(

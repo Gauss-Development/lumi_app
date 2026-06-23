@@ -22,6 +22,13 @@ extension LumiIncomingX on Lumi {
   bool get isAwaitingReply => isIncoming && !deliveryStatus.isIncomingSettled;
 }
 
+extension LumiOutgoingX on Lumi {
+  bool get hasReaction =>
+      !isIncoming &&
+      deliveryStatus == LumiDeliveryStatus.reacted &&
+      reaction != null;
+}
+
 enum LumiReactionType { heart, smile, handOnHeart, sun, moon }
 
 extension LumiReactionTypeX on LumiReactionType {

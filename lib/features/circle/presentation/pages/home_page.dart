@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/di/injection.dart';
+import 'package:lumi/core/services/acknowledged_reactions_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/core/services/haptics_service.dart';
@@ -30,6 +31,10 @@ import 'package:lumi/features/rituals/presentation/bloc/rituals_cubit.dart';
 import 'package:lumi/features/rituals/presentation/widgets/ritual_prompt_card.dart';
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:lumi/features/settings/presentation/pages/settings_page.dart';
+import 'package:lumi/features/subscription/domain/entities/entitlement_status.dart';
+import 'package:lumi/features/subscription/domain/entitlement_features.dart';
+import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
+import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
 import 'package:lumi/features/shelf/presentation/pages/kept_shelf_page.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -392,6 +397,17 @@ class HomePage extends StatelessWidget {
       }
     }
     return counts;
+  }
+
+  static Lumi? _latestUnacknowledgedReaction(List<Lumi> items) {
+    final Set<String> acknowledged =
+        sl<AcknowledgedReactionsService>().acknowledgedIds;
+    for (final Lumi lumi in items) {
+      if (lumi.hasReaction && !acknowledged.contains(lumi.id)) {
+        return lumi;
+      }
+    }
+    return null;
   }
 
   void _openComposer(BuildContext context, CircleMember member) {

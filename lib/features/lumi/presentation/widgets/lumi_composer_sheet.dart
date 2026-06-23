@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/app_constants.dart';
 import 'package:lumi/core/constants/lumi_limits.dart';
+import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/lumi/domain/usecases/get_doodle_draft_usecase.dart';
@@ -155,12 +156,51 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
     LumiType.light => 'Hold the slider to set how bright it feels',
   };
 
-  String _modeLabel(LumiType type) => switch (type) {
-    LumiType.pure => 'Glow mode',
-    LumiType.pulse => 'Pulse mode',
-    LumiType.doodle => 'Doodle mode',
-    LumiType.light => 'Color mood mode',
-  };
+  Future<void> _sendLumi(BuildContext context, String senderId) async {
+    switch (_selectedType) {
+      case LumiType.pure:
+        context.read<LumiBloc>().add(
+          LumiEvent.sendPureRequested(
+            senderId: senderId,
+            memberId: widget.member.id,
+            colorValue: _selectedColorValue,
+          ),
+        );
+      case LumiType.light:
+        context.read<LumiBloc>().add(
+          LumiEvent.sendLightRequested(
+            senderId: senderId,
+            memberId: widget.member.id,
+            colorValue: _selectedColorValue,
+            intensity: _lightIntensity,
+          ),
+        );
+      case LumiType.pulse:
+        context.read<LumiBloc>().add(
+          LumiEvent.sendPulseRequested(
+            senderId: senderId,
+            memberId: widget.member.id,
+            colorValue: _selectedColorValue,
+            pulsePattern: PulsePattern(List<int>.of(_pulseBeats)),
+          ),
+        );
+      case LumiType.doodle:
+        context.read<LumiBloc>().add(
+          LumiEvent.sendDoodleRequested(
+            senderId: senderId,
+            memberId: widget.member.id,
+            colorValue: _selectedColorValue,
+            doodleStroke: DoodleStroke(List<DoodlePoint>.of(_doodlePoints)),
+          ),
+        );
+    }
+    await _hapticsService.playSendLumi();
+    if (!context.mounted) {
+      return;
+    }
+    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -322,24 +362,14 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                                         border: Border.all(
                                           color: _selectedType == type
                                               ? selectedColor.withValues(
-                                                  alpha: 0.14,
+                                                  alpha: 0.8,
                                                 )
                                               : Colors.white.withValues(
-                                                  alpha: 0.03,
+                                                  alpha: 0.07,
                                                 ),
-                                          borderRadius:
-                                              BorderRadius.circular(18),
-                                          border: Border.all(
-                                            color: _selectedType == type
-                                                ? selectedColor.withValues(
-                                                    alpha: 0.8,
-                                                  )
-                                                : Colors.white.withValues(
-                                                    alpha: 0.07,
-                                                  ),
-                                          ),
                                         ),
-                                        child: Center(
+                                      ),
+                                      child: Center(
                                           child: Text(
                                             switch (type) {
                                               LumiType.pure => 'Glow',
@@ -360,8 +390,7 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
+                                );
                             })
                             .toList(growable: false),
                       ),
@@ -474,79 +503,7 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                 PrimaryGlowButton(
                   label: 'Send Lumi',
                   glowColor: selectedColor,
-                  onPressed: canSend
-                      ? () {
-                          switch (_selectedType) {
-                            case LumiType.pure:
-                              context.read<LumiBloc>().add(
-                                LumiEvent.sendPureRequested(
-                                  senderId: senderId,
-                                  memberId: widget.member.id,
-                                  colorValue: _selectedColorValue,
-                                ),
-                              );
-                            case LumiType.light:
-                              context.read<LumiBloc>().add(
-                                LumiEvent.sendLightRequested(
-                                  senderId: senderId,
-                                  memberId: widget.member.id,
-                                  colorValue: _selectedColorValue,
-                                  intensity: 0.8,
-                                ),
-                              );
-                            case LumiType.pulse:
-                              context.read<LumiBloc>().add(
-                                LumiEvent.sendPulseRequested(
-                                  senderId: senderId,
-                                  memberId: widget.member.id,
-                                  colorValue: _selectedColorValue,
-                                  pulsePattern: PulsePattern(
-                                    List<int>.of(_pulseBeats),
-                                  ),
-                                );
-                              case LumiType.light:
-                                context.read<LumiBloc>().add(
-                                  LumiEvent.sendLightRequested(
-                                    senderId: senderId,
-                                    memberId: widget.member.id,
-                                    colorValue: _selectedColorValue,
-                                    intensity: _lightIntensity,
-                                  ),
-                                );
-                              case LumiType.pulse:
-                                context.read<LumiBloc>().add(
-                                  LumiEvent.sendPulseRequested(
-                                    senderId: senderId,
-                                    memberId: widget.member.id,
-                                    colorValue: _selectedColorValue,
-                                    pulsePattern: PulsePattern(
-                                      List<int>.of(_pulseBeats),
-                                    ),
-                                  ),
-                                );
-                              case LumiType.doodle:
-                                context.read<LumiBloc>().add(
-                                  LumiEvent.sendDoodleRequested(
-                                    senderId: senderId,
-                                    memberId: widget.member.id,
-                                    colorValue: _selectedColorValue,
-                                    doodleStroke: DoodleStroke(
-                                      List<DoodlePoint>.of(_doodlePoints),
-                                    ),
-                                  ),
-                                );
-                            }
-                            await _hapticsService.playSendLumi();
-                            if (!context.mounted) {
-                              return;
-                            }
-                            context.read<CircleBloc>().add(
-                              const CircleEvent.loadRequested(),
-                            );
-                            Navigator.of(context).pop();
-                          }
-                        : null,
-                  ),
+                  onPressed: canSend ? () => _sendLumi(context, senderId) : null,
                 ),
               ],
             ),

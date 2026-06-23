@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:flutter_contacts/models/permissions/permission_status.dart';
-import 'package:flutter_contacts/models/permissions/permission_type.dart';
+import 'package:flutter_contacts/flutter_contacts.dart'
+    hide PermissionStatus, PermissionType;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:lumi/core/constants/app_constants.dart';
@@ -111,14 +111,6 @@ class _InviteSheetState extends State<InviteSheet> {
               return pendingCode(previous) != pendingCode(current) ||
                   previous.runtimeType != current.runtimeType;
             },
-            buildWhen: (CircleState previous, CircleState current) {
-              String? pendingCode(CircleState state) => state.maybeMap(
-                loaded: (loaded) => loaded.pendingInvitation?.code,
-                orElse: () => null,
-              );
-              return pendingCode(previous) != pendingCode(current) ||
-                  previous.runtimeType != current.runtimeType;
-            },
             builder: (BuildContext context, CircleState state) {
               final Invitation? pending = state.maybeMap(
                 loaded: (loaded) => loaded.pendingInvitation,
@@ -181,11 +173,8 @@ class _InviteSheetState extends State<InviteSheet> {
       return;
     }
 
-    final PermissionStatus status = await FlutterContacts.permissions.request(
-      PermissionType.read,
-    );
-    if (status != PermissionStatus.granted &&
-        status != PermissionStatus.limited) {
+    final PermissionStatus status = await Permission.contacts.request();
+    if (!status.isGranted && !status.isLimited) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

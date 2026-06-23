@@ -91,7 +91,7 @@ void main() {
               isActive: true,
               childBuilder: (BuildContext context, double scale, double multiplier) {
                 lastScale = scale;
-                return SizedBox(width: 48, height: 48);
+                return const SizedBox(width: 48, height: 48);
               },
             ),
           ),

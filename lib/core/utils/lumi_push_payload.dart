@@ -54,11 +54,11 @@ class LumiPushPayload extends Equatable {
 
   Map<String, String> toStorageMap() {
     return <String, String>{
-      if (lumiId != null) 'lumiId': lumiId!,
-      if (senderMemberId != null) 'senderMemberId': senderMemberId!,
-      if (recipientMemberId != null) 'recipientMemberId': recipientMemberId!,
-      if (type != null) 'type': type!,
-      if (senderName != null) 'senderName': senderName!,
+      'lumiId': ?lumiId,
+      'senderMemberId': ?senderMemberId,
+      'recipientMemberId': ?recipientMemberId,
+      'type': ?type,
+      'senderName': ?senderName,
       if (senderColorValue != null)
         'senderColorValue': senderColorValue!.toString(),
     };

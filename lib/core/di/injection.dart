@@ -5,12 +5,15 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:lumi/core/config/environment_config.dart';
+import 'package:lumi/core/services/acknowledged_reactions_service.dart';
 import 'package:lumi/core/services/encryption_service.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/invite_deep_link_service.dart';
 import 'package:lumi/core/services/notification_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
+import 'package:lumi/core/services/pending_lumi_notification_service.dart';
 import 'package:lumi/core/services/preferences_service.dart';
+import 'package:lumi/core/services/push_notification_service.dart';
 import 'package:lumi/core/services/revenuecat_service.dart';
 import 'package:lumi/core/services/secure_key_store.dart';
 import 'package:lumi/core/services/widget_bridge_service.dart';
@@ -96,6 +99,9 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerSingleton<SharedPreferences>(sharedPreferences);
   sl.registerLazySingleton<PreferencesService>(
     () => PreferencesService(sharedPreferences),
+  );
+  sl.registerLazySingleton<AcknowledgedReactionsService>(
+    () => AcknowledgedReactionsService(sl<PreferencesService>()),
   );
   sl.registerLazySingleton<FlutterSecureStorage>(FlutterSecureStorage.new);
   sl.registerLazySingleton<SecureKeyStore>(
