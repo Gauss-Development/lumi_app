@@ -1,7 +1,6 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 
-import 'package:postgrest/postgrest.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';

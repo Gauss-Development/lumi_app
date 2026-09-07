@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_local_data_source.dart';
+import 'package:lumi/features/lumi/data/datasources/lumi_realtime_data_source.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_remote_data_source.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 import 'package:lumi/features/lumi/domain/repositories/lumi_repository.dart';
@@ -11,14 +12,20 @@ class LumiRepositoryImpl implements LumiRepository {
   LumiRepositoryImpl({
     required LumiLocalDataSource localDataSource,
     required LumiRemoteDataSource remoteDataSource,
+    required LumiRealtimeDataSource realtimeDataSource,
     required SettingsRepository settingsRepository,
   }) : _localDataSource = localDataSource,
        _remoteDataSource = remoteDataSource,
+       _realtimeDataSource = realtimeDataSource,
        _settingsRepository = settingsRepository;
 
   final LumiLocalDataSource _localDataSource;
   final LumiRemoteDataSource _remoteDataSource;
+  final LumiRealtimeDataSource _realtimeDataSource;
   final SettingsRepository _settingsRepository;
+
+  @override
+  Stream<void> watchInboxChanges() => _realtimeDataSource.watchInboxChanges();
 
   @override
   Future<Either<Failure, List<Lumi>>> getRecentLumis({String? memberId}) async {

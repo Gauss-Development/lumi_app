@@ -11,10 +11,14 @@ import 'package:lumi/features/lumi/domain/usecases/react_to_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/reply_with_pure_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/watch_lumi_inbox_changes_usecase.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 
 class _MockGetRecentLumisUseCase extends Mock
     implements GetRecentLumisUseCase {}
+
+class _MockWatchLumiInboxChangesUseCase extends Mock
+    implements WatchLumiInboxChangesUseCase {}
 
 class _MockSendLumiUseCase extends Mock implements SendLumiUseCase {}
 
@@ -33,6 +37,7 @@ class _MockClearDoodleDraftUseCase extends Mock
 
 void main() {
   late _MockGetRecentLumisUseCase getRecentLumisUseCase;
+  late _MockWatchLumiInboxChangesUseCase watchLumiInboxChangesUseCase;
   late LumiBloc bloc;
 
   final Lumi incoming = Lumi(
@@ -49,8 +54,12 @@ void main() {
 
   setUp(() {
     getRecentLumisUseCase = _MockGetRecentLumisUseCase();
+    watchLumiInboxChangesUseCase = _MockWatchLumiInboxChangesUseCase();
+    when(() => watchLumiInboxChangesUseCase())
+        .thenAnswer((_) => const Stream<void>.empty());
     bloc = LumiBloc(
       getRecentLumisUseCase: getRecentLumisUseCase,
+      watchLumiInboxChangesUseCase: watchLumiInboxChangesUseCase,
       sendLumiUseCase: _MockSendLumiUseCase(),
       reactToLumiUseCase: _MockReactToLumiUseCase(),
       replyWithPureLumiUseCase: _MockReplyWithPureLumiUseCase(),

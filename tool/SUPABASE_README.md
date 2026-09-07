@@ -11,6 +11,7 @@ Lumi uses **Supabase** for auth, shared data, and server-side Lumi delivery.
 | `invitations` | Shareable invite codes and accept flow |
 | `lumis` | Sent/received Lumi signals between users |
 | `push_tokens` | FCM device tokens for push notifications |
+| `presence_heartbeats` | Last app-open timestamp per user (together-moment detection) |
 
 ## What stays on-device only
 
@@ -66,6 +67,10 @@ OAUTH_REDIRECT_URL=io.supabase.lumi://login-callback/
 - **`send_lumi`** — validates circle membership, pace limits (5/day/pair), creates `lumis` row, optional FCM push
 - **`react_lumi`** — recipient-only reaction, updates lumi, optional FCM to sender
 
+## Realtime
+
+The `lumis` table is published to `supabase_realtime` (see migration `20260307130000_enable_lumis_realtime.sql`). The Flutter client subscribes via `LumiRealtimeDataSource` and refreshes the inbox on Postgres changes instead of polling every 12 seconds. If the channel fails, a 60-second fallback poll is used.
+
 ## RLS summary
 
 - `profiles` — users read/update own row
@@ -73,6 +78,7 @@ OAUTH_REDIRECT_URL=io.supabase.lumi://login-callback/
 - `invitations` — authenticated read/update; inviter creates/deletes
 - `lumis` — participants read; recipient updates (mark seen); inserts via edge function
 - `push_tokens` — users manage own tokens
+- `presence_heartbeats` — users upsert own row; circle members can read mutual connections' heartbeats
 
 ## Auth migration notes
 

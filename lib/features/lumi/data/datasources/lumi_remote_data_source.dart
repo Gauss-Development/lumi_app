@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:postgrest/postgrest.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lumi/core/network/supabase_client.dart';

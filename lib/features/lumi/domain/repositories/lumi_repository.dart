@@ -6,6 +6,9 @@ import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 abstract class LumiRepository {
   Future<Either<Failure, List<Lumi>>> getRecentLumis({String? memberId});
 
+  /// Emits whenever the remote inbox may have changed (Supabase Realtime).
+  Stream<void> watchInboxChanges();
+
   Future<Either<Failure, Lumi>> sendLumi({
     required String senderId,
     required String recipientId,

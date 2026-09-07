@@ -12,12 +12,14 @@ import 'package:lumi/features/lumi/domain/usecases/react_to_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/clear_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/watch_lumi_inbox_changes_usecase.dart';
 
 part 'lumi_bloc.freezed.dart';
 
 class LumiBloc extends Bloc<LumiEvent, LumiState> {
   LumiBloc({
     required GetRecentLumisUseCase getRecentLumisUseCase,
+    required WatchLumiInboxChangesUseCase watchLumiInboxChangesUseCase,
     required SendLumiUseCase sendLumiUseCase,
     required ReactToLumiUseCase reactToLumiUseCase,
     required ReplyWithPureLumiUseCase replyWithPureLumiUseCase,
@@ -25,6 +27,7 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     required SaveDoodleDraftUseCase saveDoodleDraftUseCase,
     required ClearDoodleDraftUseCase clearDoodleDraftUseCase,
   }) : _getRecentLumisUseCase = getRecentLumisUseCase,
+       _watchLumiInboxChangesUseCase = watchLumiInboxChangesUseCase,
        _sendLumiUseCase = sendLumiUseCase,
        _reactToLumiUseCase = reactToLumiUseCase,
        _replyWithPureLumiUseCase = replyWithPureLumiUseCase,
@@ -41,33 +44,58 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
     on<_ReplyWithPureLumiRequested>(_onReplyWithPureLumiRequested);
     on<_MarkSeenRequested>(_onMarkSeenRequested);
     on<_SaveDoodleDraftRequested>(_onSaveDoodleDraftRequested);
-    _pollTimer = Timer.periodic(const Duration(seconds: 12), (_) {
-      if (isClosed) {
-        return;
-      }
-      final bool isLoading = state.maybeMap(
-        loading: (_) => true,
-        orElse: () => false,
-      );
-      if (!isLoading) {
-        add(const LumiEvent.watchRecent());
-      }
-    });
+    _startInboxWatch();
   }
 
+  static const Duration _fallbackPollInterval = Duration(seconds: 60);
+
   final GetRecentLumisUseCase _getRecentLumisUseCase;
+  final WatchLumiInboxChangesUseCase _watchLumiInboxChangesUseCase;
   final SendLumiUseCase _sendLumiUseCase;
   final ReactToLumiUseCase _reactToLumiUseCase;
   final ReplyWithPureLumiUseCase _replyWithPureLumiUseCase;
   final MarkLumiSeenUseCase _markLumiSeenUseCase;
   final SaveDoodleDraftUseCase _saveDoodleDraftUseCase;
   final ClearDoodleDraftUseCase _clearDoodleDraftUseCase;
-  Timer? _pollTimer;
+  StreamSubscription<void>? _inboxSubscription;
+  Timer? _fallbackPollTimer;
+
+  void _startInboxWatch() {
+    _inboxSubscription?.cancel();
+    _fallbackPollTimer?.cancel();
+    _inboxSubscription = _watchLumiInboxChangesUseCase().listen(
+      (_) => _requestInboxRefresh(),
+      onError: (_) => _startFallbackPoll(),
+    );
+  }
+
+  void _startFallbackPoll() {
+    if (_fallbackPollTimer?.isActive == true) {
+      return;
+    }
+    _fallbackPollTimer = Timer.periodic(_fallbackPollInterval, (_) {
+      _requestInboxRefresh();
+    });
+  }
+
+  void _requestInboxRefresh() {
+    if (isClosed) {
+      return;
+    }
+    final bool isLoading = state.maybeMap(
+      loading: (_) => true,
+      orElse: () => false,
+    );
+    if (!isLoading) {
+      add(const LumiEvent.watchRecent());
+    }
+  }
 
   Future<void> _onWatchRecent(
     _WatchRecent event,
     Emitter<LumiState> emit,
   ) async {
+    _startInboxWatch();
     final bool hasLoadedOnce = state.maybeMap(
       loaded: (_) => true,
       failure: (_) => state.recentLumis.isNotEmpty,
@@ -285,7 +313,8 @@ class LumiBloc extends Bloc<LumiEvent, LumiState> {
 
   @override
   Future<void> close() {
-    _pollTimer?.cancel();
+    _inboxSubscription?.cancel();
+    _fallbackPollTimer?.cancel();
     return super.close();
   }
 
