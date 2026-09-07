@@ -4,7 +4,7 @@ Lumi is an anti-messaging Flutter app for close family and inner circle relation
 
 This repository contains the Flutter client for the first Lumi vertical slice:
 
-- OTP-style onboarding flow with a demo-safe fallback
+- OTP-style onboarding flow
 - profile setup with signature color and avatar style
 - 12-slot family circle home
 - invite and paywall flows
@@ -51,15 +51,8 @@ Core stack:
 - `flutter_secure_storage`
 - `home_widget`
 
-<<<<<<< HEAD
-=======
-The current sample orb implementation lives in:
+Backend: **Supabase** (Auth, Postgres, Edge Functions). See `tool/SUPABASE_README.md`.
 
-- `lib/features/circle/presentation/widgets/member_orb.dart`
-
-It uses the shared design tokens and serves as the reference “soft glow” widget for the app shell.
-
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 ## Environment setup
 
 Environment values are loaded through `EnvironmentConfig` using this fallback order:
@@ -68,25 +61,14 @@ Environment values are loaded through `EnvironmentConfig` using this fallback or
 2. `assets/env/.env`
 3. `assets/env/.env.example`
 
-The repo ships with demo-friendly env files so the app can run without real backend credentials.
-
-### Demo mode
-
-Demo mode is enabled by default in the committed env files.
-
-When demo mode is enabled:
-
-- auth uses a local OTP simulation
-- the app boots without real Supabase keys
-- local repositories seed enough state to exercise Lumi flows
-
 To connect real services, set:
 
-- `ENABLE_DEMO_MODE=false`
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
+- `OAUTH_REDIRECT_URL` (default `io.supabase.lumi://login-callback/`)
 - `REVENUECAT_APPLE_KEY`
 - `REVENUECAT_GOOGLE_KEY`
+- Firebase keys for push notifications (optional)
 
 ## Install dependencies
 
@@ -128,8 +110,6 @@ iOS:
 - development bundle id: `dev.gauss.lumi.dev`
 - production bundle id: `dev.gauss.lumi`
 
-These are placeholders for the current implementation pass and can be replaced with final shipping identifiers later.
-
 ## Validation
 
 Generate code:
@@ -150,15 +130,6 @@ Run tests:
 flutter test
 ```
 
-<<<<<<< HEAD
-=======
-Optional flavor generator sync:
-
-```bash
-dart run flutter_flavorizr
-```
-
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e
 ## Platform notes
 
 - Android manifest includes notification, vibration, contacts, and home widget background hooks.
@@ -168,8 +139,6 @@ dart run flutter_flavorizr
 ## Known environment note
 
 Linux desktop builds may require additional linker/toolchain setup depending on the VM image. Web and test/analyze workflows are the most reliable local verification paths in minimal environments.
-<<<<<<< HEAD
-=======
 
 CI is configured in `.github/workflows/flutter_ci.yml` to run:
 
@@ -178,4 +147,3 @@ CI is configured in `.github/workflows/flutter_ci.yml` to run:
 - `flutter test`
 - `flutter build web --target lib/main_development.dart`
 - `flutter build web --target lib/main_production.dart`
->>>>>>> a650b6c24ad062b9f72a1933283e93767f3a358e

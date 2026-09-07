@@ -1,13 +1,10 @@
-import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/enums.dart';
-import 'package:appwrite/models.dart' as models;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:lumi/core/network/appwrite_client.dart';
+import 'package:lumi/core/config/environment_config.dart';
+import 'package:lumi/core/network/supabase_client.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
 import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
 
-const String _databaseId = 'lumi';
-const String _usersCollectionId = 'users';
 const String _defaultAvatarStyle = 'avatar_0';
 const int _defaultSignatureColorValue = 0xFFFF7D6B;
 
@@ -46,27 +43,20 @@ abstract class AuthRemoteDataSource {
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  AuthRemoteDataSourceImpl({Account? account, TablesDB? tablesDb})
-    : _account = account ?? Account(client),
-      _tablesDb = tablesDb ?? TablesDB(client);
+  AuthRemoteDataSourceImpl({SupabaseClient? client})
+    : _client = client ?? supabase;
 
-  final Account _account;
-  final TablesDB _tablesDb;
+  final SupabaseClient _client;
 
   @override
   Future<AuthSession?> getCurrentSession() async {
-    try {
-      final models.User user = await _account.get();
-      await _ensureUserDocument(user);
-      return _mapUser(user);
-    } on AppwriteException catch (e) {
-      if (e.code == 401) {
-        return null;
-      }
-      throw AuthDataSourceException(
-        e.message ?? 'Could not load your session.',
-      );
+    final Session? session = _client.auth.currentSession;
+    final User? user = session?.user;
+    if (user == null) {
+      return null;
     }
+    await _ensureProfile(user);
+    return _mapUser(user);
   }
 
   @override
@@ -75,15 +65,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      await _account.createEmailPasswordSession(
+      final AuthResponse response = await _client.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      final models.User user = await _account.get();
-      await _ensureUserDocument(user);
+      final User? user = response.user;
+      if (user == null) {
+        throw const AuthDataSourceException('Sign-in failed.');
+      }
+      await _ensureProfile(user);
       return _mapUser(user);
-    } on AppwriteException catch (e) {
-      throw AuthDataSourceException(e.message ?? 'Sign-in failed.');
+    } on AuthException catch (e) {
+      throw AuthDataSourceException(e.message);
     }
   }
 
@@ -94,47 +87,55 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String name,
   }) async {
     try {
-      await _account.create(
-        userId: ID.unique(),
+      final AuthResponse response = await _client.auth.signUp(
         email: email,
         password: password,
-        name: name,
+        data: <String, dynamic>{'name': name},
       );
-      await _account.createEmailPasswordSession(
-        email: email,
-        password: password,
-      );
-      final models.User user = await _account.get();
-      await _ensureUserDocument(user);
+      final User? user = response.user;
+      if (user == null) {
+        throw const AuthDataSourceException('Sign-up failed.');
+      }
+      if (response.session == null) {
+        throw const AuthDataSourceException(
+          'Check your email to confirm your account.',
+        );
+      }
+      await _ensureProfile(user, displayName: name);
       return _mapUser(user);
-    } on AppwriteException catch (e) {
-      throw AuthDataSourceException(e.message ?? 'Sign-up failed.');
+    } on AuthException catch (e) {
+      throw AuthDataSourceException(e.message);
     }
   }
 
   @override
   Future<AuthSession> signInWithGoogle() async {
     try {
-      await _account.createOAuth2Session(provider: OAuthProvider.google);
-      final models.User user = await _account.get();
-      await _ensureUserDocument(user);
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: EnvironmentConfig.instance.oauthRedirectUrl,
+      );
+      final User? user = _client.auth.currentUser;
+      if (user == null) {
+        throw const AuthDataSourceException('Google sign-in did not finish.');
+      }
+      await _ensureProfile(user);
       return _mapUser(user);
-    } on AppwriteException catch (e) {
-      throw AuthDataSourceException(e.message ?? 'Google sign-in failed.');
+    } on AuthException catch (e) {
+      throw AuthDataSourceException(e.message);
     }
   }
 
   @override
   Future<PhoneOtpChallenge> requestPhoneOtp({required String phone}) async {
     try {
-      final models.Token token = await _account.createPhoneToken(
-        userId: ID.unique(),
-        phone: phone,
-      );
-      return PhoneOtpChallenge(userId: token.userId, phone: phone);
-    } on AppwriteException catch (e) {
+      await _client.auth.signInWithOtp(phone: phone);
+      return PhoneOtpChallenge(userId: phone, phone: phone);
+    } on AuthException catch (e) {
       throw AuthDataSourceException(
-        e.message ?? 'Could not send a verification code.',
+        e.message.isNotEmpty
+            ? e.message
+            : 'Could not send a verification code.',
       );
     }
   }
@@ -145,13 +146,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String otp,
   }) async {
     try {
-      await _account.createSession(userId: userId, secret: otp.trim());
-      final models.User user = await _account.get();
-      await _ensureUserDocument(user);
+      final AuthResponse response = await _client.auth.verifyOTP(
+        phone: userId,
+        token: otp.trim(),
+        type: OtpType.sms,
+      );
+      final User? user = response.user;
+      if (user == null) {
+        throw const AuthDataSourceException('That code did not work. Try again.');
+      }
+      await _ensureProfile(user);
       return _mapUser(user);
-    } on AppwriteException catch (e) {
+    } on AuthException catch (e) {
       throw AuthDataSourceException(
-        e.message ?? 'That code did not work. Try again.',
+        e.message.isNotEmpty
+            ? e.message
+            : 'That code did not work. Try again.',
       );
     }
   }
@@ -159,58 +169,48 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> signOut() async {
     try {
-      await _account.deleteSession(sessionId: 'current');
-    } on AppwriteException catch (e) {
-      if (e.code == 401) {
-        return;
-      }
-      throw AuthDataSourceException(e.message ?? 'Sign-out failed.');
+      await _client.auth.signOut();
+    } on AuthException catch (e) {
+      throw AuthDataSourceException(e.message);
     }
   }
 
-  Future<void> _ensureUserDocument(models.User user) async {
+  Future<void> _ensureProfile(User user, {String? displayName}) async {
     try {
-      await _tablesDb.createRow(
-        databaseId: _databaseId,
-        tableId: _usersCollectionId,
-        rowId: user.$id,
-        data: <String, dynamic>{
-          'userId': user.$id,
-          'email': _resolvedEmail(user),
-          'phone': user.phone,
-          'name': user.name,
-          'displayName': user.name,
-          'avatarStyle': _defaultAvatarStyle,
-          'signatureColorValue': _defaultSignatureColorValue,
-          'photoUrl': null,
-          'createdAt': DateTime.now().toUtc().toIso8601String(),
-        },
-        permissions: <String>[
-          Permission.read(Role.user(user.$id)),
-          Permission.update(Role.user(user.$id)),
-          Permission.delete(Role.user(user.$id)),
-        ],
-      );
-    } on AppwriteException catch (_) {
-      // 409 = row already exists; other errors should not block auth.
+      await _client.from('profiles').upsert(<String, dynamic>{
+        'id': user.id,
+        'email': _resolvedEmail(user),
+        'phone': user.phone,
+        'name': displayName ?? user.userMetadata?['name'] ?? '',
+        'display_name': displayName ??
+            (user.userMetadata?['name'] as String?) ??
+            user.email?.split('@').first ??
+            'Lumi',
+        'avatar_style': _defaultAvatarStyle,
+        'signature_color_value': _defaultSignatureColorValue,
+        'photo_url': user.userMetadata?['avatar_url'],
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } catch (_) {
+      // Profile bootstrap must not block auth.
     }
   }
 
-  String _resolvedEmail(models.User user) {
-    if (user.email.trim().isNotEmpty) {
-      return user.email;
+  String _resolvedEmail(User user) {
+    if (user.email != null && user.email!.trim().isNotEmpty) {
+      return user.email!;
     }
-    return '${user.$id}@phone.lumi.app';
+    return '${user.id}@phone.lumi.app';
   }
 
-  AuthSession _mapUser(models.User user) {
-    final dynamic prefsRaw = user.prefs.data['avatarUrl'];
+  AuthSession _mapUser(User user) {
+    final String? avatarUrl = user.userMetadata?['avatar_url'] as String?;
     return AuthSession(
-      userId: user.$id,
+      userId: user.id,
       email: _resolvedEmail(user),
-      phone: user.phone,
-      name: user.name,
-      photoUrl: prefsRaw is String && prefsRaw.isNotEmpty ? prefsRaw : null,
+      phone: user.phone ?? '',
+      name: (user.userMetadata?['name'] as String?) ?? user.email ?? '',
+      photoUrl: avatarUrl != null && avatarUrl.isNotEmpty ? avatarUrl : null,
     );
   }
 }

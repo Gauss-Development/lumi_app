@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:appwrite/appwrite.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:lumi/core/config/environment_config.dart';
 import 'package:lumi/core/config/firebase_options_factory.dart';
-import 'package:lumi/core/network/appwrite_client.dart';
+import 'package:lumi/core/network/supabase_client.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/notification_service.dart';
 import 'package:lumi/core/services/pending_lumi_notification_service.dart';
@@ -34,16 +34,15 @@ class PushNotificationService {
     required PendingLumiNotificationService pendingLumiNotificationService,
     required PreferencesService preferencesService,
     required HapticsService hapticsService,
-    Account? account,
+    SupabaseClient? supabaseClient,
     FirebaseMessaging? messaging,
   }) : _notificationService = notificationService,
        _pendingLumiNotificationService = pendingLumiNotificationService,
        _preferencesService = preferencesService,
        _hapticsService = hapticsService,
-       _account = account ?? Account(client),
+       _supabaseClient = supabaseClient,
        _messaging = messaging ?? FirebaseMessaging.instance;
 
-  static const String _pushTargetIdKey = 'appwrite_push_target_id';
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _hapticsEnabledKey = 'haptics_enabled';
 
@@ -51,7 +50,7 @@ class PushNotificationService {
   final PendingLumiNotificationService _pendingLumiNotificationService;
   final PreferencesService _preferencesService;
   final HapticsService _hapticsService;
-  final Account _account;
+  final SupabaseClient? _supabaseClient;
   final FirebaseMessaging _messaging;
 
   bool _available = false;
@@ -61,6 +60,20 @@ class PushNotificationService {
   StreamSubscription<RemoteMessage>? _openedAppSubscription;
 
   bool get isAvailable => _available;
+
+  SupabaseClient? get _client {
+    if (_supabaseClient != null) {
+      return _supabaseClient;
+    }
+    if (!isSupabaseConfigured) {
+      return null;
+    }
+    try {
+      return supabase;
+    } catch (_) {
+      return null;
+    }
+  }
 
   void setOnTap(PushNotificationTapCallback? callback) {
     _onTap = callback;
@@ -123,10 +136,10 @@ class PushNotificationService {
       return;
     }
 
-    await _upsertPushTarget(token);
+    await _upsertPushToken(token);
     await _tokenRefreshSubscription?.cancel();
     _tokenRefreshSubscription = _messaging.onTokenRefresh.listen(
-      _upsertPushTarget,
+      _upsertPushToken,
     );
   }
 
@@ -134,18 +147,17 @@ class PushNotificationService {
     await _tokenRefreshSubscription?.cancel();
     _tokenRefreshSubscription = null;
 
-    final String? targetId = _preferencesService.getString(_pushTargetIdKey);
-    if (targetId == null || targetId.isEmpty) {
+    final SupabaseClient? client = _client;
+    final User? user = client?.auth.currentUser;
+    if (client == null || user == null) {
       return;
     }
 
     try {
-      await _account.deletePushTarget(targetId: targetId);
-    } on AppwriteException catch (_) {
-      // Target may already be gone after sign-out.
+      await client.from('push_tokens').delete().eq('user_id', user.id);
+    } catch (_) {
+      // Token cleanup is best-effort on sign-out.
     }
-
-    await _preferencesService.remove(_pushTargetIdKey);
   }
 
   Future<void> dispose() async {
@@ -157,50 +169,37 @@ class PushNotificationService {
     _openedAppSubscription = null;
   }
 
-  Future<void> _upsertPushTarget(String token) async {
-    final EnvironmentConfig config = EnvironmentConfig.instance;
-    final String? providerId = config.appwriteFcmProviderId.isEmpty
-        ? null
-        : config.appwriteFcmProviderId;
-    final String? existingTargetId = _preferencesService.getString(
-      _pushTargetIdKey,
-    );
-
-    try {
-      if (existingTargetId != null && existingTargetId.isNotEmpty) {
-        await _account.updatePushTarget(
-          targetId: existingTargetId,
-          identifier: token,
-        );
-        return;
-      }
-
-      final String targetId = ID.unique();
-      await _account.createPushTarget(
-        targetId: targetId,
-        identifier: token,
-        providerId: providerId,
-      );
-      await _preferencesService.setString(_pushTargetIdKey, targetId);
-    } on AppwriteException catch (error) {
-      if (error.code == 409 && existingTargetId != null) {
-        await _account.updatePushTarget(
-          targetId: existingTargetId,
-          identifier: token,
-        );
-        return;
-      }
-      if (existingTargetId != null) {
-        await _preferencesService.remove(_pushTargetIdKey);
-      }
-      final String targetId = ID.unique();
-      await _account.createPushTarget(
-        targetId: targetId,
-        identifier: token,
-        providerId: providerId,
-      );
-      await _preferencesService.setString(_pushTargetIdKey, targetId);
+  Future<void> _upsertPushToken(String token) async {
+    final SupabaseClient? client = _client;
+    final User? user = client?.auth.currentUser;
+    if (client == null || user == null) {
+      return;
     }
+
+    final String platform = _platformLabel();
+    try {
+      await client.from('push_tokens').upsert(<String, dynamic>{
+        'user_id': user.id,
+        'fcm_token': token,
+        'platform': platform,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'user_id,fcm_token');
+    } catch (_) {
+      // Push registration must not block the app.
+    }
+  }
+
+  String _platformLabel() {
+    if (kIsWeb) {
+      return 'web';
+    }
+    if (Platform.isIOS) {
+      return 'ios';
+    }
+    if (Platform.isAndroid) {
+      return 'android';
+    }
+    return 'unknown';
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {

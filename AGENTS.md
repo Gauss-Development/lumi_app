@@ -4,7 +4,7 @@
 
 ### Product
 
-Lumi is a single Flutter client (`lib/`) backed by hosted **Appwrite Cloud** (`https://sfo.cloud.appwrite.io/v1`, project `69ff68eb0033441e4041`). There is no in-repo backend server. Optional Appwrite provisioning lives under `tool/`.
+Lumi is a single Flutter client (`lib/`) backed by **Supabase** (Auth, Postgres, Edge Functions). There is no in-repo backend server. Schema and edge functions live under `supabase/`. See `tool/SUPABASE_README.md`.
 
 ### Flutter SDK
 
@@ -31,8 +31,8 @@ Do **not** run `make setup` on Linux cloud VMs — it always runs `make pods` (i
 | Tests | `make test` or `flutter test` |
 | Run (mobile flavor) | `make run` — needs Android/iOS device or emulator |
 | Web build (CI parity) | `flutter build web --target lib/main_development.dart` |
-| Appwrite schema | `export APPWRITE_PROVISIONING_API_KEY=<key> && make provision` |
-| Deploy functions | `export APPWRITE_PROVISIONING_API_KEY=<key> && make deploy-functions` |
+| Apply DB schema | `supabase db push` (see `tool/SUPABASE_README.md`) |
+| Deploy edge functions | `supabase functions deploy send_lumi` / `react_lumi` |
 
 Full Makefile targets: `make help`.
 
@@ -40,7 +40,7 @@ Full Makefile targets: `make help`.
 
 `flutter build web` and `flutter run -d web-server --web-port=8080 -t lib/main_development.dart` work in cloud VMs after `RevenueCatService` avoids `dart:io` `Platform` on web (`kIsWeb` guard).
 
-Auth/sign-up against Appwrite requires network access to `https://sfo.cloud.appwrite.io`. Without valid credentials the UI still loads to the login screen.
+Auth/sign-up against Supabase requires `SUPABASE_URL` and `SUPABASE_ANON_KEY` in env files. Without valid credentials the UI still loads to the login screen.
 
 ### Linux desktop
 
@@ -48,8 +48,8 @@ Auth/sign-up against Appwrite requires network access to `https://sfo.cloud.appw
 
 ### Environment files
 
-Loaded from `assets/env/.env.development` (dev) or `.env.production` via `EnvironmentConfig`. Appwrite endpoint/project ID are hardcoded in `lib/core/network/appwrite_client.dart`.
+Loaded from `assets/env/.env.development` (dev) or `.env.production` via `EnvironmentConfig`. Required for production: `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
 
 ### Backend for real E2E (auth, circle, send Lumi)
 
-Requires a provisioned Appwrite project and deployed `send_lumi` function — see `tool/PROVISION_README.md`. Not needed for `flutter test` / `flutter analyze`.
+Requires a provisioned Supabase project with schema migration applied and `send_lumi` / `react_lumi` edge functions deployed — see `tool/SUPABASE_README.md`. Not needed for `flutter test` / `flutter analyze`.
