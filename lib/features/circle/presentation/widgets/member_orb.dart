@@ -1,15 +1,14 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';
 import 'package:lumi/core/theme/app_colors.dart';
+import 'package:lumi/core/utils/orb_grid_signals.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/orb_pulse.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 
-class MemberOrb extends StatefulWidget {
+class MemberOrb extends StatelessWidget {
   const MemberOrb({
     required this.member,
     required this.onTap,
@@ -17,6 +16,7 @@ class MemberOrb extends StatefulWidget {
     super.key,
     this.diameter = 88,
     this.unreadCount = 0,
+    this.incomingType,
     this.reactionBadge,
     this.nameGlowActive = false,
   });
@@ -26,72 +26,47 @@ class MemberOrb extends StatefulWidget {
   final VoidCallback onLongPress;
   final double diameter;
   final int unreadCount;
+  final LumiType? incomingType;
   final LumiReactionType? reactionBadge;
   final bool nameGlowActive;
 
   @override
-  State<MemberOrb> createState() => _MemberOrbState();
-}
-
-class _MemberOrbState extends State<MemberOrb> {
-  Timer? _subtitleTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _subtitleTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _subtitleTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.member == null) {
+    if (member == null) {
       return GestureDetector(
-        onTap: widget.onTap,
-        child: Column(
-          children: <Widget>[
-            Container(
-              width: widget.diameter,
-              height: widget.diameter,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  width: 1.2,
-                ),
-                color: Colors.white.withValues(alpha: 0.02),
-              ),
+        onTap: onTap,
+        child: Container(
+          width: diameter,
+          height: diameter,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.12),
+              width: 1.2,
             ),
-          ],
+            color: Colors.white.withValues(alpha: 0.02),
+          ),
         ),
       );
     }
 
-    final CircleMember currentMember = widget.member!;
+    final CircleMember currentMember = member!;
     final Color color = Color(currentMember.signatureColorValue);
     final bool nearLimit =
         currentMember.paceCount >= LumiLimits.maxLumisPerPairPerDay - 1;
     final bool memorial = currentMember.status == CircleStatus.memorial;
     final DateTime now = DateTime.now();
-    final bool hasIncomingLumi = widget.unreadCount > 0;
+    final bool hasIncomingLumi = unreadCount > 0;
+    final LumiType signalType = incomingType ?? LumiType.pure;
     final double intensity = _intensityFor(
       currentMember.lastInteractionAt,
       now,
-      unreadCount: widget.unreadCount,
+      unreadCount: unreadCount,
     );
     final Widget? memorialChild = memorial
         ? Container(
-            width: widget.diameter,
-            height: widget.diameter,
+            width: diameter,
+            height: diameter,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
@@ -102,13 +77,16 @@ class _MemberOrbState extends State<MemberOrb> {
         : null;
 
     return GestureDetector(
-      onTap: widget.onTap,
-      onLongPress: widget.onLongPress,
+      onTap: onTap,
+      onLongPress: onLongPress,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           OrbPulse(
             isActive: hasIncomingLumi && !memorial,
+            duration: signalType.orbPulseDuration,
+            maxScale: signalType.orbMaxScale,
+            maxIntensityMultiplier: signalType.orbMaxIntensityMultiplier,
             childBuilder: (
               BuildContext context,
               double scale,
@@ -125,17 +103,17 @@ class _MemberOrbState extends State<MemberOrb> {
                   children: <Widget>[
                     GlowOrb(
                       color: memorial ? color.withValues(alpha: 0.7) : color,
-                      size: widget.diameter,
+                      size: diameter,
                       intensity: orbIntensity,
                       child: memorialChild,
                     ),
-                    if (widget.reactionBadge != null)
+                    if (reactionBadge != null)
                       Positioned(
                         top: -2,
                         right: -2,
                         child: _ReactionBadge(
-                          reaction: widget.reactionBadge!,
-                          diameter: widget.diameter,
+                          reaction: reactionBadge!,
+                          diameter: diameter,
                         ),
                       ),
                   ],
@@ -144,32 +122,46 @@ class _MemberOrbState extends State<MemberOrb> {
             },
           ),
           const SizedBox(height: 8),
-          Text(
-            currentMember.displayName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: 13,
-              color: widget.nameGlowActive && !memorial
-                  ? color
-                  : Colors.white.withValues(alpha: memorial ? 0.65 : 0.85),
-              fontWeight:
-                  widget.nameGlowActive && !memorial ? FontWeight.w600 : null,
-              shadows: widget.nameGlowActive && !memorial
-                  ? <Shadow>[
-                      Shadow(color: color.withValues(alpha: 0.85), blurRadius: 14),
-                      Shadow(color: color.withValues(alpha: 0.45), blurRadius: 28),
-                    ]
-                  : null,
+          SizedBox(
+            width: diameter,
+            child: Text(
+              currentMember.displayName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 13,
+                color: nameGlowActive && !memorial
+                    ? color
+                    : Colors.white.withValues(alpha: memorial ? 0.65 : 0.85),
+                fontWeight:
+                    nameGlowActive && !memorial ? FontWeight.w600 : null,
+                shadows: nameGlowActive && !memorial
+                    ? <Shadow>[
+                        Shadow(
+                          color: color.withValues(alpha: 0.85),
+                          blurRadius: 14,
+                        ),
+                        Shadow(
+                          color: color.withValues(alpha: 0.45),
+                          blurRadius: 28,
+                        ),
+                      ]
+                    : null,
+              ),
             ),
           ),
-          Text(
-            _subtitle(currentMember, now),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.textFaint,
-              fontSize: 11,
+          SizedBox(
+            width: diameter,
+            child: Text(
+              _subtitle(currentMember, now),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textFaint,
+                fontSize: 11,
+              ),
             ),
           ),
         ],
@@ -195,7 +187,7 @@ class _MemberOrbState extends State<MemberOrb> {
     return activityIntensity;
   }
 
-  String _subtitle(CircleMember member, DateTime now) {
+  static String _subtitle(CircleMember member, DateTime now) {
     if ((member.relationshipLabel ?? '').isNotEmpty) {
       return member.relationshipLabel!;
     }

@@ -97,9 +97,14 @@ class _SentLumiReactionOverlayState extends State<SentLumiReactionOverlay> {
               icon: const Icon(Icons.close_rounded, size: 18),
             ),
           ),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                28,
+                safe.top + 56,
+                28,
+                safe.bottom + 24,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -112,6 +117,9 @@ class _SentLumiReactionOverlayState extends State<SentLumiReactionOverlay> {
                   const SizedBox(height: 8),
                   Text(
                     _recipientName(context),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
                   const SizedBox(height: 28),

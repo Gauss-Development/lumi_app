@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';
+import 'package:lumi/core/utils/orb_grid_signals.dart';
 import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/services/acknowledged_reactions_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
@@ -222,16 +223,26 @@ class HomePage extends StatelessWidget {
                                   156,
                                 ),
                                 child: BlocSelector<LumiBloc, LumiState,
-                                    Map<String, int>>(
+                                    OrbGridSignals>(
                                   selector: (LumiState lumiState) =>
-                                      _unreadCounts(lumiState.items),
+                                      OrbGridSignals.fromLumis(
+                                        lumiState.items,
+                                        DateTime.now(),
+                                      ),
                                   builder: (
                                     BuildContext context,
-                                    Map<String, int> unreadByMemberId,
+                                    OrbGridSignals signals,
                                   ) {
                                     return OrbGrid(
                                       members: gridMembers,
-                                      unreadByMemberId: unreadByMemberId,
+                                      unreadByMemberId:
+                                          signals.unreadByMemberId,
+                                      incomingTypeByMemberId:
+                                          signals.incomingTypeByMemberId,
+                                      nameGlowByMemberId:
+                                          signals.nameGlowByMemberId,
+                                      reactionBadgeByMemberId:
+                                          signals.reactionBadgeByMemberId,
                                       onTap: (CircleMember? member) {
                                         if (member != null) {
                                           _openComposer(context, member);
@@ -386,17 +397,6 @@ class HomePage extends StatelessWidget {
             : InviteSheetMode.receive,
       ),
     );
-  }
-
-  static Map<String, int> _unreadCounts(List<Lumi> items) {
-    final Map<String, int> counts = <String, int>{};
-    for (final Lumi lumi in items) {
-      if (lumi.isIncoming &&
-          lumi.deliveryStatus != LumiDeliveryStatus.seen) {
-        counts[lumi.memberId] = (counts[lumi.memberId] ?? 0) + 1;
-      }
-    }
-    return counts;
   }
 
   static Lumi? _latestUnacknowledgedReaction(List<Lumi> items) {

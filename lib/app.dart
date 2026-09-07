@@ -240,8 +240,10 @@ class _PushNotificationCoordinatorState
     if (!mounted) {
       return;
     }
+    final String? memberFilter =
+        payload.recipientMemberId ?? payload.senderMemberId;
     context.read<LumiBloc>().add(
-      LumiEvent.watchRecent(memberId: payload.senderMemberId),
+      LumiEvent.watchRecent(memberId: memberFilter),
     );
   }
 

@@ -34,13 +34,19 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
   final HapticsService _hapticsService = sl<HapticsService>();
   final MemberHapticPreferencesService _memberHaptics =
       sl<MemberHapticPreferencesService>();
-  bool _pulseActive = false;
+  final ValueNotifier<double> _pulseScale = ValueNotifier<double>(1);
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
     _playLumi();
+  }
+
+  @override
+  void dispose() {
+    _pulseScale.dispose();
+    super.dispose();
   }
 
   Future<void> _playLumi() async {
@@ -72,13 +78,13 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
     if (!mounted) {
       return;
     }
-    setState(() => _pulseActive = true);
+    _pulseScale.value = 1.08;
     await _hapticsService.playPulseHit();
     await Future<void>.delayed(const Duration(milliseconds: 90));
     if (!mounted) {
       return;
     }
-    setState(() => _pulseActive = false);
+    _pulseScale.value = 1;
   }
 
   String _senderName(BuildContext context) {
@@ -204,11 +210,17 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
     _markSeen(context);
   }
 
+  double _orbSize(BuildContext context) {
+    final double width = MediaQuery.sizeOf(context).width;
+    return (width * 0.72).clamp(200, 300);
+  }
+
   @override
   Widget build(BuildContext context) {
     final Color color = Color(widget.lumi.colorValue);
     final Color replyColor = Color(_signatureColorValue(context));
     final EdgeInsets safe = MediaQuery.paddingOf(context);
+    final double orbSize = _orbSize(context);
 
     return BlocListener<LumiBloc, LumiState>(
       listenWhen: (LumiState previous, LumiState current) {
@@ -250,75 +262,99 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
                 icon: const Icon(Icons.close_rounded, size: 18),
               ),
             ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'A glow from',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.textSecondary,
+            Positioned.fill(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      28,
+                      safe.top + 56,
+                      28,
+                      safe.bottom + 72,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - safe.top - safe.bottom - 128,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _senderName(context),
-                      style: Theme.of(context).textTheme.headlineLarge,
-                    ),
-                    const SizedBox(height: 36),
-                    RepaintBoundary(
-                      child: AnimatedScale(
-                        scale: _pulseActive ? 1.08 : 1,
-                        duration: const Duration(milliseconds: 90),
-                        curve: Curves.easeOut,
-                        child: GlowOrb(
-                          color: color,
-                          size: 300,
-                          intensity: widget.lumi.type == LumiType.light
-                              ? widget.lumi.intensity.clamp(0.55, 1.2)
-                              : (_pulseActive ? 1.22 : 1.05),
-                          child: widget.lumi.type == LumiType.doodle
-                              ? CustomPaint(
-                                  size: const Size(220, 220),
-                                  painter: _DoodlePreviewPainter(
-                                    stroke: widget.lumi.doodleStroke,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            'A glow from',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _senderName(context),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.headlineLarge,
+                          ),
+                          const SizedBox(height: 28),
+                          ValueListenableBuilder<double>(
+                            valueListenable: _pulseScale,
+                            builder: (
+                              BuildContext context,
+                              double scale,
+                              Widget? child,
+                            ) {
+                              return RepaintBoundary(
+                                child: AnimatedScale(
+                                  scale: scale,
+                                  duration: const Duration(milliseconds: 90),
+                                  curve: Curves.easeOut,
+                                  child: GlowOrb(
                                     color: color,
+                                    size: orbSize,
+                                    intensity: widget.lumi.type == LumiType.light
+                                        ? widget.lumi.intensity.clamp(0.55, 1.2)
+                                        : (scale > 1 ? 1.22 : 1.05),
+                                    child: widget.lumi.type == LumiType.doodle
+                                        ? CustomPaint(
+                                            size: Size.square(orbSize * 0.73),
+                                            painter: _DoodlePreviewPainter(
+                                              stroke: widget.lumi.doodleStroke,
+                                              color: color,
+                                            ),
+                                          )
+                                        : null,
                                   ),
-                                )
-                              : null,
-                        ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Send a feeling back',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: AppColors.textFaint),
+                          ),
+                          const SizedBox(height: 8),
+                          ReactionTray(
+                            enabled: !_isSubmitting,
+                            onSelected: (reaction) => _react(context, reaction),
+                          ),
+                          const SizedBox(height: 24),
+                          PrimaryGlowButton(
+                            label: _isSubmitting ? 'Sending…' : 'Lumi back',
+                            glowColor: replyColor,
+                            onPressed:
+                                _isSubmitting ? null : () => _lumiBack(context),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _bodyCopy(widget.lumi.type),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: AppColors.textSecondary),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 28),
-                    Text(
-                      'Send a feeling back',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.textFaint,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ReactionTray(
-                      enabled: !_isSubmitting,
-                      onSelected: (reaction) => _react(context, reaction),
-                    ),
-                    const SizedBox(height: 28),
-                    PrimaryGlowButton(
-                      label: _isSubmitting ? 'Sending…' : 'Lumi back',
-                      glowColor: replyColor,
-                      onPressed: _isSubmitting ? null : () => _lumiBack(context),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      _bodyCopy(widget.lumi.type),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
             Positioned(
