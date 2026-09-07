@@ -1,69 +1,54 @@
 import 'dart:convert';
 
-import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/enums.dart' as enums;
-import 'package:appwrite/models.dart' as models;
+import 'package:postgrest/postgrest.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:lumi/core/network/appwrite_client.dart';
+import 'package:lumi/core/network/supabase_client.dart';
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
-
-const String _databaseId = 'lumi';
-const String _lumisTable = 'lumis';
-const String _sendLumiFunctionId = 'send_lumi';
-const String _reactLumiFunctionId = 'react_lumi';
 
 const int _defaultColorValue = 0xFFFF7D6B;
 
 class LumiRemoteDataSource {
-  LumiRemoteDataSource({
-    TablesDB? tablesDb,
-    Account? account,
-    Functions? functions,
-  }) : _tablesDb = tablesDb ?? TablesDB(client),
-       _account = account ?? Account(client),
-       _functions = functions ?? Functions(client);
+  LumiRemoteDataSource({SupabaseClient? client}) : _client = client ?? supabase;
 
-  final TablesDB _tablesDb;
-  final Account _account;
-  final Functions _functions;
+  final SupabaseClient _client;
 
   Future<List<Lumi>> getRecentLumis({String? memberId}) async {
-    final String? currentUserId = await _currentUserIdOrNull();
+    final String? currentUserId = _currentUserIdOrNull();
     if (currentUserId == null) {
       return <Lumi>[];
     }
 
-    final List<models.Row> rows = await _listUserLumiRows(currentUserId);
+    final List<dynamic> incoming = await _client
+        .from('lumis')
+        .select()
+        .eq('recipient_id', currentUserId)
+        .order('created_at', ascending: false)
+        .limit(100);
+    final List<dynamic> outgoing = await _client
+        .from('lumis')
+        .select()
+        .eq('sender_id', currentUserId)
+        .order('created_at', ascending: false)
+        .limit(100);
+
+    final Map<String, Map<String, dynamic>> byId = <String, Map<String, dynamic>>{};
+    for (final dynamic row in incoming) {
+      final Map<String, dynamic> map = row as Map<String, dynamic>;
+      byId[map['id'] as String] = map;
+    }
+    for (final dynamic row in outgoing) {
+      final Map<String, dynamic> map = row as Map<String, dynamic>;
+      byId[map['id'] as String] = map;
+    }
 
     final List<Lumi> lumis =
-        rows
-            .map((models.Row row) => _lumiFromRow(row, currentUserId))
+        byId.values
+            .map((Map<String, dynamic> row) => _lumiFromRow(row, currentUserId))
             .where((Lumi lumi) => memberId == null || lumi.memberId == memberId)
             .toList(growable: false)
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return lumis;
-  }
-
-  Future<List<models.Row>> _listUserLumiRows(String userId) async {
-    final models.RowList incoming = await _tablesDb.listRows(
-      databaseId: _databaseId,
-      tableId: _lumisTable,
-      queries: <String>[Query.equal('recipientId', userId), Query.limit(100)],
-    );
-    final models.RowList outgoing = await _tablesDb.listRows(
-      databaseId: _databaseId,
-      tableId: _lumisTable,
-      queries: <String>[Query.equal('senderId', userId), Query.limit(100)],
-    );
-
-    final Map<String, models.Row> byId = <String, models.Row>{};
-    for (final models.Row row in incoming.rows) {
-      byId[row.$id] = row;
-    }
-    for (final models.Row row in outgoing.rows) {
-      byId[row.$id] = row;
-    }
-    return byId.values.toList(growable: false);
   }
 
   Future<Lumi> sendLumi({
@@ -76,11 +61,9 @@ class LumiRemoteDataSource {
     DoodleStroke? doodleStroke,
     required bool queued,
   }) async {
-    final models.Execution execution = await _functions.createExecution(
-      functionId: _sendLumiFunctionId,
-      xasync: false,
-      method: enums.ExecutionMethod.pOST,
-      body: jsonEncode(<String, dynamic>{
+    final FunctionResponse response = await _client.functions.invoke(
+      'send_lumi',
+      body: <String, dynamic>{
         'senderId': senderId,
         'senderMemberId': senderMemberId,
         'type': type.name,
@@ -95,38 +78,32 @@ class LumiRemoteDataSource {
         'doodleStrokeJson': doodleStroke == null
             ? null
             : jsonEncode(doodleStroke.toJson()),
-      }),
+      },
     );
 
-    if (execution.responseStatusCode < 200 ||
-        execution.responseStatusCode >= 300) {
-      throw AppwriteException(
-        execution.responseBody.isEmpty
-            ? 'Unable to send Lumi.'
-            : execution.responseBody,
-        execution.responseStatusCode,
-      );
+    if (response.status < 200 || response.status >= 300) {
+      final String message = _errorMessage(response.data) ?? 'Unable to send Lumi.';
+      throw PostgrestException(message: message, code: '${response.status}');
     }
 
-    final Object? decoded = jsonDecode(execution.responseBody);
-    if (decoded is! Map<String, dynamic>) {
+    final Object? data = response.data;
+    if (data is! Map<String, dynamic>) {
       throw const FormatException('send_lumi returned an invalid response.');
     }
-    final models.Row row = models.Row.fromMap(decoded);
-    return _lumiFromRow(row, senderId);
+    return _lumiFromRow(data, senderId);
   }
 
   Future<Lumi> markSeen(String lumiId) async {
-    final String currentUserId = await _currentUserId();
-    final models.Row row = await _tablesDb.updateRow(
-      databaseId: _databaseId,
-      tableId: _lumisTable,
-      rowId: lumiId,
-      data: <String, dynamic>{
-        'seenAt': DateTime.now().toUtc().toIso8601String(),
-        'deliveryStatus': LumiDeliveryStatus.seen.name,
-      },
-    );
+    final String currentUserId = _currentUserId();
+    final Map<String, dynamic> row = await _client
+        .from('lumis')
+        .update(<String, dynamic>{
+          'seen_at': DateTime.now().toUtc().toIso8601String(),
+          'delivery_status': LumiDeliveryStatus.seen.name,
+        })
+        .eq('id', lumiId)
+        .select()
+        .single();
     return _lumiFromRow(row, currentUserId);
   }
 
@@ -134,98 +111,83 @@ class LumiRemoteDataSource {
     required String lumiId,
     required LumiReactionType reaction,
   }) async {
-    final models.Execution execution = await _functions.createExecution(
-      functionId: _reactLumiFunctionId,
-      xasync: false,
-      method: enums.ExecutionMethod.pOST,
-      body: jsonEncode(<String, dynamic>{
+    final FunctionResponse response = await _client.functions.invoke(
+      'react_lumi',
+      body: <String, dynamic>{
         'lumiId': lumiId,
         'reaction': reaction.name,
-      }),
+      },
     );
 
-    if (execution.responseStatusCode < 200 ||
-        execution.responseStatusCode >= 300) {
-      throw AppwriteException(
-        execution.responseBody.isEmpty
-            ? 'Unable to send your reaction.'
-            : execution.responseBody,
-        execution.responseStatusCode,
-      );
+    if (response.status < 200 || response.status >= 300) {
+      final String message =
+          _errorMessage(response.data) ?? 'Unable to send your reaction.';
+      throw PostgrestException(message: message, code: '${response.status}');
     }
 
-    final Object? decoded = jsonDecode(execution.responseBody);
-    if (decoded is! Map<String, dynamic>) {
+    final Object? data = response.data;
+    if (data is! Map<String, dynamic>) {
       throw const FormatException('react_lumi returned an invalid response.');
     }
-    final String currentUserId = await _currentUserId();
-    final models.Row row = models.Row.fromMap(decoded);
-    return _lumiFromRow(row, currentUserId);
+    final String currentUserId = _currentUserId();
+    return _lumiFromRow(data, currentUserId);
   }
 
-  Future<String> _currentUserId() async {
-    final models.User user = await _account.get();
-    return user.$id;
-  }
-
-  Future<String?> _currentUserIdOrNull() async {
-    try {
-      return await _currentUserId();
-    } on AppwriteException catch (e) {
-      if (e.code == 401) {
-        return null;
-      }
-      rethrow;
+  String _currentUserId() {
+    final User? user = _client.auth.currentUser;
+    if (user == null) {
+      throw const AuthException('Not authenticated.');
     }
+    return user.id;
   }
 
-  Lumi _lumiFromRow(models.Row row, String currentUserId) {
-    final Map<String, dynamic> data = row.data;
-    final String senderId = data['senderId'] as String? ?? '';
-    final String recipientId = data['recipientId'] as String? ?? '';
+  String? _currentUserIdOrNull() => _client.auth.currentUser?.id;
+
+  Lumi _lumiFromRow(Map<String, dynamic> data, String currentUserId) {
+    final String senderId = data['sender_id'] as String? ?? '';
+    final String recipientId = data['recipient_id'] as String? ?? '';
     final bool isIncoming =
         recipientId == currentUserId && senderId != currentUserId;
     final String memberId = isIncoming
-        ? data['recipientMemberId'] as String? ??
-              data['circleId'] as String? ??
+        ? data['recipient_member_id'] as String? ??
+              data['circle_id'] as String? ??
               ''
-        : data['senderMemberId'] as String? ??
-              data['circleId'] as String? ??
+        : data['sender_member_id'] as String? ??
+              data['circle_id'] as String? ??
               '';
-    final String? reaction = data['reactionEmoji'] as String?;
+    final String? reaction = data['reaction_emoji'] as String?;
 
     return Lumi(
-      id: row.$id,
+      id: data['id'] as String? ?? '',
       senderId: senderId,
       memberId: memberId,
       isIncoming: isIncoming,
       type: LumiType.values.byName(
         data['type'] as String? ?? LumiType.pure.name,
       ),
-      colorValue: data['colorValue'] as int? ?? _defaultColorValue,
+      colorValue: data['color_value'] as int? ?? _defaultColorValue,
       createdAt:
-          DateTime.tryParse(data['createdAt'] as String? ?? '') ??
-          DateTime.tryParse(row.$createdAt) ??
+          DateTime.tryParse(data['created_at'] as String? ?? '') ??
           DateTime.now(),
       intensity: (data['intensity'] as num?)?.toDouble() ?? 0.7,
       deliveryStatus: _deliveryStatusFromRow(data),
       reaction: reaction == null || reaction.isEmpty
           ? null
           : LumiReactionType.values.byName(reaction),
-      pulsePattern: _pulsePatternFromJson(data['pulsePatternJson'] as String?),
-      doodleStroke: _doodleStrokeFromJson(data['doodleStrokeJson'] as String?),
+      pulsePattern: _pulsePatternFromJson(data['pulse_pattern_json'] as String?),
+      doodleStroke: _doodleStrokeFromJson(data['doodle_stroke_json'] as String?),
     );
   }
 
   LumiDeliveryStatus _deliveryStatusFromRow(Map<String, dynamic> data) {
-    final String? status = data['deliveryStatus'] as String?;
+    final String? status = data['delivery_status'] as String?;
     if (status != null && status.isNotEmpty) {
       return LumiDeliveryStatus.values.byName(status);
     }
-    if ((data['seenAt'] as String?)?.isNotEmpty == true) {
+    if ((data['seen_at'] as String?)?.isNotEmpty == true) {
       return LumiDeliveryStatus.seen;
     }
-    if ((data['reactionEmoji'] as String?)?.isNotEmpty == true) {
+    if ((data['reaction_emoji'] as String?)?.isNotEmpty == true) {
       return LumiDeliveryStatus.reacted;
     }
     return LumiDeliveryStatus.delivered;
@@ -243,5 +205,18 @@ class LumiRemoteDataSource {
       return null;
     }
     return DoodleStroke.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  String? _errorMessage(Object? data) {
+    if (data is Map<String, dynamic>) {
+      final Object? error = data['error'];
+      if (error is String && error.isNotEmpty) {
+        return error;
+      }
+    }
+    if (data is String && data.isNotEmpty) {
+      return data;
+    }
+    return null;
   }
 }

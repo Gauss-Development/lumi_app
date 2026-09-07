@@ -1,0 +1,20 @@
+project_id = "gpajpqrmztkmtabsxost"
+
+[api]
+enabled = true
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+
+[auth]
+site_url = "io.supabase.lumi://login-callback/"
+additional_redirect_urls = ["io.supabase.lumi://login-callback/"]
+
+[functions.send_lumi]
+verify_jwt = true
+
+[functions.react_lumi]
+verify_jwt = true

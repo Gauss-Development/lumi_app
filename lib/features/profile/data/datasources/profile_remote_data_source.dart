@@ -1,12 +1,9 @@
-import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart' as models;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:lumi/core/network/appwrite_client.dart';
+import 'package:lumi/core/network/supabase_client.dart';
+import 'package:lumi/core/network/supabase_errors.dart';
 import 'package:lumi/features/profile/data/models/user_profile_model.dart';
 import 'package:lumi/features/profile/domain/entities/user_profile.dart';
-
-const String _databaseId = 'lumi';
-const String _usersCollectionId = 'users';
 
 class ProfileRemoteDataSourceException implements Exception {
   const ProfileRemoteDataSourceException(this.message);
@@ -23,26 +20,29 @@ abstract class ProfileRemoteDataSource {
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
-  ProfileRemoteDataSourceImpl({TablesDB? tablesDb})
-    : _tablesDb = tablesDb ?? TablesDB(client);
+  ProfileRemoteDataSourceImpl({SupabaseClient? client})
+    : _client = client ?? supabase;
 
-  final TablesDB _tablesDb;
+  final SupabaseClient _client;
 
   @override
   Future<UserProfile?> fetchProfile(String userId) async {
     try {
-      final models.Row row = await _tablesDb.getRow(
-        databaseId: _databaseId,
-        tableId: _usersCollectionId,
-        rowId: userId,
-      );
-      return _mapRow(userId, row.data);
-    } on AppwriteException catch (e) {
-      if (e.code == 404) {
+      final Map<String, dynamic>? row = await _client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .maybeSingle();
+      if (row == null) {
+        return null;
+      }
+      return _mapRow(userId, row);
+    } catch (e) {
+      if (isNotFoundError(e)) {
         return null;
       }
       throw ProfileRemoteDataSourceException(
-        e.message ?? 'Could not load your profile.',
+        postgrestMessage(e, 'Could not load your profile.'),
       );
     }
   }
@@ -50,41 +50,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<UserProfile> upsertProfile(UserProfile profile) async {
     final Map<String, dynamic> data = <String, dynamic>{
-      'userId': profile.id,
-      'displayName': profile.displayName,
-      'avatarStyle': profile.avatarStyle,
-      'signatureColorValue': profile.signatureColorValue,
+      'id': profile.id,
+      'display_name': profile.displayName,
+      'avatar_style': profile.avatarStyle,
+      'signature_color_value': profile.signatureColorValue,
     };
 
     try {
-      await _tablesDb.updateRow(
-        databaseId: _databaseId,
-        tableId: _usersCollectionId,
-        rowId: profile.id,
-        data: data,
-      );
-    } on AppwriteException catch (e) {
-      if (e.code != 404) {
-        throw ProfileRemoteDataSourceException(
-          e.message ?? 'Could not save your profile.',
-        );
-      }
-      await _tablesDb.createRow(
-        databaseId: _databaseId,
-        tableId: _usersCollectionId,
-        rowId: profile.id,
-        data: <String, dynamic>{
-          ...data,
-          'email': '${profile.id}@phone.lumi.app',
-          'name': profile.displayName,
-          'photoUrl': null,
-          'createdAt': DateTime.now().toUtc().toIso8601String(),
-        },
-        permissions: <String>[
-          Permission.read(Role.user(profile.id)),
-          Permission.update(Role.user(profile.id)),
-          Permission.delete(Role.user(profile.id)),
-        ],
+      await _client.from('profiles').upsert(<String, dynamic>{
+        ...data,
+        'email': '${profile.id}@phone.lumi.app',
+        'name': profile.displayName,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } catch (e) {
+      throw ProfileRemoteDataSourceException(
+        postgrestMessage(e, 'Could not save your profile.'),
       );
     }
 
@@ -92,18 +73,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   UserProfile? _mapRow(String userId, Map<String, dynamic> data) {
-    final String displayName = (data['displayName'] as String?)?.trim() ?? '';
+    final String displayName = (data['display_name'] as String?)?.trim() ?? '';
     if (displayName.isEmpty) {
       return null;
     }
     return UserProfileModel(
       id: userId,
       displayName: displayName,
-      avatarStyle: (data['avatarStyle'] as String?)?.trim().isNotEmpty == true
-          ? data['avatarStyle'] as String
+      avatarStyle: (data['avatar_style'] as String?)?.trim().isNotEmpty == true
+          ? data['avatar_style'] as String
           : UserProfile.avatarOptions.first,
       signatureColorValue:
-          data['signatureColorValue'] as int? ?? 0xFFFF7D6B,
+          data['signature_color_value'] as int? ?? 0xFFFF7D6B,
     );
   }
 }

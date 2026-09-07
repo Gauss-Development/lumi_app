@@ -1,18 +1,14 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 
-import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart' as models;
+import 'package:postgrest/postgrest.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lumi/core/constants/lumi_limits.dart';
-import 'package:lumi/core/network/appwrite_client.dart';
+import 'package:lumi/core/network/supabase_client.dart';
+import 'package:lumi/core/network/supabase_errors.dart';
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/domain/entities/invitation.dart';
-
-const String _databaseId = 'lumi';
-const String _membersTable = 'circle_members';
-const String _invitationsTable = 'invitations';
-const String _usersTable = 'users';
 
 const String _codeAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const int _codeLength = 10;
@@ -39,11 +35,11 @@ class InviteCodeIsOwn implements Exception {
 class AcceptInvitationStepFailed implements Exception {
   const AcceptInvitationStepFailed(this.step, this.cause);
   final String step;
-  final AppwriteException cause;
+  final PostgrestException cause;
 
   String get reason {
-    final String message = cause.message ?? cause.type ?? 'unknown error';
-    return '$step: $message (HTTP ${cause.code})';
+    final String message = cause.message.isNotEmpty ? cause.message : 'unknown error';
+    return '$step: $message';
   }
 
   @override
@@ -51,72 +47,75 @@ class AcceptInvitationStepFailed implements Exception {
 }
 
 class CircleRemoteDataSource {
-  CircleRemoteDataSource({TablesDB? tablesDb, Account? account, Random? random})
-    : _tablesDb = tablesDb ?? TablesDB(client),
-      _account = account ?? Account(client),
+  CircleRemoteDataSource({SupabaseClient? client, Random? random})
+    : _client = client ?? supabase,
       _random = random ?? Random.secure();
 
-  final TablesDB _tablesDb;
-  final Account _account;
+  final SupabaseClient _client;
   final Random _random;
 
   Future<_OwnerProfile> _ownerProfile() async {
-    final models.User user = await _account.get();
+    final User user = _client.auth.currentUser!;
     final _OwnerProfile fallback = _OwnerProfile(
-      userId: user.$id,
-      displayName: user.name.isNotEmpty
-          ? user.name
-          : (user.email.split('@').first),
+      userId: user.id,
+      displayName: _displayNameFromUser(user),
       signatureColorValue: _defaultSignatureColorValue,
     );
     try {
-      final models.Row row = await _tablesDb.getRow(
-        databaseId: _databaseId,
-        tableId: _usersTable,
-        rowId: user.$id,
-      );
-      final Map<String, dynamic> data = row.data;
+      final Map<String, dynamic>? row = await _client
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .maybeSingle();
+      if (row == null) {
+        return fallback;
+      }
       return _OwnerProfile(
-        userId: user.$id,
-        displayName: (data['displayName'] as String?)?.trim().isNotEmpty == true
-            ? data['displayName'] as String
+        userId: user.id,
+        displayName: (row['display_name'] as String?)?.trim().isNotEmpty == true
+            ? row['display_name'] as String
             : fallback.displayName,
         signatureColorValue:
-            data['signatureColorValue'] as int? ?? fallback.signatureColorValue,
+            row['signature_color_value'] as int? ?? fallback.signatureColorValue,
       );
-    } on AppwriteException catch (_) {
+    } catch (_) {
       return fallback;
     }
   }
 
-  // ----- Members -----
+  String _displayNameFromUser(User user) {
+    final String? metaName = user.userMetadata?['name'] as String?;
+    if (metaName != null && metaName.isNotEmpty) {
+      return metaName;
+    }
+    if (user.email != null && user.email!.isNotEmpty) {
+      return user.email!.split('@').first;
+    }
+    return 'Lumi';
+  }
 
   Future<List<CircleMember>> getMembers() async {
     final _OwnerProfile owner = await _ownerProfile();
     try {
       await _syncAcceptedInvitationsForOwner(owner);
-    } on AppwriteException catch (e) {
+    } on PostgrestException catch (e) {
       developer.log(
-        'invite/syncAccepted failed (http=${e.code})',
+        'invite/syncAccepted failed',
         name: 'CircleRemoteDataSource',
         error: e,
       );
     }
-    final models.RowList result = await _tablesDb.listRows(
-      databaseId: _databaseId,
-      tableId: _membersTable,
-      queries: <String>[Query.equal('ownerUserId', owner.userId)],
-    );
-    final List<models.Row> rows = result.rows.toList()
-      ..sort((a, b) => b.$createdAt.compareTo(a.$createdAt));
+    final List<dynamic> rows = await _client
+        .from('circle_members')
+        .select()
+        .eq('owner_user_id', owner.userId)
+        .order('created_at', ascending: false);
     final List<CircleMember> members = <CircleMember>[];
-    for (final models.Row row in rows) {
+    for (final dynamic row in rows) {
       try {
-        members.add(_memberFromRow(row));
+        members.add(_memberFromRow(row as Map<String, dynamic>));
       } catch (_) {
-        // Skip legacy rows with incompatible data (e.g. pre-redesign status
-        // values like "pendingOutbound"). Delete via Appwrite Console if you
-        // want them gone.
+        // Skip legacy rows with incompatible data.
       }
     }
     return members;
@@ -128,7 +127,7 @@ class CircleRemoteDataSource {
   }) {
     return _patchMember(memberId, <String, dynamic>{
       'status': CircleStatus.muted.name,
-      'mutedUntil': until.toUtc().toIso8601String(),
+      'muted_until': until.toUtc().toIso8601String(),
       'subtitle': 'Muted for one week',
     });
   }
@@ -153,8 +152,8 @@ class CircleRemoteDataSource {
       }
       await _deleteMemberRow(memberId);
       return true;
-    } on AppwriteException catch (e) {
-      if (e.code == 404) {
+    } on PostgrestException catch (e) {
+      if (isNotFoundError(e)) {
         return false;
       }
       rethrow;
@@ -179,13 +178,11 @@ class CircleRemoteDataSource {
         : existing.queuedCount.clamp(0, LumiLimits.maxLumisPerPairPerDay);
 
     await _patchMember(memberId, <String, dynamic>{
-      'paceCount': nextPace.clamp(0, LumiLimits.maxLumisPerPairPerDay),
-      'queuedCount': nextQueued,
-      'lastInteractionAt': now.toUtc().toIso8601String(),
+      'pace_count': nextPace.clamp(0, LumiLimits.maxLumisPerPairPerDay),
+      'queued_count': nextQueued,
+      'last_interaction_at': now.toUtc().toIso8601String(),
     });
   }
-
-  // ----- Invitations -----
 
   Future<Invitation> createInvitation({
     required String inviteeLabel,
@@ -199,31 +196,24 @@ class CircleRemoteDataSource {
     for (int attempt = 0; attempt < 4; attempt++) {
       final String code = _generateCode();
       try {
-        final models.Row row = await _tablesDb.createRow(
-          databaseId: _databaseId,
-          tableId: _invitationsTable,
-          rowId: code,
-          data: <String, dynamic>{
-            'inviterUserId': inviter.userId,
-            'inviterDisplayName': inviter.displayName,
-            'inviterSignatureColorValue': inviter.signatureColorValue,
-            'inviteeLabel': inviteeLabel,
-            'inviteeRelationshipLabel': inviteeRelationshipLabel,
-            'status': InvitationStatus.pending.name,
-            'createdAt': now.toIso8601String(),
-            'expiresAt': expiresAt.toIso8601String(),
-          },
-          permissions: <String>[
-            // Anyone authenticated can read the row by id (the code) and
-            // mark it accepted. The inviter retains delete rights.
-            Permission.read(Role.users()),
-            Permission.update(Role.users()),
-            Permission.delete(Role.user(inviter.userId)),
-          ],
-        );
+        final Map<String, dynamic> row = await _client
+            .from('invitations')
+            .insert(<String, dynamic>{
+              'code': code,
+              'inviter_user_id': inviter.userId,
+              'inviter_display_name': inviter.displayName,
+              'inviter_signature_color_value': inviter.signatureColorValue,
+              'invitee_label': inviteeLabel,
+              'invitee_relationship_label': inviteeRelationshipLabel,
+              'status': InvitationStatus.pending.name,
+              'created_at': now.toIso8601String(),
+              'expires_at': expiresAt.toIso8601String(),
+            })
+            .select()
+            .single();
         return _invitationFromRow(row);
-      } on AppwriteException catch (e) {
-        if (e.code == 409) {
+      } on PostgrestException catch (e) {
+        if (e.code == '23505') {
           lastError = 'Code collided; retrying.';
           continue;
         }
@@ -233,30 +223,24 @@ class CircleRemoteDataSource {
     throw StateError(lastError ?? 'Could not allocate an invite code.');
   }
 
-  /// Accepts an invitation by code. Creates two `circle_members` rows
-  /// (one in each circle) and marks the invitation as accepted.
-  ///
-  /// Throws [InviteCodeNotFound], [InviteCodeExpired],
-  /// [InviteCodeAlreadyUsed], or [InviteCodeIsOwn]; otherwise wraps the
-  /// underlying Appwrite error with the step that failed so the message
-  /// surfaces in the UI.
   Future<CircleMember> acceptInvitation(String rawCode) async {
     final String code = rawCode.trim().toUpperCase();
     final _OwnerProfile invitee = await _ownerProfile();
 
-    final models.Row invitationRow;
+    final Map<String, dynamic> invitationRow;
     try {
-      invitationRow = await _tablesDb.getRow(
-        databaseId: _databaseId,
-        tableId: _invitationsTable,
-        rowId: code,
-      );
-    } on AppwriteException catch (e) {
-      if (e.code == 404) {
+      final Map<String, dynamic>? row = await _client
+          .from('invitations')
+          .select()
+          .eq('code', code)
+          .maybeSingle();
+      if (row == null) {
         throw const InviteCodeNotFound();
       }
+      invitationRow = row;
+    } on PostgrestException catch (e) {
       developer.log(
-        'invite/getRow failed (code=$code, http=${e.code})',
+        'invite/getRow failed (code=$code)',
         name: 'CircleRemoteDataSource',
         error: e,
       );
@@ -280,10 +264,7 @@ class CircleRemoteDataSource {
     final String inviterMemberId = _inviterMemberIdForCode(code);
     final String inviteeMemberId = _inviteeMemberIdForCode(code);
 
-    // Step 1: the invitee writes only their own member row. The inviter-side
-    // row is materialized by the inviter's client when it next loads accepted
-    // invitations, avoiding cross-user document permission failures.
-    late models.Row inviteeOwnedRow;
+    late Map<String, dynamic> inviteeOwnedRow;
     try {
       inviteeOwnedRow = await _createMemberRow(
         rowId: inviteeMemberId,
@@ -295,16 +276,16 @@ class CircleRemoteDataSource {
         signatureColorValue: invitation.inviterSignatureColorValue,
         createdAt: createdAt,
       );
-    } on AppwriteException catch (e) {
-      if (e.code == 409) {
-        inviteeOwnedRow = await _tablesDb.getRow(
-          databaseId: _databaseId,
-          tableId: _membersTable,
-          rowId: inviteeMemberId,
-        );
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') {
+        inviteeOwnedRow = await _client
+            .from('circle_members')
+            .select()
+            .eq('id', inviteeMemberId)
+            .single();
       } else {
         developer.log(
-          'invite/createOwnRow failed (http=${e.code})',
+          'invite/createOwnRow failed',
           name: 'CircleRemoteDataSource',
           error: e,
         );
@@ -312,26 +293,19 @@ class CircleRemoteDataSource {
       }
     }
 
-    // Step 2: record the accepted invite. The inviter can later create their
-    // own row from these fields using their own credentials.
     try {
-      await _tablesDb.updateRow(
-        databaseId: _databaseId,
-        tableId: _invitationsTable,
-        rowId: code,
-        data: <String, dynamic>{
-          'status': InvitationStatus.accepted.name,
-          'inviteeUserId': invitee.userId,
-          'inviteeDisplayName': invitee.displayName,
-          'inviteeSignatureColorValue': invitee.signatureColorValue,
-          'inviterMemberId': inviterMemberId,
-          'inviteeMemberId': inviteeMemberId,
-          'acceptedAt': acceptedAt.toIso8601String(),
-        },
-      );
-    } on AppwriteException catch (e) {
+      await _client.from('invitations').update(<String, dynamic>{
+        'status': InvitationStatus.accepted.name,
+        'invitee_user_id': invitee.userId,
+        'invitee_display_name': invitee.displayName,
+        'invitee_signature_color_value': invitee.signatureColorValue,
+        'inviter_member_id': inviterMemberId,
+        'invitee_member_id': inviteeMemberId,
+        'accepted_at': acceptedAt.toIso8601String(),
+      }).eq('code', code);
+    } on PostgrestException catch (e) {
       developer.log(
-        'invite/markAccepted failed (http=${e.code})',
+        'invite/markAccepted failed',
         name: 'CircleRemoteDataSource',
         error: e,
       );
@@ -342,29 +316,26 @@ class CircleRemoteDataSource {
   }
 
   Future<void> _syncAcceptedInvitationsForOwner(_OwnerProfile owner) async {
-    final models.RowList result;
+    List<dynamic> rows;
     try {
-      result = await _tablesDb.listRows(
-        databaseId: _databaseId,
-        tableId: _invitationsTable,
-        queries: <String>[
-          Query.equal('inviterUserId', owner.userId),
-          Query.limit(100),
-        ],
-      );
-    } on AppwriteException catch (e) {
+      rows = await _client
+          .from('invitations')
+          .select()
+          .eq('inviter_user_id', owner.userId)
+          .limit(100);
+    } on PostgrestException catch (e) {
       developer.log(
-        'invite/listAccepted failed (http=${e.code})',
+        'invite/listAccepted failed',
         name: 'CircleRemoteDataSource',
         error: e,
       );
       return;
     }
 
-    for (final models.Row row in result.rows) {
+    for (final dynamic row in rows) {
       final Invitation invitation;
       try {
-        invitation = _invitationFromRow(row);
+        invitation = _invitationFromRow(row as Map<String, dynamic>);
       } catch (_) {
         continue;
       }
@@ -382,9 +353,9 @@ class CircleRemoteDataSource {
       final CircleMember? existing;
       try {
         existing = await _getMember(inviterMemberId);
-      } on AppwriteException catch (e) {
+      } on PostgrestException catch (e) {
         developer.log(
-          'invite/checkInviterRow failed (code=${invitation.code}, http=${e.code})',
+          'invite/checkInviterRow failed (code=${invitation.code})',
           name: 'CircleRemoteDataSource',
           error: e,
         );
@@ -414,19 +385,16 @@ class CircleRemoteDataSource {
         );
         if (invitation.inviterMemberId == null ||
             invitation.inviterMemberId!.isEmpty) {
-          await _tablesDb.updateRow(
-            databaseId: _databaseId,
-            tableId: _invitationsTable,
-            rowId: invitation.code,
-            data: <String, dynamic>{'inviterMemberId': inviterMemberId},
-          );
+          await _client.from('invitations').update(<String, dynamic>{
+            'inviter_member_id': inviterMemberId,
+          }).eq('code', invitation.code);
         }
-      } on AppwriteException catch (e) {
-        if (e.code == 409) {
+      } on PostgrestException catch (e) {
+        if (e.code == '23505') {
           continue;
         }
         developer.log(
-          'invite/syncInviterRow failed (code=${invitation.code}, http=${e.code})',
+          'invite/syncInviterRow failed (code=${invitation.code})',
           name: 'CircleRemoteDataSource',
           error: e,
         );
@@ -434,18 +402,16 @@ class CircleRemoteDataSource {
     }
   }
 
-  // ----- Helpers -----
-
   Future<CircleMember?> _getMember(String memberId) async {
     try {
-      final models.Row row = await _tablesDb.getRow(
-        databaseId: _databaseId,
-        tableId: _membersTable,
-        rowId: memberId,
-      );
+      final Map<String, dynamic> row = await _client
+          .from('circle_members')
+          .select()
+          .eq('id', memberId)
+          .single();
       return _memberFromRow(row);
-    } on AppwriteException catch (e) {
-      if (e.code == 404) {
+    } on PostgrestException catch (e) {
+      if (isNotFoundError(e)) {
         return null;
       }
       rethrow;
@@ -453,14 +419,10 @@ class CircleRemoteDataSource {
   }
 
   Future<void> _deleteMemberRow(String memberId) async {
-    await _tablesDb.deleteRow(
-      databaseId: _databaseId,
-      tableId: _membersTable,
-      rowId: memberId,
-    );
+    await _client.from('circle_members').delete().eq('id', memberId);
   }
 
-  Future<models.Row> _createMemberRow({
+  Future<Map<String, dynamic>> _createMemberRow({
     required String rowId,
     required String ownerUserId,
     required String memberUserId,
@@ -472,29 +434,24 @@ class CircleRemoteDataSource {
     String? relationshipLabel,
   }) {
     final Map<String, dynamic> data = <String, dynamic>{
-      'ownerUserId': ownerUserId,
-      'memberUserId': memberUserId,
-      'reciprocalMemberId': reciprocalMemberId,
-      'invitationCode': invitationCode,
-      'displayName': displayName,
-      'signatureColorValue': signatureColorValue,
+      'id': rowId,
+      'owner_user_id': ownerUserId,
+      'member_user_id': memberUserId,
+      'reciprocal_member_id': reciprocalMemberId,
+      'invitation_code': invitationCode,
+      'display_name': displayName,
+      'signature_color_value': signatureColorValue,
       'status': CircleStatus.active.name,
-      'paceCount': 0,
-      'queuedCount': 0,
-      'mutualConnection': true,
+      'pace_count': 0,
+      'queued_count': 0,
+      'mutual_connection': true,
       'subtitle': 'Connected through an invite',
-      'createdAt': createdAt,
+      'created_at': createdAt,
     };
     if (relationshipLabel != null && relationshipLabel.isNotEmpty) {
-      data['relationshipLabel'] = relationshipLabel;
+      data['relationship_label'] = relationshipLabel;
     }
-    return _tablesDb.createRow(
-      databaseId: _databaseId,
-      tableId: _membersTable,
-      rowId: rowId,
-      data: data,
-      permissions: _ownerMemberPermissions(ownerUserId),
-    );
+    return _client.from('circle_members').insert(data).select().single();
   }
 
   Future<CircleMember?> _patchMember(
@@ -502,15 +459,15 @@ class CircleRemoteDataSource {
     Map<String, dynamic> data,
   ) async {
     try {
-      final models.Row row = await _tablesDb.updateRow(
-        databaseId: _databaseId,
-        tableId: _membersTable,
-        rowId: memberId,
-        data: data,
-      );
+      final Map<String, dynamic> row = await _client
+          .from('circle_members')
+          .update(data)
+          .eq('id', memberId)
+          .select()
+          .single();
       return _memberFromRow(row);
-    } on AppwriteException catch (e) {
-      if (e.code == 404) {
+    } on PostgrestException catch (e) {
+      if (isNotFoundError(e)) {
         return null;
       }
       rethrow;
@@ -525,26 +482,25 @@ class CircleRemoteDataSource {
     return buffer.toString();
   }
 
-  CircleMember _memberFromRow(models.Row row) {
-    final Map<String, dynamic> data = row.data;
-    final dynamic lastInteraction = data['lastInteractionAt'];
-    final dynamic mutedUntil = data['mutedUntil'];
+  CircleMember _memberFromRow(Map<String, dynamic> data) {
+    final dynamic lastInteraction = data['last_interaction_at'];
+    final dynamic mutedUntil = data['muted_until'];
     return CircleMember(
-      id: row.$id,
-      ownerUserId: data['ownerUserId'] as String?,
-      memberUserId: data['memberUserId'] as String?,
-      reciprocalMemberId: data['reciprocalMemberId'] as String?,
-      invitationCode: data['invitationCode'] as String?,
-      displayName: data['displayName'] as String? ?? '',
+      id: data['id'] as String,
+      ownerUserId: data['owner_user_id'] as String?,
+      memberUserId: data['member_user_id'] as String?,
+      reciprocalMemberId: data['reciprocal_member_id'] as String?,
+      invitationCode: data['invitation_code'] as String?,
+      displayName: data['display_name'] as String? ?? '',
       signatureColorValue:
-          data['signatureColorValue'] as int? ?? _defaultSignatureColorValue,
+          data['signature_color_value'] as int? ?? _defaultSignatureColorValue,
       status: CircleStatus.values.byName(
         data['status'] as String? ?? CircleStatus.active.name,
       ),
-      paceCount: data['paceCount'] as int? ?? 0,
-      queuedCount: data['queuedCount'] as int? ?? 0,
-      mutualConnection: data['mutualConnection'] as bool? ?? false,
-      relationshipLabel: data['relationshipLabel'] as String?,
+      paceCount: data['pace_count'] as int? ?? 0,
+      queuedCount: data['queued_count'] as int? ?? 0,
+      mutualConnection: data['mutual_connection'] as bool? ?? false,
+      relationshipLabel: data['relationship_label'] as String?,
       lastInteractionAt: lastInteraction is String && lastInteraction.isNotEmpty
           ? DateTime.tryParse(lastInteraction)
           : null,
@@ -555,41 +511,32 @@ class CircleRemoteDataSource {
     );
   }
 
-  Invitation _invitationFromRow(models.Row row) {
-    final Map<String, dynamic> data = row.data;
+  Invitation _invitationFromRow(Map<String, dynamic> data) {
     return Invitation(
-      code: row.$id,
-      inviterUserId: data['inviterUserId'] as String? ?? '',
-      inviterDisplayName: data['inviterDisplayName'] as String? ?? '',
+      code: data['code'] as String,
+      inviterUserId: data['inviter_user_id'] as String? ?? '',
+      inviterDisplayName: data['inviter_display_name'] as String? ?? '',
       inviterSignatureColorValue:
-          data['inviterSignatureColorValue'] as int? ??
+          data['inviter_signature_color_value'] as int? ??
           _defaultSignatureColorValue,
-      inviteeLabel: data['inviteeLabel'] as String? ?? '',
-      inviteeRelationshipLabel: data['inviteeRelationshipLabel'] as String?,
+      inviteeLabel: data['invitee_label'] as String? ?? '',
+      inviteeRelationshipLabel: data['invitee_relationship_label'] as String?,
       status: InvitationStatus.values.byName(
         data['status'] as String? ?? InvitationStatus.pending.name,
       ),
       createdAt:
-          DateTime.tryParse(data['createdAt'] as String? ?? '') ??
+          DateTime.tryParse(data['created_at'] as String? ?? '') ??
           DateTime.now().toUtc(),
       expiresAt:
-          DateTime.tryParse(data['expiresAt'] as String? ?? '') ??
+          DateTime.tryParse(data['expires_at'] as String? ?? '') ??
           DateTime.now().toUtc().add(_invitationLifetime),
-      inviteeUserId: data['inviteeUserId'] as String?,
-      inviteeDisplayName: data['inviteeDisplayName'] as String?,
-      inviteeSignatureColorValue: data['inviteeSignatureColorValue'] as int?,
-      inviterMemberId: data['inviterMemberId'] as String?,
-      inviteeMemberId: data['inviteeMemberId'] as String?,
-      acceptedAt: DateTime.tryParse(data['acceptedAt'] as String? ?? ''),
+      inviteeUserId: data['invitee_user_id'] as String?,
+      inviteeDisplayName: data['invitee_display_name'] as String?,
+      inviteeSignatureColorValue: data['invitee_signature_color_value'] as int?,
+      inviterMemberId: data['inviter_member_id'] as String?,
+      inviteeMemberId: data['invitee_member_id'] as String?,
+      acceptedAt: DateTime.tryParse(data['accepted_at'] as String? ?? ''),
     );
-  }
-
-  List<String> _ownerMemberPermissions(String ownerUserId) {
-    return <String>[
-      Permission.read(Role.user(ownerUserId)),
-      Permission.update(Role.user(ownerUserId)),
-      Permission.delete(Role.user(ownerUserId)),
-    ];
   }
 
   String _inviterMemberIdForCode(String code) => 'inv_${code.toLowerCase()}';

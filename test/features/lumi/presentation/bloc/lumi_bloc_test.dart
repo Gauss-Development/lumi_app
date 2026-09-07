@@ -8,6 +8,7 @@ import 'package:lumi/features/lumi/domain/usecases/clear_doodle_draft_usecase.da
 import 'package:lumi/features/lumi/domain/usecases/get_recent_lumis_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/mark_lumi_seen_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/react_to_lumi_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/reply_with_pure_lumi_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
@@ -20,6 +21,9 @@ class _MockSendLumiUseCase extends Mock implements SendLumiUseCase {}
 class _MockReactToLumiUseCase extends Mock implements ReactToLumiUseCase {}
 
 class _MockMarkLumiSeenUseCase extends Mock implements MarkLumiSeenUseCase {}
+
+class _MockReplyWithPureLumiUseCase extends Mock
+    implements ReplyWithPureLumiUseCase {}
 
 class _MockSaveDoodleDraftUseCase extends Mock
     implements SaveDoodleDraftUseCase {}
@@ -49,6 +53,7 @@ void main() {
       getRecentLumisUseCase: getRecentLumisUseCase,
       sendLumiUseCase: _MockSendLumiUseCase(),
       reactToLumiUseCase: _MockReactToLumiUseCase(),
+      replyWithPureLumiUseCase: _MockReplyWithPureLumiUseCase(),
       markLumiSeenUseCase: _MockMarkLumiSeenUseCase(),
       saveDoodleDraftUseCase: _MockSaveDoodleDraftUseCase(),
       clearDoodleDraftUseCase: _MockClearDoodleDraftUseCase(),
