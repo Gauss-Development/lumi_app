@@ -24,17 +24,22 @@ class PresenceBloc extends Bloc<PresenceEvent, PresenceState> {
     _HeartbeatRequested event,
     Emitter<PresenceState> emit,
   ) async {
-    emit(const PresenceState.loading());
     final sessionResult = await _recordPresenceHeartbeatUseCase();
-    final togetherMomentResult = await _detectTogetherMomentUseCase();
+    if (sessionResult.isLeft()) {
+      return;
+    }
 
-    sessionResult.fold(
-      (failure) => emit(PresenceState.failure(failure.message)),
-      (session) => emit(
-        PresenceState.loaded(
-          session: session,
-          togetherMoment: togetherMomentResult.getOrElse(() => null),
-        ),
+    final PresenceSession session = sessionResult.getOrElse(
+      () => throw StateError('Presence session missing after success.'),
+    );
+    final togetherMomentResult = await _detectTogetherMomentUseCase();
+    final TogetherMoment? togetherMoment =
+        togetherMomentResult.getOrElse(() => null);
+
+    emit(
+      PresenceState.loaded(
+        session: session,
+        togetherMoment: togetherMoment,
       ),
     );
   }

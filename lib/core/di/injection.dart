@@ -37,6 +37,12 @@ import 'package:lumi/features/circle/domain/usecases/memorialize_member_usecase.
 import 'package:lumi/features/circle/domain/usecases/mute_member_usecase.dart';
 import 'package:lumi/features/circle/domain/usecases/remove_member_usecase.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
+import 'package:lumi/features/presence/data/datasources/presence_remote_data_source.dart';
+import 'package:lumi/features/presence/data/repositories/presence_repository_impl.dart';
+import 'package:lumi/features/presence/domain/repositories/presence_repository.dart';
+import 'package:lumi/features/presence/domain/usecases/detect_together_moment_usecase.dart';
+import 'package:lumi/features/presence/domain/usecases/record_presence_heartbeat_usecase.dart';
+import 'package:lumi/features/presence/presentation/bloc/presence_bloc.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_local_data_source.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_remote_data_source.dart';
 import 'package:lumi/features/lumi/data/repositories/lumi_repository_impl.dart';
@@ -197,6 +203,16 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
     ),
   );
 
+  sl.registerLazySingleton<PresenceRemoteDataSource>(
+    PresenceRemoteDataSource.new,
+  );
+  sl.registerLazySingleton<PresenceRepository>(
+    () => PresenceRepositoryImpl(
+      remoteDataSource: sl<PresenceRemoteDataSource>(),
+      circleRemoteDataSource: sl<CircleRemoteDataSource>(),
+    ),
+  );
+
   sl.registerLazySingleton<ShelfLocalDataSource>(
     () => ShelfLocalDataSource(sl<PreferencesService>()),
   );
@@ -306,6 +322,13 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
     () => ClearDoodleDraftUseCase(sl<LumiRepository>()),
   );
 
+  sl.registerLazySingleton<RecordPresenceHeartbeatUseCase>(
+    () => RecordPresenceHeartbeatUseCase(sl<PresenceRepository>()),
+  );
+  sl.registerLazySingleton<DetectTogetherMomentUseCase>(
+    () => DetectTogetherMomentUseCase(sl<PresenceRepository>()),
+  );
+
   sl.registerLazySingleton<GetKeptLumisUseCase>(
     () => GetKeptLumisUseCase(sl<ShelfRepository>()),
   );
@@ -366,6 +389,12 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
       markLumiSeenUseCase: sl<MarkLumiSeenUseCase>(),
       saveDoodleDraftUseCase: sl<SaveDoodleDraftUseCase>(),
       clearDoodleDraftUseCase: sl<ClearDoodleDraftUseCase>(),
+    ),
+  );
+  sl.registerFactory<PresenceBloc>(
+    () => PresenceBloc(
+      recordPresenceHeartbeatUseCase: sl<RecordPresenceHeartbeatUseCase>(),
+      detectTogetherMomentUseCase: sl<DetectTogetherMomentUseCase>(),
     ),
   );
   sl.registerFactory<SettingsBloc>(
