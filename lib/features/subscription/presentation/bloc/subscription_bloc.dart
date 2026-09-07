@@ -30,11 +30,24 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final PurchasePlanUseCase _purchasePlanUseCase;
   final RestorePurchasesUseCase _restorePurchasesUseCase;
 
+  SubscriptionState _loadingFromCurrent() {
+    return state.maybeWhen(
+      loaded: (EntitlementStatus status, List<PaywallPlan> plans) =>
+          SubscriptionState.loading(previousStatus: status, plans: plans),
+      loading: (EntitlementStatus? previousStatus, List<PaywallPlan> plans) =>
+          SubscriptionState.loading(
+            previousStatus: previousStatus,
+            plans: plans,
+          ),
+      orElse: () => const SubscriptionState.loading(),
+    );
+  }
+
   Future<void> _onLoadRequested(
     _LoadRequested event,
     Emitter<SubscriptionState> emit,
   ) async {
-    emit(const SubscriptionState.loading());
+    emit(_loadingFromCurrent());
 
     final statusResult = await _getEntitlementStatusUseCase();
     final plansResult = await _fetchPaywallPlansUseCase();
@@ -52,7 +65,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     _PurchaseRequested event,
     Emitter<SubscriptionState> emit,
   ) async {
-    emit(const SubscriptionState.loading());
+    emit(_loadingFromCurrent());
     final result = await _purchasePlanUseCase(event.planId);
     result.fold(
       (failure) => emit(SubscriptionState.failure(failure.message)),
@@ -64,7 +77,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     _RestoreRequested event,
     Emitter<SubscriptionState> emit,
   ) async {
-    emit(const SubscriptionState.loading());
+    emit(_loadingFromCurrent());
     final result = await _restorePurchasesUseCase();
     result.fold(
       (failure) => emit(SubscriptionState.failure(failure.message)),
@@ -84,7 +97,10 @@ class SubscriptionEvent with _$SubscriptionEvent {
 @freezed
 class SubscriptionState with _$SubscriptionState {
   const factory SubscriptionState.initial() = _Initial;
-  const factory SubscriptionState.loading() = _Loading;
+  const factory SubscriptionState.loading({
+    EntitlementStatus? previousStatus,
+    @Default(<PaywallPlan>[]) List<PaywallPlan> plans,
+  }) = _Loading;
   const factory SubscriptionState.loaded({
     required EntitlementStatus status,
     required List<PaywallPlan> plans,

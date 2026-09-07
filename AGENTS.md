@@ -32,7 +32,7 @@ Do **not** run `make setup` on Linux cloud VMs — it always runs `make pods` (i
 | Run (mobile flavor) | `make run` — needs Android/iOS device or emulator |
 | Web build (CI parity) | `flutter build web --target lib/main_development.dart` |
 | Apply DB schema | `supabase db push` (see `tool/SUPABASE_README.md`) |
-| Deploy edge functions | `supabase functions deploy send_lumi` / `react_lumi` |
+| Deploy edge functions | `make deploy-functions` |
 
 Full Makefile targets: `make help`.
 
@@ -52,4 +52,4 @@ Loaded from `assets/env/.env.development` (dev) or `.env.production` via `Enviro
 
 ### Backend for real E2E (auth, circle, send Lumi)
 
-Requires a provisioned Supabase project with schema migration applied and `send_lumi` / `react_lumi` edge functions deployed — see `tool/SUPABASE_README.md`. Not needed for `flutter test` / `flutter analyze`.
+Requires a provisioned Supabase project with schema migration applied and edge functions deployed — see `tool/SUPABASE_README.md`. Not needed for `flutter test` / `flutter analyze`.

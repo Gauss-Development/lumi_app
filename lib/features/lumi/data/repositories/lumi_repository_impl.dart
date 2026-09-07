@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_local_data_source.dart';
@@ -56,9 +57,29 @@ class LumiRepositoryImpl implements LumiRepository {
         queued: queued,
       );
       return Right(lumi);
+    } on PostgrestException catch (e) {
+      return Left(_mapSendFailure(e));
     } catch (e) {
       return Left(UnexpectedFailure('Unable to send your Lumi. ($e)'));
     }
+  }
+
+  Failure _mapSendFailure(PostgrestException error) {
+    final String message = error.message;
+    final bool isRateLimited =
+        error.code == '429' ||
+        message.toLowerCase().contains('gentle limit') ||
+        message.toLowerCase().contains('pace');
+    if (isRateLimited) {
+      return ValidationFailure(
+        message.isNotEmpty
+            ? message
+            : 'Gentle limit reached for this person today.',
+      );
+    }
+    return UnexpectedFailure(
+      message.isNotEmpty ? message : 'Unable to send your Lumi.',
+    );
   }
 
   @override

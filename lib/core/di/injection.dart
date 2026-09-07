@@ -9,6 +9,7 @@ import 'package:lumi/core/services/acknowledged_reactions_service.dart';
 import 'package:lumi/core/services/encryption_service.dart';
 import 'package:lumi/core/services/haptics_service.dart';
 import 'package:lumi/core/services/invite_deep_link_service.dart';
+import 'package:lumi/core/services/member_haptic_preferences_service.dart';
 import 'package:lumi/core/services/notification_service.dart';
 import 'package:lumi/core/services/pending_invite_service.dart';
 import 'package:lumi/core/services/pending_lumi_notification_service.dart';
@@ -20,7 +21,10 @@ import 'package:lumi/core/services/widget_bridge_service.dart';
 import 'package:lumi/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:lumi/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:lumi/features/auth/domain/repositories/auth_repository.dart';
+import 'package:lumi/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/get_current_session_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/request_password_reset_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_in_with_apple_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_out_usecase.dart';
@@ -51,8 +55,6 @@ import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dar
 import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/onboarding/presentation/bloc/onboarding_bloc.dart';
-import 'package:lumi/features/auth/domain/usecases/request_phone_otp_usecase.dart';
-import 'package:lumi/features/auth/domain/usecases/verify_phone_otp_usecase.dart';
 import 'package:lumi/features/profile/data/datasources/profile_local_data_source.dart';
 import 'package:lumi/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:lumi/features/profile/data/repositories/profile_repository_impl.dart';
@@ -110,7 +112,12 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<EncryptionService>(
     () => EncryptionService(algorithm: Chacha20.poly1305Aead()),
   );
-  sl.registerLazySingleton<HapticsService>(HapticsService.new);
+  sl.registerLazySingleton<HapticsService>(
+    () => HapticsService(sl<PreferencesService>()),
+  );
+  sl.registerLazySingleton<MemberHapticPreferencesService>(
+    () => MemberHapticPreferencesService(sl<PreferencesService>()),
+  );
   sl.registerLazySingleton<WidgetBridgeService>(WidgetBridgeService.new);
   sl.registerLazySingleton<NotificationService>(
     () => NotificationService(FlutterLocalNotificationsPlugin()),
@@ -216,14 +223,17 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<SignInWithGoogleUseCase>(
     () => SignInWithGoogleUseCase(sl<AuthRepository>()),
   );
+  sl.registerLazySingleton<SignInWithAppleUseCase>(
+    () => SignInWithAppleUseCase(sl<AuthRepository>()),
+  );
   sl.registerLazySingleton<SignOutUseCase>(
     () => SignOutUseCase(sl<AuthRepository>()),
   );
-  sl.registerLazySingleton<RequestPhoneOtpUseCase>(
-    () => RequestPhoneOtpUseCase(sl<AuthRepository>()),
+  sl.registerLazySingleton<DeleteAccountUseCase>(
+    () => DeleteAccountUseCase(sl<AuthRepository>()),
   );
-  sl.registerLazySingleton<VerifyPhoneOtpUseCase>(
-    () => VerifyPhoneOtpUseCase(sl<AuthRepository>()),
+  sl.registerLazySingleton<RequestPasswordResetUseCase>(
+    () => RequestPasswordResetUseCase(sl<AuthRepository>()),
   );
 
   sl.registerLazySingleton<GetProfileUseCase>(
@@ -319,12 +329,13 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(
       getCurrentSessionUseCase: sl<GetCurrentSessionUseCase>(),
-      requestPhoneOtpUseCase: sl<RequestPhoneOtpUseCase>(),
-      verifyPhoneOtpUseCase: sl<VerifyPhoneOtpUseCase>(),
       signInWithEmailUseCase: sl<SignInWithEmailUseCase>(),
       signUpWithEmailUseCase: sl<SignUpWithEmailUseCase>(),
       signInWithGoogleUseCase: sl<SignInWithGoogleUseCase>(),
+      signInWithAppleUseCase: sl<SignInWithAppleUseCase>(),
       signOutUseCase: sl<SignOutUseCase>(),
+      deleteAccountUseCase: sl<DeleteAccountUseCase>(),
+      requestPasswordResetUseCase: sl<RequestPasswordResetUseCase>(),
     ),
   );
   sl.registerFactory<OnboardingBloc>(
@@ -393,4 +404,5 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   );
 
   await sl<AcknowledgedReactionsService>().ensureLoaded();
+  await sl<MemberHapticPreferencesService>().ensureLoaded();
 }

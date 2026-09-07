@@ -436,9 +436,9 @@ class _ShareCodeView extends StatelessWidget {
         SelectableText(
           inviteUrl,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 16),
         OutlinedButton.icon(
@@ -526,7 +526,7 @@ class _ReceiveCodeForm extends StatelessWidget {
         AnimatedBuilder(
           animation: codeController,
           builder: (BuildContext context, Widget? _) {
-            final bool canSubmit = codeController.text.trim().length >= 6;
+            final bool canSubmit = codeController.text.trim().length >= 10;
             return PrimaryGlowButton(
               label: 'Accept invite',
               glowColor: AppColors.softLavender,

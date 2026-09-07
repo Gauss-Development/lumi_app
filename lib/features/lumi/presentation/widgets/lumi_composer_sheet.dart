@@ -34,7 +34,7 @@ class LumiComposerSheet extends StatefulWidget {
 }
 
 class _LumiComposerSheetState extends State<LumiComposerSheet> {
-  final HapticsService _hapticsService = const HapticsService();
+  final HapticsService _hapticsService = sl<HapticsService>();
 
   LumiType _selectedType = LumiType.pure;
   int _selectedColorValue = AppColors.peach.toARGB32();
@@ -43,6 +43,7 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
   final List<DoodlePoint> _doodlePoints = <DoodlePoint>[];
   DateTime? _lastPulseTapAt;
   Timer? _draftSaveTimer;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -157,6 +158,10 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
   };
 
   Future<void> _sendLumi(BuildContext context, String senderId) async {
+    if (_isSending) {
+      return;
+    }
+    setState(() => _isSending = true);
     switch (_selectedType) {
       case LumiType.pure:
         context.read<LumiBloc>().add(
@@ -198,8 +203,6 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
     if (!context.mounted) {
       return;
     }
-    context.read<CircleBloc>().add(const CircleEvent.loadRequested());
-    Navigator.of(context).pop();
   }
 
   @override
@@ -214,162 +217,198 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
     final bool canSend =
         _canSendForType(_selectedType) &&
         entitlement.canSendLumiType(_selectedType) &&
-        !_atPaceLimit;
+        !_atPaceLimit &&
+        !_isSending;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.deepNight,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: AdaptiveSheetBody(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.04),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.08),
+    return BlocListener<LumiBloc, LumiState>(
+      listenWhen: (LumiState previous, LumiState current) {
+        if (!_isSending) {
+          return false;
+        }
+        return current.maybeMap(
+          failure: (_) => true,
+          loaded: (_) => true,
+          orElse: () => false,
+        );
+      },
+      listener: (BuildContext context, LumiState state) {
+        state.maybeMap(
+          failure: (failureState) {
+            setState(() => _isSending = false);
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text(failureState.failure.message)),
+              );
+          },
+          loaded: (_) {
+            context.read<CircleBloc>().add(const CircleEvent.loadRequested());
+            Navigator.of(context).pop();
+          },
+          orElse: () {},
+        );
+      },
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.deepNight,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: AdaptiveSheetBody(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      IconButton(
+                        onPressed: _isSending
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.04),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(999),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.08),
+                            ),
                           ),
                         ),
+                        icon: const Icon(Icons.arrow_back_rounded, size: 18),
                       ),
-                      icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                      Column(
+                        children: <Widget>[
+                          Text(
+                            'Sending to',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: AppColors.textFaint),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.member.displayName,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 40),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 260,
+                    child: Center(
+                      child: _selectedType == LumiType.doodle
+                          ? Container(
+                              width: 260,
+                              height: 260,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.03),
+                                borderRadius: BorderRadius.circular(28),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.08),
+                                ),
+                                boxShadow: <BoxShadow>[
+                                  BoxShadow(
+                                    color: selectedColor.withValues(
+                                      alpha: 0.16,
+                                    ),
+                                    blurRadius: 60,
+                                  ),
+                                ],
+                              ),
+                              child: DoodleCanvas(
+                                points: _doodlePoints,
+                                color: selectedColor,
+                                onChanged: (List<DoodlePoint> points) {
+                                  setState(() {
+                                    _doodlePoints
+                                      ..clear()
+                                      ..addAll(points);
+                                  });
+                                  _scheduleDoodleDraftSave();
+                                },
+                                onClear: () {
+                                  setState(_doodlePoints.clear);
+                                },
+                              ),
+                            )
+                          : Semantics(
+                              label: 'Preview of your Lumi',
+                              child: GlowOrb(
+                                color: selectedColor,
+                                size: 240,
+                                intensity: _previewIntensity,
+                              ),
+                            ),
                     ),
-                    Column(
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.07),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          'Sending to',
+                          'How it arrives',
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(color: AppColors.textFaint),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.member.displayName,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.85),
-                              ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 40),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 260,
-                  child: Center(
-                    child: _selectedType == LumiType.doodle
-                        ? Container(
-                            width: 260,
-                            height: 260,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.03),
-                              borderRadius: BorderRadius.circular(28),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.08),
-                              ),
-                              boxShadow: <BoxShadow>[
-                                BoxShadow(
-                                  color: selectedColor.withValues(alpha: 0.16),
-                                  blurRadius: 60,
-                                ),
-                              ],
-                            ),
-                            child: DoodleCanvas(
-                              points: _doodlePoints,
-                              color: selectedColor,
-                              onChanged: (List<DoodlePoint> points) {
-                                setState(() {
-                                  _doodlePoints
-                                    ..clear()
-                                    ..addAll(points);
-                                });
-                                _scheduleDoodleDraftSave();
-                              },
-                              onClear: () {
-                                setState(_doodlePoints.clear);
-                              },
-                            ),
-                          )
-                        : Semantics(
-                            label: 'Preview of your Lumi',
-                            child: GlowOrb(
-                              color: selectedColor,
-                              size: 240,
-                              intensity: _previewIntensity,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.07),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'How it arrives',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.textFaint,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: LumiType.values
-                            .map((LumiType type) {
-                              return Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                    right: type == LumiType.values.last ? 0 : 8,
-                                  ),
-                                  child: GestureDetector(
-                                    onTap: () => _selectType(context, type),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 180,
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _selectedType == type
-                                            ? selectedColor.withValues(
-                                                alpha: 0.14,
-                                              )
-                                            : Colors.white.withValues(
-                                                alpha: 0.03,
-                                              ),
-                                        borderRadius: BorderRadius.circular(18),
-                                        border: Border.all(
+                        const SizedBox(height: 12),
+                        Row(
+                          children: LumiType.values
+                              .map((LumiType type) {
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      right: type == LumiType.values.last
+                                          ? 0
+                                          : 8,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () => _selectType(context, type),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
+                                        ),
+                                        decoration: BoxDecoration(
                                           color: _selectedType == type
                                               ? selectedColor.withValues(
-                                                  alpha: 0.8,
+                                                  alpha: 0.14,
                                                 )
                                               : Colors.white.withValues(
-                                                  alpha: 0.07,
+                                                  alpha: 0.03,
                                                 ),
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                          border: Border.all(
+                                            color: _selectedType == type
+                                                ? selectedColor.withValues(
+                                                    alpha: 0.8,
+                                                  )
+                                                : Colors.white.withValues(
+                                                    alpha: 0.07,
+                                                  ),
+                                          ),
                                         ),
-                                      ),
-                                      child: Center(
+                                        child: Center(
                                           child: Text(
                                             switch (type) {
                                               LumiType.pure => 'Glow',
@@ -391,121 +430,128 @@ class _LumiComposerSheetState extends State<LumiComposerSheet> {
                                     ),
                                   ),
                                 );
-                            })
-                            .toList(growable: false),
-                      ),
-                      const SizedBox(height: 10),
-                      Center(
-                        child: Text(
-                          _selectedDescription,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textFaint),
+                              })
+                              .toList(growable: false),
+                        ),
+                        const SizedBox(height: 10),
+                        Center(
+                          child: Text(
+                            _selectedDescription,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppColors.textFaint),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_selectedType == LumiType.pulse) ...<Widget>[
+                    const SizedBox(height: 16),
+                    PulsePatternPad(
+                      onTapBeat: _recordPulseBeat,
+                      onReset: _resetPulse,
+                      recordedBeats: _pulseBeats,
+                    ),
+                  ],
+                  if (_selectedType == LumiType.light) ...<Widget>[
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Brightness',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.textFaint,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                if (_selectedType == LumiType.pulse) ...<Widget>[
-                  const SizedBox(height: 16),
-                  PulsePatternPad(
-                    onTapBeat: _recordPulseBeat,
-                    onReset: _resetPulse,
-                    recordedBeats: _pulseBeats,
-                  ),
-                ],
-                if (_selectedType == LumiType.light) ...<Widget>[
+                    ),
+                    Slider(
+                      value: _lightIntensity,
+                      min: 0.35,
+                      max: 1,
+                      onChanged: (double value) {
+                        setState(() => _lightIntensity = value);
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Brightness',
+                      'Color',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.textFaint,
                       ),
                     ),
                   ),
-                  Slider(
-                    value: _lightIntensity,
-                    min: 0.35,
-                    max: 1,
-                    onChanged: (double value) {
-                      setState(() => _lightIntensity = value);
-                    },
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Color',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.textFaint,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: AppConstants.signatureColors
-                      .map((Color color) {
-                        final int colorValue = color.toARGB32();
-                        final bool unlocked =
-                            availableColors.contains(colorValue);
-                        final bool selected = colorValue == _selectedColorValue;
-                        return GestureDetector(
-                          onTap: unlocked
-                              ? () => _selectColor(context, colorValue)
-                              : () => PaywallSheet.show(context),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: <Color>[
-                                  Colors.white.withValues(
-                                    alpha: unlocked ? 0.7 : 0.25,
-                                  ),
-                                  color.withValues(alpha: unlocked ? 1 : 0.35),
-                                ],
-                                stops: const <double>[0, 0.6],
-                              ),
-                              boxShadow: <BoxShadow>[
-                                BoxShadow(
-                                  color: color.withValues(
-                                    alpha: selected ? 0.5 : 0.2,
-                                  ),
-                                  blurRadius: selected ? 22 : 14,
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: AppConstants.signatureColors
+                        .map((Color color) {
+                          final int colorValue = color.toARGB32();
+                          final bool unlocked = availableColors.contains(
+                            colorValue,
+                          );
+                          final bool selected =
+                              colorValue == _selectedColorValue;
+                          return GestureDetector(
+                            onTap: unlocked
+                                ? () => _selectColor(context, colorValue)
+                                : () => PaywallSheet.show(context),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 160),
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: <Color>[
+                                    Colors.white.withValues(
+                                      alpha: unlocked ? 0.7 : 0.25,
+                                    ),
+                                    color.withValues(
+                                      alpha: unlocked ? 1 : 0.35,
+                                    ),
+                                  ],
+                                  stops: const <double>[0, 0.6],
                                 ),
-                              ],
-                              border: Border.all(
-                                color: selected ? color : Colors.transparent,
-                                width: 2.5,
+                                boxShadow: <BoxShadow>[
+                                  BoxShadow(
+                                    color: color.withValues(
+                                      alpha: selected ? 0.5 : 0.2,
+                                    ),
+                                    blurRadius: selected ? 22 : 14,
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: selected ? color : Colors.transparent,
+                                  width: 2.5,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      })
-                      .toList(growable: false),
-                ),
-                if (_atPaceLimit) ...<Widget>[
-                  const SizedBox(height: 12),
-                  Text(
-                    'You have reached today\'s gentle limit for ${widget.member.displayName}.',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textFaint,
+                          );
+                        })
+                        .toList(growable: false),
+                  ),
+                  if (_atPaceLimit) ...<Widget>[
+                    const SizedBox(height: 12),
+                    Text(
+                      'You have reached today\'s gentle limit for ${widget.member.displayName}.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textFaint,
+                      ),
                     ),
+                  ],
+                  const SizedBox(height: 24),
+                  PrimaryGlowButton(
+                    label: _isSending ? 'Sending...' : 'Send Lumi',
+                    glowColor: selectedColor,
+                    onPressed: canSend
+                        ? () => _sendLumi(context, senderId)
+                        : null,
                   ),
                 ],
-                const SizedBox(height: 24),
-                PrimaryGlowButton(
-                  label: 'Send Lumi',
-                  glowColor: selectedColor,
-                  onPressed: canSend ? () => _sendLumi(context, senderId) : null,
-                ),
-              ],
+              ),
             ),
           ),
         ),

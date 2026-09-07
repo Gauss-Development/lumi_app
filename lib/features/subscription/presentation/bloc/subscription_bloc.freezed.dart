@@ -430,11 +430,11 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( EntitlementStatus status,  List<PaywallPlan> plans)?  loaded,TResult Function( String message)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( EntitlementStatus? previousStatus,  List<PaywallPlan> plans)?  loading,TResult Function( EntitlementStatus status,  List<PaywallPlan> plans)?  loaded,TResult Function( String message)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
-return loading();case _Loaded() when loaded != null:
+return loading(_that.previousStatus,_that.plans);case _Loaded() when loaded != null:
 return loaded(_that.status,_that.plans);case _Failure() when failure != null:
 return failure(_that.message);case _:
   return orElse();
@@ -454,11 +454,11 @@ return failure(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( EntitlementStatus status,  List<PaywallPlan> plans)  loaded,required TResult Function( String message)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( EntitlementStatus? previousStatus,  List<PaywallPlan> plans)  loading,required TResult Function( EntitlementStatus status,  List<PaywallPlan> plans)  loaded,required TResult Function( String message)  failure,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
-return loading();case _Loaded():
+return loading(_that.previousStatus,_that.plans);case _Loaded():
 return loaded(_that.status,_that.plans);case _Failure():
 return failure(_that.message);case _:
   throw StateError('Unexpected subclass');
@@ -477,11 +477,11 @@ return failure(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( EntitlementStatus status,  List<PaywallPlan> plans)?  loaded,TResult? Function( String message)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( EntitlementStatus? previousStatus,  List<PaywallPlan> plans)?  loading,TResult? Function( EntitlementStatus status,  List<PaywallPlan> plans)?  loaded,TResult? Function( String message)?  failure,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
-return loading();case _Loaded() when loaded != null:
+return loading(_that.previousStatus,_that.plans);case _Loaded() when loaded != null:
 return loaded(_that.status,_that.plans);case _Failure() when failure != null:
 return failure(_that.message);case _:
   return null;
@@ -527,33 +527,75 @@ String toString() {
 
 
 class _Loading implements SubscriptionState {
-  const _Loading();
+  const _Loading({this.previousStatus, final  List<PaywallPlan> plans = const <PaywallPlan>[]}): _plans = plans;
   
 
+ final  EntitlementStatus? previousStatus;
+ final  List<PaywallPlan> _plans;
+@JsonKey() List<PaywallPlan> get plans {
+  if (_plans is EqualUnmodifiableListView) return _plans;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_plans);
+}
 
 
+/// Create a copy of SubscriptionState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LoadingCopyWith<_Loading> get copyWith => __$LoadingCopyWithImpl<_Loading>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loading);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loading&&(identical(other.previousStatus, previousStatus) || other.previousStatus == previousStatus)&&const DeepCollectionEquality().equals(other._plans, _plans));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,previousStatus,const DeepCollectionEquality().hash(_plans));
 
 @override
 String toString() {
-  return 'SubscriptionState.loading()';
+  return 'SubscriptionState.loading(previousStatus: $previousStatus, plans: $plans)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class _$LoadingCopyWith<$Res> implements $SubscriptionStateCopyWith<$Res> {
+  factory _$LoadingCopyWith(_Loading value, $Res Function(_Loading) _then) = __$LoadingCopyWithImpl;
+@useResult
+$Res call({
+ EntitlementStatus? previousStatus, List<PaywallPlan> plans
+});
 
 
+
+
+}
+/// @nodoc
+class __$LoadingCopyWithImpl<$Res>
+    implements _$LoadingCopyWith<$Res> {
+  __$LoadingCopyWithImpl(this._self, this._then);
+
+  final _Loading _self;
+  final $Res Function(_Loading) _then;
+
+/// Create a copy of SubscriptionState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? previousStatus = freezed,Object? plans = null,}) {
+  return _then(_Loading(
+previousStatus: freezed == previousStatus ? _self.previousStatus : previousStatus // ignore: cast_nullable_to_non_nullable
+as EntitlementStatus?,plans: null == plans ? _self._plans : plans // ignore: cast_nullable_to_non_nullable
+as List<PaywallPlan>,
+  ));
+}
+
+
+}
 
 /// @nodoc
 

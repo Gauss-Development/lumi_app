@@ -3,7 +3,6 @@ import 'package:dartz/dartz.dart';
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
-import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
 import 'package:lumi/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -74,33 +73,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, PhoneOtpChallenge>> requestPhoneOtp({
-    required String phone,
-  }) async {
+  Future<Either<Failure, AuthSession>> signInWithApple() async {
     try {
-      return Right(await _remoteDataSource.requestPhoneOtp(phone: phone));
+      return Right(await _remoteDataSource.signInWithApple());
     } on AuthDataSourceException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (_) {
       return const Left(
-        AuthFailure('Could not send a verification code. Try again.'),
+        AuthFailure('Apple sign-in did not finish. Please try again.'),
       );
-    }
-  }
-
-  @override
-  Future<Either<Failure, AuthSession>> verifyPhoneOtp({
-    required String userId,
-    required String otp,
-  }) async {
-    try {
-      return Right(
-        await _remoteDataSource.verifyPhoneOtp(userId: userId, otp: otp),
-      );
-    } on AuthDataSourceException catch (e) {
-      return Left(AuthFailure(e.message));
-    } catch (_) {
-      return const Left(AuthFailure('That code did not work. Try again.'));
     }
   }
 
@@ -111,6 +92,36 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(unit);
     } catch (_) {
       return const Left(AuthFailure('We could not sign you out right now.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deleteAccount() async {
+    try {
+      await _remoteDataSource.deleteAccount();
+      return const Right(unit);
+    } on AuthDataSourceException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (_) {
+      return const Left(
+        AuthFailure('We could not delete your account right now.'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> requestPasswordReset({
+    required String email,
+  }) async {
+    try {
+      await _remoteDataSource.requestPasswordReset(email: email);
+      return const Right(unit);
+    } on AuthDataSourceException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (_) {
+      return const Left(
+        AuthFailure('Could not send the reset email. Try again.'),
+      );
     }
   }
 }

@@ -1,11 +1,11 @@
--- Lumi initial Supabase schema (migrated from Appwrite).
+-- Lumi initial Supabase schema.
 -- Remote tables: profiles, circle_members, invitations, lumis, push_tokens.
 -- Local-only (not synced): settings, kept_lumis/shelf, onboarding, doodle drafts.
 
 create extension if not exists "pgcrypto";
 
 -- ---------------------------------------------------------------------------
--- profiles (replaces Appwrite `users` collection)
+-- profiles
 -- ---------------------------------------------------------------------------
 create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -167,7 +167,7 @@ create policy "lumis_delete_sender"
 -- Inserts are performed by the send_lumi edge function (service role).
 
 -- ---------------------------------------------------------------------------
--- push_tokens (FCM device tokens; replaces Appwrite push targets)
+-- push_tokens (FCM device tokens)
 -- ---------------------------------------------------------------------------
 create table public.push_tokens (
   id uuid primary key default gen_random_uuid(),

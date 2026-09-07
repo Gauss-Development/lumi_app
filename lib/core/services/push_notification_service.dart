@@ -27,6 +27,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 typedef PushNotificationTapCallback = void Function(LumiPushPayload payload);
+typedef PushNotificationForegroundCallback =
+    void Function(LumiPushPayload payload);
 
 class PushNotificationService {
   PushNotificationService({
@@ -55,6 +57,7 @@ class PushNotificationService {
 
   bool _available = false;
   PushNotificationTapCallback? _onTap;
+  PushNotificationForegroundCallback? _onForegroundMessage;
   StreamSubscription<String>? _tokenRefreshSubscription;
   StreamSubscription<RemoteMessage>? _foregroundSubscription;
   StreamSubscription<RemoteMessage>? _openedAppSubscription;
@@ -78,6 +81,16 @@ class PushNotificationService {
   void setOnTap(PushNotificationTapCallback? callback) {
     _onTap = callback;
   }
+
+  void setOnForegroundMessage(PushNotificationForegroundCallback? callback) {
+    _onForegroundMessage = callback;
+  }
+
+  String get _notificationsKey =>
+      _preferencesService.userScopedKey(_notificationsEnabledKey);
+
+  String get _hapticsKey =>
+      _preferencesService.userScopedKey(_hapticsEnabledKey);
 
   Future<void> initialize() async {
     if (kIsWeb) {
@@ -115,10 +128,7 @@ class PushNotificationService {
     if (!_available || kIsWeb) {
       return;
     }
-    if (!_preferencesService.readBool(
-      _notificationsEnabledKey,
-      fallback: true,
-    )) {
+    if (!_preferencesService.readBool(_notificationsKey, fallback: true)) {
       return;
     }
 
@@ -203,10 +213,7 @@ class PushNotificationService {
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    if (!_preferencesService.readBool(
-      _notificationsEnabledKey,
-      fallback: true,
-    )) {
+    if (!_preferencesService.readBool(_notificationsKey, fallback: true)) {
       return;
     }
 
@@ -215,9 +222,11 @@ class PushNotificationService {
       return;
     }
 
-    if (_preferencesService.readBool(_hapticsEnabledKey, fallback: true)) {
+    if (_preferencesService.readBool(_hapticsKey, fallback: true)) {
       await _hapticsService.playIncomingLumi();
     }
+
+    _onForegroundMessage?.call(payload);
 
     await _notificationService.showIncomingLumi(
       payload: payload,

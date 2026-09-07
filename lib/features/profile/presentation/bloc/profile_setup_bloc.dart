@@ -45,16 +45,17 @@ class ProfileSetupBloc extends Bloc<ProfileSetupEvent, ProfileSetupState> {
         ),
       ),
       (profile) {
-        final String displayName = (profile?.displayName ?? '').trim().isNotEmpty
+        final String displayName =
+            (profile?.displayName ?? '').trim().isNotEmpty
             ? profile!.displayName
             : (event.displayNameHint ?? '');
         emit(
           state.copyWith(
             status: ProfileSetupStatus.ready,
             displayName: displayName,
-            avatarStyle: profile?.avatarStyle ?? UserProfile.avatarOptions.first,
-            signatureColorValue:
-                profile?.signatureColorValue ?? 0xFFFF7D6B,
+            avatarStyle:
+                profile?.avatarStyle ?? UserProfile.avatarOptions.first,
+            signatureColorValue: profile?.signatureColorValue ?? 0xFFFF7D6B,
             restoredFromCloud: profile != null,
           ),
         );
@@ -96,6 +97,15 @@ class ProfileSetupBloc extends Bloc<ProfileSetupEvent, ProfileSetupState> {
     _Submitted event,
     Emitter<ProfileSetupState> emit,
   ) async {
+    if (!state.isProfileComplete) {
+      emit(
+        state.copyWith(
+          status: ProfileSetupStatus.ready,
+          errorMessage: 'Enter a display name to continue.',
+        ),
+      );
+      return;
+    }
     emit(state.copyWith(status: ProfileSetupStatus.saving, errorMessage: null));
     final result = await _saveProfileUseCase(
       UserProfile(

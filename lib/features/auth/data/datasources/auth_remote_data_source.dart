@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lumi/core/config/environment_config.dart';
 import 'package:lumi/core/network/supabase_client.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
-import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
 
 const String _defaultAvatarStyle = 'avatar_0';
 const int _defaultSignatureColorValue = 0xFFFF7D6B;
@@ -32,14 +31,13 @@ abstract class AuthRemoteDataSource {
 
   Future<AuthSession> signInWithGoogle();
 
-  Future<PhoneOtpChallenge> requestPhoneOtp({required String phone});
-
-  Future<AuthSession> verifyPhoneOtp({
-    required String userId,
-    required String otp,
-  });
+  Future<AuthSession> signInWithApple();
 
   Future<void> signOut();
+
+  Future<void> deleteAccount();
+
+  Future<void> requestPasswordReset({required String email});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -109,60 +107,38 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<AuthSession> signInWithGoogle() async {
+  Future<AuthSession> signInWithGoogle() {
+    return _signInWithOAuth(
+      OAuthProvider.google,
+      'Google sign-in did not finish.',
+    );
+  }
+
+  @override
+  Future<AuthSession> signInWithApple() {
+    return _signInWithOAuth(
+      OAuthProvider.apple,
+      'Apple sign-in did not finish.',
+    );
+  }
+
+  Future<AuthSession> _signInWithOAuth(
+    OAuthProvider provider,
+    String unfinishedMessage,
+  ) async {
     try {
       await _client.auth.signInWithOAuth(
-        OAuthProvider.google,
+        provider,
         redirectTo: EnvironmentConfig.instance.oauthRedirectUrl,
       );
       final User? user = _client.auth.currentUser;
       if (user == null) {
-        throw const AuthDataSourceException('Google sign-in did not finish.');
+        throw AuthDataSourceException(unfinishedMessage);
       }
       await _ensureProfile(user);
       return _mapUser(user);
     } on AuthException catch (e) {
       throw AuthDataSourceException(e.message);
-    }
-  }
-
-  @override
-  Future<PhoneOtpChallenge> requestPhoneOtp({required String phone}) async {
-    try {
-      await _client.auth.signInWithOtp(phone: phone);
-      return PhoneOtpChallenge(userId: phone, phone: phone);
-    } on AuthException catch (e) {
-      throw AuthDataSourceException(
-        e.message.isNotEmpty
-            ? e.message
-            : 'Could not send a verification code.',
-      );
-    }
-  }
-
-  @override
-  Future<AuthSession> verifyPhoneOtp({
-    required String userId,
-    required String otp,
-  }) async {
-    try {
-      final AuthResponse response = await _client.auth.verifyOTP(
-        phone: userId,
-        token: otp.trim(),
-        type: OtpType.sms,
-      );
-      final User? user = response.user;
-      if (user == null) {
-        throw const AuthDataSourceException('That code did not work. Try again.');
-      }
-      await _ensureProfile(user);
-      return _mapUser(user);
-    } on AuthException catch (e) {
-      throw AuthDataSourceException(
-        e.message.isNotEmpty
-            ? e.message
-            : 'That code did not work. Try again.',
-      );
     }
   }
 
@@ -172,6 +148,51 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _client.auth.signOut();
     } on AuthException catch (e) {
       throw AuthDataSourceException(e.message);
+    }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      final FunctionResponse response = await _client.functions.invoke(
+        'delete_account',
+      );
+      if (response.status < 200 || response.status >= 300) {
+        throw const AuthDataSourceException(
+          'We could not delete your account right now. Please try again.',
+        );
+      }
+    } on AuthException catch (e) {
+      throw AuthDataSourceException(e.message);
+    } catch (e) {
+      if (e is AuthDataSourceException) {
+        rethrow;
+      }
+      throw const AuthDataSourceException(
+        'We could not delete your account right now. Please try again.',
+      );
+    }
+
+    try {
+      await _client.auth.signOut();
+    } catch (_) {
+      // The session is usually already invalidated by the account deletion.
+    }
+  }
+
+  @override
+  Future<void> requestPasswordReset({required String email}) async {
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: EnvironmentConfig.instance.oauthRedirectUrl,
+      );
+    } on AuthException catch (e) {
+      throw AuthDataSourceException(
+        e.message.isNotEmpty
+            ? e.message
+            : 'Could not send the reset email. Try again.',
+      );
     }
   }
 

@@ -23,7 +23,7 @@ class SentLumiReactionOverlay extends StatefulWidget {
 }
 
 class _SentLumiReactionOverlayState extends State<SentLumiReactionOverlay> {
-  final HapticsService _hapticsService = const HapticsService();
+  final HapticsService _hapticsService = sl<HapticsService>();
   bool _isDismissing = false;
 
   @override

@@ -8,6 +8,7 @@ class KeptLumi extends Equatable {
     required this.senderName,
     required this.savedAt,
     required this.previewLabel,
+    required this.colorValue,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class KeptLumi extends Equatable {
   final String senderName;
   final DateTime savedAt;
   final String previewLabel;
+  final int colorValue;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
@@ -24,6 +26,7 @@ class KeptLumi extends Equatable {
     'senderName': senderName,
     'savedAt': savedAt.toIso8601String(),
     'previewLabel': previewLabel,
+    'colorValue': colorValue,
   };
 
   factory KeptLumi.fromJson(Map<String, dynamic> json) => KeptLumi(
@@ -33,6 +36,7 @@ class KeptLumi extends Equatable {
     senderName: json['senderName'] as String,
     savedAt: DateTime.parse(json['savedAt'] as String),
     previewLabel: json['previewLabel'] as String,
+    colorValue: json['colorValue'] as int? ?? 0xFFFF7D6B,
   );
 
   @override
@@ -43,5 +47,6 @@ class KeptLumi extends Equatable {
     senderName,
     savedAt,
     previewLabel,
+    colorValue,
   ];
 }

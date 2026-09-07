@@ -1,15 +1,22 @@
 import 'package:flutter/services.dart';
 
 import 'package:lumi/core/domain/entities/signature_haptic_pattern.dart';
+import 'package:lumi/core/services/preferences_service.dart';
 
 class HapticsService {
-  const HapticsService();
+  HapticsService(this._preferencesService);
+
+  final PreferencesService _preferencesService;
+  static const String _hapticsEnabledKey = 'haptics_enabled';
 
   Future<void> playIncomingLumi() async {
     await playSignatureIncoming(SignatureHapticPattern.warm);
   }
 
   Future<void> playSignatureIncoming(SignatureHapticPattern pattern) async {
+    if (!_isEnabled) {
+      return;
+    }
     switch (pattern) {
       case SignatureHapticPattern.gentle:
         await HapticFeedback.lightImpact();
@@ -31,10 +38,16 @@ class HapticsService {
   }
 
   Future<void> playSoftSelection() async {
+    if (!_isEnabled) {
+      return;
+    }
     await HapticFeedback.selectionClick();
   }
 
   Future<void> playPulseHit() async {
+    if (!_isEnabled) {
+      return;
+    }
     await HapticFeedback.lightImpact();
   }
 
@@ -48,8 +61,18 @@ class HapticsService {
 
   /// Distinct from incoming receive — confirms a Lumi was sent.
   Future<void> playSendLumi() async {
+    if (!_isEnabled) {
+      return;
+    }
     await HapticFeedback.heavyImpact();
     await Future<void>.delayed(const Duration(milliseconds: 40));
     await HapticFeedback.lightImpact();
+  }
+
+  bool get _isEnabled {
+    return _preferencesService.readBool(
+      _preferencesService.userScopedKey(_hapticsEnabledKey),
+      fallback: true,
+    );
   }
 }

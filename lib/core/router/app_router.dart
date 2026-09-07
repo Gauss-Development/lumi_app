@@ -7,6 +7,8 @@ import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/auth/presentation/pages/login_page.dart';
 import 'package:lumi/features/onboarding/presentation/pages/onboarding_flow_page.dart';
+import 'package:lumi/features/profile/presentation/pages/profile_edit_page.dart';
+import 'package:lumi/features/settings/presentation/pages/privacy_page.dart';
 
 class AppRoutes {
   const AppRoutes._();
@@ -14,6 +16,8 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String login = '/login';
   static const String home = '/';
+  static const String editProfile = '/settings/profile';
+  static const String privacy = '/settings/privacy';
 }
 
 GoRouter createAppRouter(AuthBloc authBloc) {
@@ -26,7 +30,6 @@ GoRouter createAppRouter(AuthBloc authBloc) {
 
       final bool isResolving = authState.maybeWhen(
         initial: () => true,
-        loading: () => true,
         orElse: () => false,
       );
       if (isResolving) {
@@ -62,6 +65,16 @@ GoRouter createAppRouter(AuthBloc authBloc) {
         path: AppRoutes.home,
         builder: (BuildContext context, GoRouterState state) =>
             const OnboardingFlowPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        builder: (BuildContext context, GoRouterState state) =>
+            const ProfileEditPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.privacy,
+        builder: (BuildContext context, GoRouterState state) =>
+            const PrivacyPage(),
       ),
     ],
   );

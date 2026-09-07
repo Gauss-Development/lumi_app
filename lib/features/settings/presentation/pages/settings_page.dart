@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:lumi/core/router/app_router.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
@@ -9,6 +11,7 @@ import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart'
 import 'package:lumi/features/rituals/presentation/bloc/rituals_cubit.dart';
 import 'package:lumi/features/settings/domain/entities/quiet_hours.dart';
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:lumi/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:lumi/features/subscription/presentation/widgets/paywall_sheet.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -76,6 +79,7 @@ class SettingsPage extends StatelessWidget {
                     icon: Icons.bedtime_outlined,
                     title: 'Quiet hours',
                     description: _quietHoursSummary(state.quietHours),
+                    onTap: () => _editQuietHours(context, state.quietHours),
                     trailing: Switch.adaptive(
                       value: state.quietHours.enabled,
                       onChanged: (bool value) {
@@ -84,6 +88,21 @@ class SettingsPage extends StatelessWidget {
                         );
                         context.read<SettingsBloc>().add(
                           SettingsEvent.quietHoursUpdated(next),
+                        );
+                      },
+                    ),
+                  ),
+                  _SettingsTile(
+                    icon: Icons.pause_circle_outline_rounded,
+                    title: 'Pause Lumi',
+                    description: state.appPaused
+                        ? 'Outgoing Lumis are queued'
+                        : 'Send Lumis immediately',
+                    trailing: Switch.adaptive(
+                      value: state.appPaused,
+                      onChanged: (bool value) {
+                        context.read<SettingsBloc>().add(
+                          SettingsEvent.appPauseToggled(value),
                         );
                       },
                     ),
@@ -148,34 +167,88 @@ class SettingsPage extends StatelessWidget {
               _SettingsGroup(
                 children: <Widget>[
                   _SettingsTile(
-                    icon: Icons.auto_awesome_rounded,
-                    title: 'Lumi Glow+',
-                    description: 'Unlock all 12 colors and shapes',
-                    trailing: Text(
-                      'Upgrade',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textFaint,
-                      ),
-                    ),
-                    onTap: () => PaywallSheet.show(context),
+                    icon: Icons.person_outline_rounded,
+                    title: 'Edit profile',
+                    description: 'Name, avatar, and signature color',
+                    onTap: () => context.push(AppRoutes.editProfile),
                   ),
-                  const _SettingsTile(
+                  BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                    builder:
+                        (BuildContext context, SubscriptionState subState) {
+                          final bool isSubscriber = subState.maybeWhen(
+                            loaded: (status, _) => status.isActive,
+                            orElse: () => false,
+                          );
+                          return _SettingsTile(
+                            icon: Icons.auto_awesome_rounded,
+                            title: 'Lumi Glow+',
+                            description: isSubscriber
+                                ? 'Glow+ is active'
+                                : 'Unlock all 12 colors and shapes',
+                            trailing: Text(
+                              isSubscriber ? 'Active' : 'Upgrade',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: isSubscriber
+                                        ? AppColors.gold
+                                        : AppColors.textFaint,
+                                  ),
+                            ),
+                            onTap: isSubscriber
+                                ? null
+                                : () => PaywallSheet.show(context),
+                          );
+                        },
+                  ),
+                  _SettingsTile(
                     icon: Icons.lock_outline_rounded,
                     title: 'Privacy',
-                    description: 'End-to-end by design',
+                    description: 'Circle-only by design',
+                    onTap: () => context.push(AppRoutes.privacy),
                   ),
-                  const _SettingsTile(
+                  _SettingsTile(
                     icon: Icons.group_add_outlined,
                     title: 'Invite family',
-                    description: 'Grow your circle gently',
+                    description: 'Use an empty circle slot on Home to invite.',
+                    onTap: () {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Open Home and tap an empty light to invite family.',
+                            ),
+                          ),
+                        );
+                    },
                   ),
                   _SettingsTile(
                     icon: Icons.logout_rounded,
                     title: 'Sign out',
                     description: 'Leave for now',
-                    onTap: () => context.read<AuthBloc>().add(
-                      const AuthEvent.signedOut(),
-                    ),
+                    onTap: () async {
+                      final bool confirmed = await _confirmSignOut(context);
+                      if (!context.mounted || !confirmed) {
+                        return;
+                      }
+                      context.read<AuthBloc>().add(const AuthEvent.signedOut());
+                    },
+                  ),
+                  _SettingsTile(
+                    icon: Icons.delete_outline_rounded,
+                    title: 'Delete account',
+                    description: 'Permanently remove your account and data',
+                    onTap: () async {
+                      final bool confirmed = await _confirmDeleteAccount(
+                        context,
+                      );
+                      if (!context.mounted || !confirmed) {
+                        return;
+                      }
+                      context.read<AuthBloc>().add(
+                        const AuthEvent.deleteAccountRequested(),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -190,7 +263,7 @@ class SettingsPage extends StatelessWidget {
               ],
               const SizedBox(height: 24),
               Text(
-                'Lumi · v1.0 · made with quiet',
+                'Lumi · v1.0.0 · made with quiet',
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
@@ -203,8 +276,105 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  Future<void> _editQuietHours(
+    BuildContext context,
+    QuietHours quietHours,
+  ) async {
+    final TimeOfDay? start = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: quietHours.startHour,
+        minute: quietHours.startMinute,
+      ),
+      helpText: 'Quiet hours start',
+    );
+    if (!context.mounted || start == null) {
+      return;
+    }
+
+    final TimeOfDay? end = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: quietHours.endHour,
+        minute: quietHours.endMinute,
+      ),
+      helpText: 'Quiet hours end',
+    );
+    if (!context.mounted || end == null) {
+      return;
+    }
+
+    context.read<SettingsBloc>().add(
+      SettingsEvent.quietHoursUpdated(
+        quietHours.copyWith(
+          startHour: start.hour,
+          startMinute: start.minute,
+          endHour: end.hour,
+          endMinute: end.minute,
+          enabled: true,
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _confirmSignOut(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Sign out?'),
+              content: const Text('You can sign back in any time.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Sign out'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
+  Future<bool> _confirmDeleteAccount(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Delete account?'),
+              content: const Text(
+                'This permanently deletes your account, circle connections, '
+                'and Lumis. This cannot be undone.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  child: const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
   String _quietHoursSummary(QuietHours quietHours) {
-    return 'Dim Lumis after ${quietHours.startHour.toString().padLeft(2, '0')}:${quietHours.startMinute.toString().padLeft(2, '0')}';
+    return 'Dim Lumis ${_formatTime(quietHours.startHour, quietHours.startMinute)} to ${_formatTime(quietHours.endHour, quietHours.endMinute)}';
+  }
+
+  String _formatTime(int hour, int minute) {
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   }
 }
 

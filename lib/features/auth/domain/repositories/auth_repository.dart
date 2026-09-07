@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
-import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
 
 abstract class AuthRepository {
   Future<Either<Failure, AuthSession?>> getCurrentSession();
@@ -20,14 +19,11 @@ abstract class AuthRepository {
 
   Future<Either<Failure, AuthSession>> signInWithGoogle();
 
-  Future<Either<Failure, PhoneOtpChallenge>> requestPhoneOtp({
-    required String phone,
-  });
-
-  Future<Either<Failure, AuthSession>> verifyPhoneOtp({
-    required String userId,
-    required String otp,
-  });
+  Future<Either<Failure, AuthSession>> signInWithApple();
 
   Future<Either<Failure, Unit>> signOut();
+
+  Future<Either<Failure, Unit>> deleteAccount();
+
+  Future<Either<Failure, Unit>> requestPasswordReset({required String email});
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 
-class DoodleCanvas extends StatelessWidget {
+class DoodleCanvas extends StatefulWidget {
   const DoodleCanvas({
     required this.points,
     required this.color,
@@ -15,6 +15,42 @@ class DoodleCanvas extends StatelessWidget {
   final Color color;
   final ValueChanged<List<DoodlePoint>> onChanged;
   final VoidCallback onClear;
+
+  @override
+  State<DoodleCanvas> createState() => _DoodleCanvasState();
+}
+
+class _DoodleCanvasState extends State<DoodleCanvas> {
+  late List<DoodlePoint> _points = List<DoodlePoint>.of(widget.points);
+
+  @override
+  void didUpdateWidget(covariant DoodleCanvas oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.points != widget.points && widget.points != _points) {
+      _points = List<DoodlePoint>.of(widget.points);
+    }
+  }
+
+  void _addPoint(Offset localPosition, BoxConstraints constraints) {
+    setState(() {
+      _points = <DoodlePoint>[
+        ..._points,
+        DoodlePoint(
+          dx: localPosition.dx / constraints.maxWidth,
+          dy: localPosition.dy / constraints.maxHeight,
+        ),
+      ];
+    });
+  }
+
+  void _commitStroke() {
+    widget.onChanged(List<DoodlePoint>.of(_points));
+  }
+
+  void _clear() {
+    setState(() => _points = const <DoodlePoint>[]);
+    widget.onClear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,25 +70,18 @@ class DoodleCanvas extends StatelessWidget {
               builder: (BuildContext context, BoxConstraints constraints) {
                 return GestureDetector(
                   onPanStart: (DragStartDetails details) {
-                    onChanged(<DoodlePoint>[
-                      ...points,
-                      DoodlePoint(
-                        dx: details.localPosition.dx / constraints.maxWidth,
-                        dy: details.localPosition.dy / constraints.maxHeight,
-                      ),
-                    ]);
+                    _addPoint(details.localPosition, constraints);
                   },
                   onPanUpdate: (DragUpdateDetails details) {
-                    onChanged(<DoodlePoint>[
-                      ...points,
-                      DoodlePoint(
-                        dx: details.localPosition.dx / constraints.maxWidth,
-                        dy: details.localPosition.dy / constraints.maxHeight,
-                      ),
-                    ]);
+                    _addPoint(details.localPosition, constraints);
                   },
+                  onPanEnd: (_) => _commitStroke(),
+                  onPanCancel: _commitStroke,
                   child: CustomPaint(
-                    painter: _DoodlePainter(points: points, color: color),
+                    painter: _DoodlePainter(
+                      points: _points,
+                      color: widget.color,
+                    ),
                     child: const SizedBox.expand(),
                   ),
                 );
@@ -62,7 +91,7 @@ class DoodleCanvas extends StatelessWidget {
           Positioned(
             right: 0,
             top: 0,
-            child: TextButton(onPressed: onClear, child: const Text('Clear')),
+            child: TextButton(onPressed: _clear, child: const Text('Clear')),
           ),
         ],
       ),

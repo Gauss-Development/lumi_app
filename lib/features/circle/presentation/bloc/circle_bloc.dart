@@ -109,15 +109,35 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
         }
         emit(CircleState.failure(failure: failure));
       },
-      (members) => emit(
-        CircleState.loaded(
-          members: members,
-          availableSlots: slotsResult.getOrElse(() => 0),
-          activeMembersLimit: entitlement.activeMembersLimit,
-          isSubscriber: entitlement.isActive,
-          pendingInvitation: carry,
-        ),
-      ),
+      (members) {
+        final int availableSlots = slotsResult.getOrElse(() {
+          final loaded = state.maybeMap(
+            loaded: (value) => value,
+            orElse: () => null,
+          );
+          if (loaded != null) {
+            return loaded.availableSlots;
+          }
+          final int activeCount = members
+              .where(
+                (CircleMember member) => member.status != CircleStatus.memorial,
+              )
+              .length;
+          return (entitlement.activeMembersLimit - activeCount).clamp(
+            0,
+            entitlement.activeMembersLimit,
+          );
+        });
+        emit(
+          CircleState.loaded(
+            members: members,
+            availableSlots: availableSlots,
+            activeMembersLimit: entitlement.activeMembersLimit,
+            isSubscriber: entitlement.isActive,
+            pendingInvitation: carry,
+          ),
+        );
+      },
     );
   }
 
@@ -171,7 +191,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
       duration: event.duration,
     );
     result.fold(
-      (failure) => emit(CircleState.failure(failure: failure)),
+      (failure) => _emitTransientFailure(emit, failure),
       (_) => add(const CircleEvent.loadRequested()),
     );
   }
@@ -182,7 +202,7 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
   ) async {
     final result = await _memorializeMemberUseCase(event.memberId);
     result.fold(
-      (failure) => emit(CircleState.failure(failure: failure)),
+      (failure) => _emitTransientFailure(emit, failure),
       (_) => add(const CircleEvent.loadRequested()),
     );
   }
@@ -193,8 +213,15 @@ class CircleBloc extends Bloc<CircleEvent, CircleState> {
   ) async {
     final result = await _removeMemberUseCase(memberId: event.memberId);
     result.fold(
-      (failure) => emit(CircleState.failure(failure: failure)),
+      (failure) => _emitTransientFailure(emit, failure),
       (_) => add(const CircleEvent.loadRequested()),
+    );
+  }
+
+  void _emitTransientFailure(Emitter<CircleState> emit, Failure failure) {
+    state.maybeMap(
+      loaded: (loaded) => emit(loaded.copyWith(transientFailure: failure)),
+      orElse: () => emit(CircleState.failure(failure: failure)),
     );
   }
 

@@ -118,74 +118,96 @@ class _ShelfBody extends StatelessWidget {
                 }
 
                 final KeptLumi kept = items[index];
-                final Color color =
-                    AppColors.signaturePalette[index %
-                        AppColors.signaturePalette.length];
+                final Color color = Color(kept.colorValue);
 
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.035),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.07),
+                return Dismissible(
+                  key: ValueKey<String>(kept.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                   ),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: <Color>[
-                              Colors.white.withValues(alpha: 0.8),
-                              color,
-                              color.withValues(alpha: 0.35),
-                              Colors.transparent,
-                            ],
-                            stops: const <double>[0, 0.2, 0.6, 1],
-                          ),
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                              color: color.withValues(alpha: 0.4),
-                              blurRadius: 30,
-                            ),
-                          ],
-                        ),
+                  onDismissed: (_) {
+                    context.read<ShelfBloc>().add(
+                      ShelfEvent.removeRequested(kept.id),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.035),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.07),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text(
-                                  kept.senderName,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                Text(
-                                  _when(kept.savedAt),
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: AppColors.textFaint),
-                                ),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: <Color>[
+                                Colors.white.withValues(alpha: 0.8),
+                                color,
+                                color.withValues(alpha: 0.35),
+                                Colors.transparent,
                               ],
+                              stops: const <double>[0, 0.2, 0.6, 1],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              kept.previewLabel,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppColors.textSecondary),
-                            ),
-                          ],
+                            boxShadow: <BoxShadow>[
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.4),
+                                blurRadius: 30,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Text(
+                                    kept.senderName,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
+                                  ),
+                                  Text(
+                                    _when(kept.savedAt),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: AppColors.textFaint),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                kept.previewLabel,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

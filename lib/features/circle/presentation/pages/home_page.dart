@@ -90,7 +90,17 @@ class HomePage extends StatelessWidget {
                 if (transient == null) return;
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
-                  ..showSnackBar(SnackBar(content: Text(transient.message)));
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(transient.message),
+                      action: transient is PermissionFailure
+                          ? SnackBarAction(
+                              label: 'Glow+',
+                              onPressed: () => PaywallSheet.show(context),
+                            )
+                          : null,
+                    ),
+                  );
               },
             );
           },
@@ -110,6 +120,11 @@ class HomePage extends StatelessWidget {
           listener: (BuildContext context, LumiState state) {
             state.mapOrNull(
               failure: (failureState) {
+                if (failureState.failure is ValidationFailure) {
+                  context.read<CircleBloc>().add(
+                    const CircleEvent.loadRequested(),
+                  );
+                }
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
@@ -339,9 +354,7 @@ class HomePage extends StatelessWidget {
                         BlocSelector<LumiBloc, LumiState, Lumi?>(
                           selector: (LumiState lumiState) {
                             for (final Lumi item in lumiState.items) {
-                              if (item.isIncoming &&
-                                  item.deliveryStatus !=
-                                      LumiDeliveryStatus.seen) {
+                              if (item.isAwaitingReply) {
                                 return item;
                               }
                             }
@@ -488,7 +501,7 @@ class HomePage extends StatelessWidget {
       return;
     }
 
-    const HapticsService().playSoftSelection();
+    sl<HapticsService>().playSoftSelection();
     context.read<LumiBloc>().add(
       LumiEvent.sendPureRequested(
         senderId: senderId,
@@ -499,7 +512,9 @@ class HomePage extends StatelessWidget {
     context.read<CircleBloc>().add(const CircleEvent.loadRequested());
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('Sent to ${member.displayName}.')));
+      ..showSnackBar(
+        SnackBar(content: Text('Sending to ${member.displayName}...')),
+      );
   }
 }
 
@@ -717,7 +732,7 @@ class _RitualPromptHost extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('Sent to ${targets.length} people.')),
+        SnackBar(content: Text('Sending to ${targets.length} people...')),
       );
   }
 }
@@ -850,7 +865,7 @@ class _ComposeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        const HapticsService().playSoftSelection();
+        sl<HapticsService>().playSoftSelection();
         onTap();
       },
       child: Container(

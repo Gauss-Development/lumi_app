@@ -1,16 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:lumi/core/config/environment_config.dart';
-import 'package:lumi/core/config/flavor.dart';
-import 'package:lumi/core/di/injection.dart';
 import 'package:lumi/core/theme/app_colors.dart';
-import 'package:lumi/core/utils/phone_utils.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
 import 'package:lumi/core/widgets/loading_view.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
-import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 
 class LoginPage extends StatefulWidget {
@@ -21,25 +17,24 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
-  final TextEditingController _devEmailController = TextEditingController();
-  final TextEditingController _devPasswordController = TextEditingController();
-  bool _showDevSignIn = false;
-  bool _isSendingCode = false;
-  bool _isVerifyingCode = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  bool _isSignUp = false;
+  bool _isSubmitting = false;
+
+  bool get _showAppleSignIn =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 
   @override
   void dispose() {
-    _phoneController.dispose();
-    _otpController.dispose();
-    _devEmailController.dispose();
-    _devPasswordController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
-
-  bool get _isDevelopment =>
-      sl<EnvironmentConfig>().flavor == Flavor.development;
 
   @override
   Widget build(BuildContext context) {
@@ -49,24 +44,14 @@ class _LoginPageState extends State<LoginPage> {
       listener: (BuildContext context, AuthState state) {
         state.whenOrNull(
           failure: (String message) {
-            setState(() {
-              _isSendingCode = false;
-              _isVerifyingCode = false;
-            });
+            setState(() => _isSubmitting = false);
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text(message)));
           },
-          otpVerification: (_) => setState(() => _isSendingCode = false),
-          authenticated: (_) => setState(() {
-            _isSendingCode = false;
-            _isVerifyingCode = false;
-          }),
+          authenticated: (_) => setState(() => _isSubmitting = false),
           unauthenticated: (String? message) {
-            setState(() {
-              _isSendingCode = false;
-              _isVerifyingCode = false;
-            });
+            setState(() => _isSubmitting = false);
             if (message != null && message.isNotEmpty) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
@@ -77,221 +62,184 @@ class _LoginPageState extends State<LoginPage> {
       },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (BuildContext context, AuthState authState) {
-          return authState.maybeWhen(
-            otpVerification: (PhoneOtpChallenge challenge) => _OtpStep(
-              challenge: challenge,
-              controller: _otpController,
-              isLoading: _isVerifyingCode,
-              onVerify: () {
-                setState(() => _isVerifyingCode = true);
-                context.read<AuthBloc>().add(
-                  AuthEvent.phoneOtpVerified(otp: _otpController.text.trim()),
-                );
-              },
-              onBack: () {
-                _otpController.clear();
-                context.read<AuthBloc>().add(const AuthEvent.phoneOtpCancelled());
-              },
-            ),
-            orElse: () => _PhoneStep(
-              phoneController: _phoneController,
-              isLoading: _isSendingCode,
-              showDevSignIn: _showDevSignIn && _isDevelopment,
-              devEmailController: _devEmailController,
-              devPasswordController: _devPasswordController,
-              onSendCode: () {
-                setState(() => _isSendingCode = true);
-                context.read<AuthBloc>().add(
-                  AuthEvent.phoneOtpRequested(
-                    phone: _phoneController.text.trim(),
+          final bool isLoading =
+              authState.maybeWhen(loading: () => true, orElse: () => false) ||
+              _isSubmitting;
+
+          return LumiScaffold(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: EdgeInsets.only(
+                top: 48,
+                bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const Center(
+                    child: GlowOrb(color: AppColors.peach, size: 140),
                   ),
-                );
-              },
-              onToggleDevSignIn: _isDevelopment
-                  ? () => setState(() => _showDevSignIn = !_showDevSignIn)
-                  : null,
-              onDevSignIn: () {
-                context.read<AuthBloc>().add(
-                  AuthEvent.signInRequested(
-                    email: _devEmailController.text.trim(),
-                    password: _devPasswordController.text,
+                  const SizedBox(height: 32),
+                  Text(
+                    _isSignUp
+                        ? 'Create your\nLumi account.'
+                        : 'Welcome back\nto your circle.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                );
-              },
+                  const SizedBox(height: 12),
+                  Text(
+                    _isSignUp
+                        ? 'Sign up with email or continue with Google or Apple.'
+                        : 'Sign in with email or continue with Google or Apple.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  if (_isSignUp) ...<Widget>[
+                    _LumiField(
+                      controller: _nameController,
+                      hint: 'Your name',
+                      keyboardType: TextInputType.name,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  _LumiField(
+                    controller: _emailController,
+                    hint: 'Email',
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: 12),
+                  _LumiField(
+                    controller: _passwordController,
+                    hint: 'Password',
+                    obscure: true,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _submitEmailAuth(context),
+                  ),
+                  if (!_isSignUp)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => _requestPasswordReset(context),
+                        child: const Text('Forgot password?'),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  if (isLoading)
+                    LoadingView(
+                      message: _isSignUp
+                          ? 'Creating your account...'
+                          : 'Signing you in...',
+                    )
+                  else
+                    PrimaryGlowButton(
+                      label: _isSignUp ? 'Create account' : 'Sign in',
+                      glowColor: AppColors.peach,
+                      onPressed: () => _submitEmailAuth(context),
+                    ),
+                  const SizedBox(height: 16),
+                  PrimaryGlowButton(
+                    label: 'Continue with Google',
+                    glowColor: AppColors.softLavender,
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            setState(() => _isSubmitting = true);
+                            context.read<AuthBloc>().add(
+                              const AuthEvent.googleSignInRequested(),
+                            );
+                          },
+                  ),
+                  if (_showAppleSignIn) ...<Widget>[
+                    const SizedBox(height: 12),
+                    PrimaryGlowButton(
+                      label: 'Continue with Apple',
+                      glowColor: AppColors.softLavender,
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              setState(() => _isSubmitting = true);
+                              context.read<AuthBloc>().add(
+                                const AuthEvent.appleSignInRequested(),
+                              );
+                            },
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: isLoading
+                        ? null
+                        : () => setState(() => _isSignUp = !_isSignUp),
+                    child: Text(
+                      _isSignUp
+                          ? 'Already have an account? Sign in'
+                          : 'New here? Create an account',
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
     );
   }
-}
 
-class _PhoneStep extends StatelessWidget {
-  const _PhoneStep({
-    required this.phoneController,
-    required this.isLoading,
-    required this.onSendCode,
-    required this.showDevSignIn,
-    required this.devEmailController,
-    required this.devPasswordController,
-    this.onToggleDevSignIn,
-    this.onDevSignIn,
-  });
+  void _requestPasswordReset(BuildContext context) {
+    final String email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Enter your email first.')),
+        );
+      return;
+    }
 
-  final TextEditingController phoneController;
-  final bool isLoading;
-  final VoidCallback onSendCode;
-  final bool showDevSignIn;
-  final TextEditingController devEmailController;
-  final TextEditingController devPasswordController;
-  final VoidCallback? onToggleDevSignIn;
-  final VoidCallback? onDevSignIn;
-
-  @override
-  Widget build(BuildContext context) {
-    return LumiScaffold(
-      child: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        padding: EdgeInsets.only(
-          top: 48,
-          bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const Center(
-              child: GlowOrb(color: AppColors.peach, size: 140),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Your number,\njust a glow away.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'We send a quiet text code. No passwords to remember.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 28),
-            _LumiField(
-              controller: phoneController,
-              hint: '+1 (555) 123-4567',
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 24),
-            if (isLoading)
-              const LoadingView(message: 'Sending your code...')
-            else
-              PrimaryGlowButton(
-                label: 'Send code',
-                glowColor: AppColors.peach,
-                onPressed: onSendCode,
-              ),
-            if (onToggleDevSignIn != null) ...<Widget>[
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: onToggleDevSignIn,
-                child: Text(
-                  showDevSignIn ? 'Hide developer sign-in' : 'Developer sign-in',
-                ),
-              ),
-              if (showDevSignIn) ...<Widget>[
-                const SizedBox(height: 8),
-                _LumiField(
-                  controller: devEmailController,
-                  hint: 'dev@example.com',
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 12),
-                _LumiField(
-                  controller: devPasswordController,
-                  hint: 'Password',
-                  obscure: true,
-                ),
-                const SizedBox(height: 12),
-                PrimaryGlowButton(
-                  label: 'Sign in with email',
-                  glowColor: AppColors.softLavender,
-                  onPressed: onDevSignIn,
-                ),
-              ],
-            ],
-          ],
-        ),
-      ),
+    context.read<AuthBloc>().add(
+      AuthEvent.passwordResetRequested(email: email),
     );
   }
-}
 
-class _OtpStep extends StatelessWidget {
-  const _OtpStep({
-    required this.challenge,
-    required this.controller,
-    required this.isLoading,
-    required this.onVerify,
-    required this.onBack,
-  });
+  void _submitEmailAuth(BuildContext context) {
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Enter your email and password.')),
+        );
+      return;
+    }
 
-  final PhoneOtpChallenge challenge;
-  final TextEditingController controller;
-  final bool isLoading;
-  final VoidCallback onVerify;
-  final VoidCallback onBack;
+    setState(() => _isSubmitting = true);
+    if (_isSignUp) {
+      final String name = _nameController.text.trim();
+      if (name.isEmpty) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Enter your name to sign up.')),
+          );
+        return;
+      }
+      context.read<AuthBloc>().add(
+        AuthEvent.signUpRequested(email: email, password: password, name: name),
+      );
+      return;
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return LumiScaffold(
-      child: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        padding: EdgeInsets.only(
-          top: 48,
-          bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const Center(
-              child: GlowOrb(color: AppColors.softLavender, size: 120),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Enter your code',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Sent to ${PhoneUtils.maskForDisplay(challenge.phone)}',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 28),
-            _LumiField(
-              controller: controller,
-              hint: '6-digit code',
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-            if (isLoading)
-              const LoadingView(message: 'Lighting your Lumi...')
-            else ...<Widget>[
-              PrimaryGlowButton(
-                label: 'Continue',
-                glowColor: AppColors.softLavender,
-                onPressed: onVerify,
-              ),
-              const SizedBox(height: 12),
-              TextButton(onPressed: onBack, child: const Text('Use a different number')),
-            ],
-          ],
-        ),
-      ),
+    context.read<AuthBloc>().add(
+      AuthEvent.signInRequested(email: email, password: password),
     );
   }
 }
@@ -301,13 +249,17 @@ class _LumiField extends StatelessWidget {
     required this.controller,
     required this.hint,
     this.keyboardType,
+    this.textInputAction,
     this.obscure = false,
+    this.onSubmitted,
   });
 
   final TextEditingController controller;
   final String hint;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
   final bool obscure;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -321,7 +273,9 @@ class _LumiField extends StatelessWidget {
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        textInputAction: textInputAction,
         obscureText: obscure,
+        onSubmitted: onSubmitted,
         decoration: InputDecoration(border: InputBorder.none, hintText: hint),
       ),
     );

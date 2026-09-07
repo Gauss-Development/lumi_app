@@ -60,9 +60,10 @@ format: ## Format Dart sources
 provision: ## Apply Supabase schema (requires linked Supabase CLI project)
 	@echo "See tool/SUPABASE_README.md — run: supabase db push"
 
-deploy-functions: ## Deploy Supabase edge functions send_lumi and react_lumi
+deploy-functions: ## Deploy Supabase edge functions
 	supabase functions deploy send_lumi
 	supabase functions deploy react_lumi
+	supabase functions deploy delete_account
 
 doctor: ## flutter doctor -v
 	flutter doctor -v

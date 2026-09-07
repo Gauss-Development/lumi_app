@@ -11,5 +11,5 @@ class LumiLimits {
   static const int maxLumisPerPairPerDay = paceLimitPerPairPer24Hours;
   static const int householdPlanAccountCap = 6;
   static const Duration togetherMomentWindow = Duration(minutes: 1);
-  static const Duration inviteLinkLifetime = Duration(hours: 24);
+  static const Duration inviteLinkLifetime = Duration(days: 7);
 }

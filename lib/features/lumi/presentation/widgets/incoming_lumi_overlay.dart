@@ -204,6 +204,7 @@ class _IncomingLumiOverlayState extends State<IncomingLumiOverlay> {
           senderName: _senderName(context),
           savedAt: DateTime.now(),
           previewLabel: widget.lumi.type.label,
+          colorValue: widget.lumi.colorValue,
         ),
       ),
     );

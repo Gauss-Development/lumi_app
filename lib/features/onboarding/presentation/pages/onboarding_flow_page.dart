@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lumi/core/theme/app_colors.dart';
 import 'package:lumi/core/widgets/adaptive_scroll.dart';
 import 'package:lumi/core/widgets/glow_orb.dart';
+import 'package:lumi/core/widgets/loading_view.dart';
 import 'package:lumi/core/widgets/lumi_scaffold.dart';
 import 'package:lumi/core/widgets/primary_glow_button.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
@@ -31,8 +32,10 @@ class OnboardingFlowPage extends StatelessWidget {
             previous.status != ProfileSetupStatus.ready;
       },
       listener: (BuildContext context, ProfileSetupState state) {
-        final OnboardingStage stage =
-            context.read<OnboardingBloc>().state.stage;
+        final OnboardingStage stage = context
+            .read<OnboardingBloc>()
+            .state
+            .stage;
         if (stage != OnboardingStage.profile) {
           return;
         }
@@ -42,6 +45,12 @@ class OnboardingFlowPage extends StatelessWidget {
       },
       child: BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (BuildContext context, OnboardingState onboardingState) {
+          if (onboardingState.isResolving) {
+            return const LumiScaffold(
+              centered: true,
+              child: LoadingView(message: 'Preparing your circle...'),
+            );
+          }
           if (onboardingState.completed) {
             return const HomePage();
           }
@@ -103,32 +112,8 @@ class _WelcomeStep extends StatelessWidget {
   }
 }
 
-class _ProfileStep extends StatefulWidget {
+class _ProfileStep extends StatelessWidget {
   const _ProfileStep();
-
-  @override
-  State<_ProfileStep> createState() => _ProfileStepState();
-}
-
-class _ProfileStepState extends State<_ProfileStep> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final AuthState authState = context.read<AuthBloc>().state;
-      authState.maybeWhen(
-        authenticated: (session) {
-          context.read<ProfileSetupBloc>().add(
-            ProfileSetupEvent.started(
-              userId: session.userId,
-              displayNameHint: session.name,
-            ),
-          );
-        },
-        orElse: () {},
-      );
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +247,7 @@ class _PermissionsStepState extends State<_PermissionsStep> {
           const SizedBox(height: 12),
           const _PermissionTile(
             title: 'Haptics',
-            description: 'Essential for pulse Lumis and soft arrivals.',
+            description: 'Optional soft taps for pulse Lumis and arrivals.',
             glowColor: AppColors.softLavender,
           ),
           const SizedBox(height: 32),

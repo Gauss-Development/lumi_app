@@ -5,23 +5,18 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:lumi/core/error/failures.dart';
 import 'package:lumi/features/auth/domain/entities/auth_session.dart';
-import 'package:lumi/features/auth/domain/entities/phone_otp_challenge.dart';
+import 'package:lumi/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/get_current_session_usecase.dart';
-import 'package:lumi/features/auth/domain/usecases/request_phone_otp_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/request_password_reset_usecase.dart';
+import 'package:lumi/features/auth/domain/usecases/sign_in_with_apple_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:lumi/features/auth/domain/usecases/sign_up_with_email_usecase.dart';
-import 'package:lumi/features/auth/domain/usecases/verify_phone_otp_usecase.dart';
 import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 
 class _MockGetCurrentSessionUseCase extends Mock
     implements GetCurrentSessionUseCase {}
-
-class _MockRequestPhoneOtpUseCase extends Mock
-    implements RequestPhoneOtpUseCase {}
-
-class _MockVerifyPhoneOtpUseCase extends Mock implements VerifyPhoneOtpUseCase {}
 
 class _MockSignInWithEmailUseCase extends Mock
     implements SignInWithEmailUseCase {}
@@ -32,97 +27,54 @@ class _MockSignUpWithEmailUseCase extends Mock
 class _MockSignInWithGoogleUseCase extends Mock
     implements SignInWithGoogleUseCase {}
 
+class _MockSignInWithAppleUseCase extends Mock
+    implements SignInWithAppleUseCase {}
+
 class _MockSignOutUseCase extends Mock implements SignOutUseCase {}
+
+class _MockDeleteAccountUseCase extends Mock implements DeleteAccountUseCase {}
+
+class _MockRequestPasswordResetUseCase extends Mock
+    implements RequestPasswordResetUseCase {}
 
 void main() {
   late GetCurrentSessionUseCase getCurrentSessionUseCase;
-  late RequestPhoneOtpUseCase requestPhoneOtpUseCase;
-  late VerifyPhoneOtpUseCase verifyPhoneOtpUseCase;
   late SignInWithEmailUseCase signInWithEmailUseCase;
   late SignUpWithEmailUseCase signUpWithEmailUseCase;
   late SignInWithGoogleUseCase signInWithGoogleUseCase;
+  late SignInWithAppleUseCase signInWithAppleUseCase;
   late SignOutUseCase signOutUseCase;
+  late DeleteAccountUseCase deleteAccountUseCase;
+  late RequestPasswordResetUseCase requestPasswordResetUseCase;
 
-  const AuthSession phoneSession = AuthSession(
-    userId: 'user-phone',
-    phone: '+15551234567',
-    name: 'Mom',
-  );
-  const PhoneOtpChallenge challenge = PhoneOtpChallenge(
-    userId: 'user-phone',
-    phone: '+15551234567',
+  const AuthSession session = AuthSession(
+    userId: 'user-1',
+    email: 'me@example.com',
   );
 
   setUp(() {
     getCurrentSessionUseCase = _MockGetCurrentSessionUseCase();
-    requestPhoneOtpUseCase = _MockRequestPhoneOtpUseCase();
-    verifyPhoneOtpUseCase = _MockVerifyPhoneOtpUseCase();
     signInWithEmailUseCase = _MockSignInWithEmailUseCase();
     signUpWithEmailUseCase = _MockSignUpWithEmailUseCase();
     signInWithGoogleUseCase = _MockSignInWithGoogleUseCase();
+    signInWithAppleUseCase = _MockSignInWithAppleUseCase();
     signOutUseCase = _MockSignOutUseCase();
+    deleteAccountUseCase = _MockDeleteAccountUseCase();
+    requestPasswordResetUseCase = _MockRequestPasswordResetUseCase();
   });
 
   AuthBloc buildBloc() {
     return AuthBloc(
       getCurrentSessionUseCase: getCurrentSessionUseCase,
-      requestPhoneOtpUseCase: requestPhoneOtpUseCase,
-      verifyPhoneOtpUseCase: verifyPhoneOtpUseCase,
       signInWithEmailUseCase: signInWithEmailUseCase,
       signUpWithEmailUseCase: signUpWithEmailUseCase,
       signInWithGoogleUseCase: signInWithGoogleUseCase,
+      signInWithAppleUseCase: signInWithAppleUseCase,
       signOutUseCase: signOutUseCase,
+      deleteAccountUseCase: deleteAccountUseCase,
+      requestPasswordResetUseCase: requestPasswordResetUseCase,
     );
   }
-
-  blocTest<AuthBloc, AuthState>(
-    'emits otp verification when phone OTP is requested',
-    build: () {
-      when(
-        () => requestPhoneOtpUseCase(phone: any(named: 'phone')),
-      ).thenAnswer((_) async => const Right(challenge));
-      return buildBloc();
-    },
-    act: (AuthBloc bloc) => bloc.add(
-      const AuthEvent.phoneOtpRequested(phone: '5551234567'),
-    ),
-    expect: () => <AuthState>[const AuthState.otpVerification(challenge)],
-  );
-
-  blocTest<AuthBloc, AuthState>(
-    'emits authenticated when phone OTP verification succeeds',
-    build: () {
-      when(
-        () => verifyPhoneOtpUseCase(
-          userId: any(named: 'userId'),
-          otp: any(named: 'otp'),
-        ),
-      ).thenAnswer((_) async => const Right(phoneSession));
-      return buildBloc();
-    },
-    seed: () => const AuthState.otpVerification(challenge),
-    act: (AuthBloc bloc) => bloc.add(const AuthEvent.phoneOtpVerified(otp: '123456')),
-    expect: () => <AuthState>[const AuthState.authenticated(phoneSession)],
-  );
-
-  blocTest<AuthBloc, AuthState>(
-    'emits failure then otp verification when phone OTP verification fails',
-    build: () {
-      when(
-        () => verifyPhoneOtpUseCase(
-          userId: any(named: 'userId'),
-          otp: any(named: 'otp'),
-        ),
-      ).thenAnswer((_) async => const Left(AuthFailure('Invalid code')));
-      return buildBloc();
-    },
-    seed: () => const AuthState.otpVerification(challenge),
-    act: (AuthBloc bloc) => bloc.add(const AuthEvent.phoneOtpVerified(otp: '000000')),
-    expect: () => <AuthState>[
-      const AuthState.failure('Invalid code'),
-      const AuthState.otpVerification(challenge),
-    ],
-  );
 
   blocTest<AuthBloc, AuthState>(
     'emits loading then authenticated when sign-in succeeds',
@@ -132,11 +84,7 @@ void main() {
           email: any(named: 'email'),
           password: any(named: 'password'),
         ),
-      ).thenAnswer(
-        (_) async => const Right(
-          AuthSession(userId: 'user-1', email: 'me@example.com'),
-        ),
-      );
+      ).thenAnswer((_) async => const Right(session));
       return buildBloc();
     },
     act: (AuthBloc bloc) => bloc.add(
@@ -147,9 +95,37 @@ void main() {
     ),
     expect: () => <AuthState>[
       const AuthState.loading(),
-      const AuthState.authenticated(
-        AuthSession(userId: 'user-1', email: 'me@example.com'),
-      ),
+      const AuthState.authenticated(session),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits loading then authenticated when Google sign-in succeeds',
+    build: () {
+      when(
+        () => signInWithGoogleUseCase(),
+      ).thenAnswer((_) async => const Right(session));
+      return buildBloc();
+    },
+    act: (AuthBloc bloc) => bloc.add(const AuthEvent.googleSignInRequested()),
+    expect: () => <AuthState>[
+      const AuthState.loading(),
+      const AuthState.authenticated(session),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits loading then authenticated when Apple sign-in succeeds',
+    build: () {
+      when(
+        () => signInWithAppleUseCase(),
+      ).thenAnswer((_) async => const Right(session));
+      return buildBloc();
+    },
+    act: (AuthBloc bloc) => bloc.add(const AuthEvent.appleSignInRequested()),
+    expect: () => <AuthState>[
+      const AuthState.loading(),
+      const AuthState.authenticated(session),
     ],
   );
 
@@ -159,13 +135,52 @@ void main() {
       when(() => signOutUseCase()).thenAnswer((_) async => const Right(unit));
       return buildBloc();
     },
-    seed: () => const AuthState.authenticated(
-      AuthSession(userId: 'user-1', email: 'me@example.com'),
-    ),
+    seed: () => const AuthState.authenticated(session),
     act: (AuthBloc bloc) => bloc.add(const AuthEvent.signedOut()),
     expect: () => <AuthState>[
       const AuthState.loading(),
       const AuthState.unauthenticated(),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits failure when sign-in fails',
+    build: () {
+      when(
+        () => signInWithEmailUseCase.call(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) async => const Left(AuthFailure('Invalid credentials')));
+      return buildBloc();
+    },
+    act: (AuthBloc bloc) => bloc.add(
+      const AuthEvent.signInRequested(
+        email: 'me@example.com',
+        password: 'wrong',
+      ),
+    ),
+    expect: () => <AuthState>[
+      const AuthState.loading(),
+      const AuthState.failure('Invalid credentials'),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits unauthenticated with message when password reset succeeds',
+    build: () {
+      when(
+        () => requestPasswordResetUseCase.call(email: any(named: 'email')),
+      ).thenAnswer((_) async => const Right(unit));
+      return buildBloc();
+    },
+    act: (AuthBloc bloc) => bloc.add(
+      const AuthEvent.passwordResetRequested(email: 'me@example.com'),
+    ),
+    expect: () => <AuthState>[
+      const AuthState.unauthenticated(
+        'Password reset email sent. Check your inbox.',
+      ),
     ],
   );
 }

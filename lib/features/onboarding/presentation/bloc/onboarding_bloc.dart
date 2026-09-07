@@ -9,7 +9,7 @@ enum OnboardingStage { welcome, profile, permissions, onboarding, complete }
 
 @freezed
 sealed class OnboardingEvent with _$OnboardingEvent {
-  const factory OnboardingEvent.started() = _Started;
+  const factory OnboardingEvent.started({required String userId}) = _Started;
   const factory OnboardingEvent.advance() = _Advance;
   const factory OnboardingEvent.back() = _Back;
   const factory OnboardingEvent.jumpTo(OnboardingStage stage) = _JumpTo;
@@ -22,11 +22,14 @@ sealed class OnboardingEvent with _$OnboardingEvent {
   const factory OnboardingEvent.completeWalkthrough() = _CompleteWalkthrough;
   const factory OnboardingEvent.restoreForReturningUser() =
       _RestoreForReturningUser;
+  const factory OnboardingEvent.reset() = _Reset;
 }
 
 @freezed
 sealed class OnboardingState with _$OnboardingState {
   const factory OnboardingState({
+    @Default(true) bool isResolving,
+    String? userId,
     @Default(OnboardingStage.welcome) OnboardingStage stage,
     @Default(false) bool completed,
     @Default(false) bool notificationsGranted,
@@ -45,16 +48,34 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<_CompletePermissions>(_onCompletePermissions);
     on<_CompleteWalkthrough>(_onCompleteWalkthrough);
     on<_RestoreForReturningUser>(_onRestoreForReturningUser);
+    on<_Reset>(_onReset);
   }
 
   final PreferencesService _preferencesService;
-  static const String _onboardingCompleteKey = 'onboarding_complete';
+  static const String _onboardingCompleteKeyPrefix = 'onboarding_complete';
 
   Future<void> _onStarted(_Started event, Emitter<OnboardingState> emit) async {
-    final completed = _preferencesService.getBool(_onboardingCompleteKey);
+    final completed = _preferencesService.getBool(
+      _onboardingCompleteKey(event.userId),
+    );
     if (completed) {
-      emit(state.copyWith(stage: OnboardingStage.complete, completed: true));
+      emit(
+        state.copyWith(
+          isResolving: false,
+          userId: event.userId,
+          stage: OnboardingStage.complete,
+          completed: true,
+        ),
+      );
+      return;
     }
+    emit(
+      OnboardingState(
+        isResolving: false,
+        userId: event.userId,
+        stage: OnboardingStage.welcome,
+      ),
+    );
   }
 
   void _onAdvance(_Advance event, Emitter<OnboardingState> emit) {
@@ -112,10 +133,20 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     await _markOnboardingComplete(emit);
   }
 
+  void _onReset(_Reset event, Emitter<OnboardingState> emit) {
+    emit(const OnboardingState(isResolving: false));
+  }
+
   Future<void> _markOnboardingComplete(Emitter<OnboardingState> emit) async {
-    await _preferencesService.setBool(_onboardingCompleteKey, true);
+    final String? userId = state.userId;
+    if (userId == null || userId.isEmpty) {
+      emit(state.copyWith(isResolving: false));
+      return;
+    }
+    await _preferencesService.setBool(_onboardingCompleteKey(userId), true);
     emit(
       state.copyWith(
+        isResolving: false,
         stage: OnboardingStage.complete,
         completed: true,
         notificationsGranted: state.notificationsGranted,
@@ -123,5 +154,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         hapticsGranted: state.hapticsGranted,
       ),
     );
+  }
+
+  static String _onboardingCompleteKey(String userId) {
+    return '${_onboardingCompleteKeyPrefix}_$userId';
   }
 }

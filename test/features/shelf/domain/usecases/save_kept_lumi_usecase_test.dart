@@ -19,6 +19,7 @@ void main() {
     senderName: 'Mom',
     previewLabel: 'Pure Lumi',
     savedAt: DateTime.utc(2026, 5, 6),
+    colorValue: 0xFFFF7D6B,
   );
 
   setUp(() {

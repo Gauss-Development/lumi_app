@@ -30,11 +30,11 @@ class ShelfBloc extends Bloc<ShelfEvent, ShelfState> {
     _LoadRequested event,
     Emitter<ShelfState> emit,
   ) async {
-    emit(const ShelfState.loading(items: <KeptLumi>[]));
+    emit(ShelfState.loading(items: state.items));
     final result = await _getKeptLumis();
     result.fold(
       (failure) => emit(
-        ShelfState.failure(items: const <KeptLumi>[], message: failure.message),
+        ShelfState.failure(items: state.items, message: failure.message),
       ),
       (items) => emit(ShelfState.loaded(items: items)),
     );

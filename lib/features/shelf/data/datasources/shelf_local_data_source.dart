@@ -11,7 +11,7 @@ class ShelfLocalDataSource {
   static const _storageKey = 'shelf_kept_lumis';
 
   Future<List<KeptLumi>> getAll() async {
-    final rawValue = _preferencesService.readString(_storageKey);
+    final rawValue = _preferencesService.readString(_key);
     if (rawValue == null || rawValue.isEmpty) {
       return const <KeptLumi>[];
     }
@@ -39,6 +39,8 @@ class ShelfLocalDataSource {
     final encoded = jsonEncode(
       lumis.map((lumi) => lumi.toJson()).toList(growable: false),
     );
-    await _preferencesService.writeString(_storageKey, encoded);
+    await _preferencesService.writeString(_key, encoded);
   }
+
+  String get _key => _preferencesService.userScopedKey(_storageKey);
 }

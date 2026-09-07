@@ -40,7 +40,7 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
         return Right(plans);
       }
 
-      return Right(_localDataSource.defaultPlans());
+      return const Right(<PaywallPlan>[]);
     } catch (_) {
       return const Left(ServerFailure('Unable to load paywall plans.'));
     }
@@ -58,9 +58,13 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       await _localDataSource.saveStatus(status);
       return Right(status);
     } catch (_) {
-      return const Left(
-        UnexpectedFailure('Unable to load subscription status.'),
-      );
+      try {
+        return Right(await _localDataSource.getStatus());
+      } catch (_) {
+        return const Left(
+          UnexpectedFailure('Unable to load subscription status.'),
+        );
+      }
     }
   }
 
@@ -73,10 +77,16 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
         return const Left(ServerFailure('Plan unavailable.'));
       }
 
-      final package = current.availablePackages.firstWhere(
-        (Package p) => p.identifier == planId,
-        orElse: () => current.availablePackages.first,
-      );
+      final Package? package = current.availablePackages
+          .where((Package p) => p.identifier == planId)
+          .firstOrNull;
+      if (package == null) {
+        return const Left(
+          ServerFailure(
+            'That plan is unavailable right now. Please reopen the paywall.',
+          ),
+        );
+      }
 
       final customerInfo = await _revenueCatService.purchasePackage(package);
       if (customerInfo == null) {

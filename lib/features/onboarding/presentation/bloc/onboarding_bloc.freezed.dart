@@ -55,7 +55,7 @@ extension OnboardingEventPatterns on OnboardingEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _Advance value)?  advance,TResult Function( _Back value)?  back,TResult Function( _JumpTo value)?  jumpTo,TResult Function( _CompleteProfile value)?  completeProfile,TResult Function( _CompletePermissions value)?  completePermissions,TResult Function( _CompleteWalkthrough value)?  completeWalkthrough,TResult Function( _RestoreForReturningUser value)?  restoreForReturningUser,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Started value)?  started,TResult Function( _Advance value)?  advance,TResult Function( _Back value)?  back,TResult Function( _JumpTo value)?  jumpTo,TResult Function( _CompleteProfile value)?  completeProfile,TResult Function( _CompletePermissions value)?  completePermissions,TResult Function( _CompleteWalkthrough value)?  completeWalkthrough,TResult Function( _RestoreForReturningUser value)?  restoreForReturningUser,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -66,7 +66,8 @@ return jumpTo(_that);case _CompleteProfile() when completeProfile != null:
 return completeProfile(_that);case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough(_that);case _RestoreForReturningUser() when restoreForReturningUser != null:
-return restoreForReturningUser(_that);case _:
+return restoreForReturningUser(_that);case _Reset() when reset != null:
+return reset(_that);case _:
   return orElse();
 
 }
@@ -84,7 +85,7 @@ return restoreForReturningUser(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _Advance value)  advance,required TResult Function( _Back value)  back,required TResult Function( _JumpTo value)  jumpTo,required TResult Function( _CompleteProfile value)  completeProfile,required TResult Function( _CompletePermissions value)  completePermissions,required TResult Function( _CompleteWalkthrough value)  completeWalkthrough,required TResult Function( _RestoreForReturningUser value)  restoreForReturningUser,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Started value)  started,required TResult Function( _Advance value)  advance,required TResult Function( _Back value)  back,required TResult Function( _JumpTo value)  jumpTo,required TResult Function( _CompleteProfile value)  completeProfile,required TResult Function( _CompletePermissions value)  completePermissions,required TResult Function( _CompleteWalkthrough value)  completeWalkthrough,required TResult Function( _RestoreForReturningUser value)  restoreForReturningUser,required TResult Function( _Reset value)  reset,}){
 final _that = this;
 switch (_that) {
 case _Started():
@@ -95,7 +96,8 @@ return jumpTo(_that);case _CompleteProfile():
 return completeProfile(_that);case _CompletePermissions():
 return completePermissions(_that);case _CompleteWalkthrough():
 return completeWalkthrough(_that);case _RestoreForReturningUser():
-return restoreForReturningUser(_that);}
+return restoreForReturningUser(_that);case _Reset():
+return reset(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -109,7 +111,7 @@ return restoreForReturningUser(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _Advance value)?  advance,TResult? Function( _Back value)?  back,TResult? Function( _JumpTo value)?  jumpTo,TResult? Function( _CompleteProfile value)?  completeProfile,TResult? Function( _CompletePermissions value)?  completePermissions,TResult? Function( _CompleteWalkthrough value)?  completeWalkthrough,TResult? Function( _RestoreForReturningUser value)?  restoreForReturningUser,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Started value)?  started,TResult? Function( _Advance value)?  advance,TResult? Function( _Back value)?  back,TResult? Function( _JumpTo value)?  jumpTo,TResult? Function( _CompleteProfile value)?  completeProfile,TResult? Function( _CompletePermissions value)?  completePermissions,TResult? Function( _CompleteWalkthrough value)?  completeWalkthrough,TResult? Function( _RestoreForReturningUser value)?  restoreForReturningUser,TResult? Function( _Reset value)?  reset,}){
 final _that = this;
 switch (_that) {
 case _Started() when started != null:
@@ -120,7 +122,8 @@ return jumpTo(_that);case _CompleteProfile() when completeProfile != null:
 return completeProfile(_that);case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough(_that);case _RestoreForReturningUser() when restoreForReturningUser != null:
-return restoreForReturningUser(_that);case _:
+return restoreForReturningUser(_that);case _Reset() when reset != null:
+return reset(_that);case _:
   return null;
 
 }
@@ -137,17 +140,18 @@ return restoreForReturningUser(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  advance,TResult Function()?  back,TResult Function( OnboardingStage stage)?  jumpTo,TResult Function()?  completeProfile,TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult Function()?  completeWalkthrough,TResult Function()?  restoreForReturningUser,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String userId)?  started,TResult Function()?  advance,TResult Function()?  back,TResult Function( OnboardingStage stage)?  jumpTo,TResult Function()?  completeProfile,TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult Function()?  completeWalkthrough,TResult Function()?  restoreForReturningUser,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started();case _Advance() when advance != null:
+return started(_that.userId);case _Advance() when advance != null:
 return advance();case _Back() when back != null:
 return back();case _JumpTo() when jumpTo != null:
 return jumpTo(_that.stage);case _CompleteProfile() when completeProfile != null:
 return completeProfile();case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough();case _RestoreForReturningUser() when restoreForReturningUser != null:
-return restoreForReturningUser();case _:
+return restoreForReturningUser();case _Reset() when reset != null:
+return reset();case _:
   return orElse();
 
 }
@@ -165,17 +169,18 @@ return restoreForReturningUser();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  advance,required TResult Function()  back,required TResult Function( OnboardingStage stage)  jumpTo,required TResult Function()  completeProfile,required TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  completePermissions,required TResult Function()  completeWalkthrough,required TResult Function()  restoreForReturningUser,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String userId)  started,required TResult Function()  advance,required TResult Function()  back,required TResult Function( OnboardingStage stage)  jumpTo,required TResult Function()  completeProfile,required TResult Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  completePermissions,required TResult Function()  completeWalkthrough,required TResult Function()  restoreForReturningUser,required TResult Function()  reset,}) {final _that = this;
 switch (_that) {
 case _Started():
-return started();case _Advance():
+return started(_that.userId);case _Advance():
 return advance();case _Back():
 return back();case _JumpTo():
 return jumpTo(_that.stage);case _CompleteProfile():
 return completeProfile();case _CompletePermissions():
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough():
 return completeWalkthrough();case _RestoreForReturningUser():
-return restoreForReturningUser();}
+return restoreForReturningUser();case _Reset():
+return reset();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -189,17 +194,18 @@ return restoreForReturningUser();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  advance,TResult? Function()?  back,TResult? Function( OnboardingStage stage)?  jumpTo,TResult? Function()?  completeProfile,TResult? Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult? Function()?  completeWalkthrough,TResult? Function()?  restoreForReturningUser,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String userId)?  started,TResult? Function()?  advance,TResult? Function()?  back,TResult? Function( OnboardingStage stage)?  jumpTo,TResult? Function()?  completeProfile,TResult? Function( bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  completePermissions,TResult? Function()?  completeWalkthrough,TResult? Function()?  restoreForReturningUser,TResult? Function()?  reset,}) {final _that = this;
 switch (_that) {
 case _Started() when started != null:
-return started();case _Advance() when advance != null:
+return started(_that.userId);case _Advance() when advance != null:
 return advance();case _Back() when back != null:
 return back();case _JumpTo() when jumpTo != null:
 return jumpTo(_that.stage);case _CompleteProfile() when completeProfile != null:
 return completeProfile();case _CompletePermissions() when completePermissions != null:
 return completePermissions(_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _CompleteWalkthrough() when completeWalkthrough != null:
 return completeWalkthrough();case _RestoreForReturningUser() when restoreForReturningUser != null:
-return restoreForReturningUser();case _:
+return restoreForReturningUser();case _Reset() when reset != null:
+return reset();case _:
   return null;
 
 }
@@ -211,33 +217,67 @@ return restoreForReturningUser();case _:
 
 
 class _Started implements OnboardingEvent {
-  const _Started();
+  const _Started({required this.userId});
   
 
+ final  String userId;
 
-
+/// Create a copy of OnboardingEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StartedCopyWith<_Started> get copyWith => __$StartedCopyWithImpl<_Started>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Started);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Started&&(identical(other.userId, userId) || other.userId == userId));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,userId);
 
 @override
 String toString() {
-  return 'OnboardingEvent.started()';
+  return 'OnboardingEvent.started(userId: $userId)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class _$StartedCopyWith<$Res> implements $OnboardingEventCopyWith<$Res> {
+  factory _$StartedCopyWith(_Started value, $Res Function(_Started) _then) = __$StartedCopyWithImpl;
+@useResult
+$Res call({
+ String userId
+});
 
 
+
+
+}
+/// @nodoc
+class __$StartedCopyWithImpl<$Res>
+    implements _$StartedCopyWith<$Res> {
+  __$StartedCopyWithImpl(this._self, this._then);
+
+  final _Started _self;
+  final $Res Function(_Started) _then;
+
+/// Create a copy of OnboardingEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? userId = null,}) {
+  return _then(_Started(
+userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
@@ -536,9 +576,41 @@ String toString() {
 
 
 /// @nodoc
+
+
+class _Reset implements OnboardingEvent {
+  const _Reset();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Reset);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'OnboardingEvent.reset()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
 mixin _$OnboardingState {
 
- OnboardingStage get stage; bool get completed; bool get notificationsGranted; bool get contactsGranted; bool get hapticsGranted;
+ bool get isResolving; String? get userId; OnboardingStage get stage; bool get completed; bool get notificationsGranted; bool get contactsGranted; bool get hapticsGranted;
 /// Create a copy of OnboardingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -549,16 +621,16 @@ $OnboardingStateCopyWith<OnboardingState> get copyWith => _$OnboardingStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OnboardingState&&(identical(other.stage, stage) || other.stage == stage)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.notificationsGranted, notificationsGranted) || other.notificationsGranted == notificationsGranted)&&(identical(other.contactsGranted, contactsGranted) || other.contactsGranted == contactsGranted)&&(identical(other.hapticsGranted, hapticsGranted) || other.hapticsGranted == hapticsGranted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OnboardingState&&(identical(other.isResolving, isResolving) || other.isResolving == isResolving)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.stage, stage) || other.stage == stage)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.notificationsGranted, notificationsGranted) || other.notificationsGranted == notificationsGranted)&&(identical(other.contactsGranted, contactsGranted) || other.contactsGranted == contactsGranted)&&(identical(other.hapticsGranted, hapticsGranted) || other.hapticsGranted == hapticsGranted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,stage,completed,notificationsGranted,contactsGranted,hapticsGranted);
+int get hashCode => Object.hash(runtimeType,isResolving,userId,stage,completed,notificationsGranted,contactsGranted,hapticsGranted);
 
 @override
 String toString() {
-  return 'OnboardingState(stage: $stage, completed: $completed, notificationsGranted: $notificationsGranted, contactsGranted: $contactsGranted, hapticsGranted: $hapticsGranted)';
+  return 'OnboardingState(isResolving: $isResolving, userId: $userId, stage: $stage, completed: $completed, notificationsGranted: $notificationsGranted, contactsGranted: $contactsGranted, hapticsGranted: $hapticsGranted)';
 }
 
 
@@ -569,7 +641,7 @@ abstract mixin class $OnboardingStateCopyWith<$Res>  {
   factory $OnboardingStateCopyWith(OnboardingState value, $Res Function(OnboardingState) _then) = _$OnboardingStateCopyWithImpl;
 @useResult
 $Res call({
- OnboardingStage stage, bool completed, bool notificationsGranted, bool contactsGranted, bool hapticsGranted
+ bool isResolving, String? userId, OnboardingStage stage, bool completed, bool notificationsGranted, bool contactsGranted, bool hapticsGranted
 });
 
 
@@ -586,9 +658,11 @@ class _$OnboardingStateCopyWithImpl<$Res>
 
 /// Create a copy of OnboardingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? stage = null,Object? completed = null,Object? notificationsGranted = null,Object? contactsGranted = null,Object? hapticsGranted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isResolving = null,Object? userId = freezed,Object? stage = null,Object? completed = null,Object? notificationsGranted = null,Object? contactsGranted = null,Object? hapticsGranted = null,}) {
   return _then(_self.copyWith(
-stage: null == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
+isResolving: null == isResolving ? _self.isResolving : isResolving // ignore: cast_nullable_to_non_nullable
+as bool,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,stage: null == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
 as OnboardingStage,completed: null == completed ? _self.completed : completed // ignore: cast_nullable_to_non_nullable
 as bool,notificationsGranted: null == notificationsGranted ? _self.notificationsGranted : notificationsGranted // ignore: cast_nullable_to_non_nullable
 as bool,contactsGranted: null == contactsGranted ? _self.contactsGranted : contactsGranted // ignore: cast_nullable_to_non_nullable
@@ -675,10 +749,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( OnboardingStage stage,  bool completed,  bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isResolving,  String? userId,  OnboardingStage stage,  bool completed,  bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OnboardingState() when $default != null:
-return $default(_that.stage,_that.completed,_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _:
+return $default(_that.isResolving,_that.userId,_that.stage,_that.completed,_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _:
   return orElse();
 
 }
@@ -696,10 +770,10 @@ return $default(_that.stage,_that.completed,_that.notificationsGranted,_that.con
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( OnboardingStage stage,  bool completed,  bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isResolving,  String? userId,  OnboardingStage stage,  bool completed,  bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)  $default,) {final _that = this;
 switch (_that) {
 case _OnboardingState():
-return $default(_that.stage,_that.completed,_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);}
+return $default(_that.isResolving,_that.userId,_that.stage,_that.completed,_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -713,10 +787,10 @@ return $default(_that.stage,_that.completed,_that.notificationsGranted,_that.con
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( OnboardingStage stage,  bool completed,  bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isResolving,  String? userId,  OnboardingStage stage,  bool completed,  bool notificationsGranted,  bool contactsGranted,  bool hapticsGranted)?  $default,) {final _that = this;
 switch (_that) {
 case _OnboardingState() when $default != null:
-return $default(_that.stage,_that.completed,_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _:
+return $default(_that.isResolving,_that.userId,_that.stage,_that.completed,_that.notificationsGranted,_that.contactsGranted,_that.hapticsGranted);case _:
   return null;
 
 }
@@ -728,9 +802,11 @@ return $default(_that.stage,_that.completed,_that.notificationsGranted,_that.con
 
 
 class _OnboardingState implements OnboardingState {
-  const _OnboardingState({this.stage = OnboardingStage.welcome, this.completed = false, this.notificationsGranted = false, this.contactsGranted = false, this.hapticsGranted = false});
+  const _OnboardingState({this.isResolving = true, this.userId, this.stage = OnboardingStage.welcome, this.completed = false, this.notificationsGranted = false, this.contactsGranted = false, this.hapticsGranted = false});
   
 
+@override@JsonKey() final  bool isResolving;
+@override final  String? userId;
 @override@JsonKey() final  OnboardingStage stage;
 @override@JsonKey() final  bool completed;
 @override@JsonKey() final  bool notificationsGranted;
@@ -747,16 +823,16 @@ _$OnboardingStateCopyWith<_OnboardingState> get copyWith => __$OnboardingStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OnboardingState&&(identical(other.stage, stage) || other.stage == stage)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.notificationsGranted, notificationsGranted) || other.notificationsGranted == notificationsGranted)&&(identical(other.contactsGranted, contactsGranted) || other.contactsGranted == contactsGranted)&&(identical(other.hapticsGranted, hapticsGranted) || other.hapticsGranted == hapticsGranted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OnboardingState&&(identical(other.isResolving, isResolving) || other.isResolving == isResolving)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.stage, stage) || other.stage == stage)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.notificationsGranted, notificationsGranted) || other.notificationsGranted == notificationsGranted)&&(identical(other.contactsGranted, contactsGranted) || other.contactsGranted == contactsGranted)&&(identical(other.hapticsGranted, hapticsGranted) || other.hapticsGranted == hapticsGranted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,stage,completed,notificationsGranted,contactsGranted,hapticsGranted);
+int get hashCode => Object.hash(runtimeType,isResolving,userId,stage,completed,notificationsGranted,contactsGranted,hapticsGranted);
 
 @override
 String toString() {
-  return 'OnboardingState(stage: $stage, completed: $completed, notificationsGranted: $notificationsGranted, contactsGranted: $contactsGranted, hapticsGranted: $hapticsGranted)';
+  return 'OnboardingState(isResolving: $isResolving, userId: $userId, stage: $stage, completed: $completed, notificationsGranted: $notificationsGranted, contactsGranted: $contactsGranted, hapticsGranted: $hapticsGranted)';
 }
 
 
@@ -767,7 +843,7 @@ abstract mixin class _$OnboardingStateCopyWith<$Res> implements $OnboardingState
   factory _$OnboardingStateCopyWith(_OnboardingState value, $Res Function(_OnboardingState) _then) = __$OnboardingStateCopyWithImpl;
 @override @useResult
 $Res call({
- OnboardingStage stage, bool completed, bool notificationsGranted, bool contactsGranted, bool hapticsGranted
+ bool isResolving, String? userId, OnboardingStage stage, bool completed, bool notificationsGranted, bool contactsGranted, bool hapticsGranted
 });
 
 
@@ -784,9 +860,11 @@ class __$OnboardingStateCopyWithImpl<$Res>
 
 /// Create a copy of OnboardingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? stage = null,Object? completed = null,Object? notificationsGranted = null,Object? contactsGranted = null,Object? hapticsGranted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isResolving = null,Object? userId = freezed,Object? stage = null,Object? completed = null,Object? notificationsGranted = null,Object? contactsGranted = null,Object? hapticsGranted = null,}) {
   return _then(_OnboardingState(
-stage: null == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
+isResolving: null == isResolving ? _self.isResolving : isResolving // ignore: cast_nullable_to_non_nullable
+as bool,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,stage: null == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
 as OnboardingStage,completed: null == completed ? _self.completed : completed // ignore: cast_nullable_to_non_nullable
 as bool,notificationsGranted: null == notificationsGranted ? _self.notificationsGranted : notificationsGranted // ignore: cast_nullable_to_non_nullable
 as bool,contactsGranted: null == contactsGranted ? _self.contactsGranted : contactsGranted // ignore: cast_nullable_to_non_nullable

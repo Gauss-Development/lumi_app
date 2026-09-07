@@ -9,7 +9,7 @@ class RitualsLocalDataSource {
   final PreferencesService _preferencesService;
 
   Future<RitualPreferences> getPreferences() async {
-    final Map<String, dynamic>? json = _preferencesService.getJson(_key);
+    final Map<String, dynamic>? json = _preferencesService.getJson(_scopedKey);
     if (json == null) {
       return const RitualPreferences();
     }
@@ -19,7 +19,9 @@ class RitualsLocalDataSource {
   Future<RitualPreferences> savePreferences(
     RitualPreferences preferences,
   ) async {
-    await _preferencesService.setJson(_key, preferences.toJson());
+    await _preferencesService.setJson(_scopedKey, preferences.toJson());
     return preferences;
   }
+
+  String get _scopedKey => _preferencesService.userScopedKey(_key);
 }

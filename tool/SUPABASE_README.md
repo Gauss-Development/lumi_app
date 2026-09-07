@@ -41,8 +41,11 @@ supabase db push
 2. Deploy edge functions:
 
 ```bash
-supabase functions deploy send_lumi
-supabase functions deploy react_lumi
+make deploy-functions
+# or:
+# supabase functions deploy send_lumi
+# supabase functions deploy react_lumi
+# supabase functions deploy delete_account
 ```
 
 3. Set secrets for push (optional):
@@ -59,12 +62,13 @@ SUPABASE_ANON_KEY=<anon-key>
 OAUTH_REDIRECT_URL=io.supabase.lumi://login-callback/
 ```
 
-5. Enable **Phone** and **Google** providers in Supabase Auth dashboard.
+5. Enable **Email**, **Google**, and **Apple** providers in the Supabase Auth dashboard.
 
 ## Edge functions
 
 - **`send_lumi`** — validates circle membership, pace limits (5/day/pair), creates `lumis` row, optional FCM push
 - **`react_lumi`** — recipient-only reaction, updates lumi, optional FCM to sender
+- **`delete_account`** — deletes the signed-in auth user and leftover circle/invite rows
 
 ## RLS summary
 
@@ -73,12 +77,3 @@ OAUTH_REDIRECT_URL=io.supabase.lumi://login-callback/
 - `invitations` — authenticated read/update; inviter creates/deletes
 - `lumis` — participants read; recipient updates (mark seen); inserts via edge function
 - `push_tokens` — users manage own tokens
-
-## Auth migration notes
-
-| Appwrite | Supabase |
-|----------|----------|
-| `createEmailPasswordSession` | `signInWithPassword` |
-| `createPhoneToken` + `createSession` | `signInWithOtp` + `verifyOTP` |
-| `createOAuth2Session(google)` | `signInWithOAuth(google)` |
-| `Account.createPushTarget` | `push_tokens` table |

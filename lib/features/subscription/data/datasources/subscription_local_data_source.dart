@@ -11,7 +11,7 @@ class SubscriptionLocalDataSource {
   final PreferencesService _preferencesService;
 
   Future<EntitlementStatus> getStatus() async {
-    final raw = _preferencesService.getString(_subscriptionKey);
+    final raw = _preferencesService.getString(_key);
     if (raw == null || raw.isEmpty) {
       return const EntitlementStatus.free();
     }
@@ -28,21 +28,9 @@ class SubscriptionLocalDataSource {
     );
   }
 
-  List<PaywallPlan> defaultPlans() {
-    return const <PaywallPlan>[
-      PaywallPlan(
-        id: 'lumi_monthly',
-        title: 'Monthly',
-        priceLabel: '\$9.99',
-        description: '7 days free, then billed monthly',
-        isAnnual: false,
-      ),
-    ];
-  }
-
   Future<void> saveStatus(EntitlementStatus status) async {
     await _preferencesService.setString(
-      _subscriptionKey,
+      _key,
       jsonEncode(<String, dynamic>{
         'isActive': status.isActive,
         'householdSeats': status.householdSeats,
@@ -51,4 +39,6 @@ class SubscriptionLocalDataSource {
       }),
     );
   }
+
+  String get _key => _preferencesService.userScopedKey(_subscriptionKey);
 }

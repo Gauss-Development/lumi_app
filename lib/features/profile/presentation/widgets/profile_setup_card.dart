@@ -14,6 +14,9 @@ class ProfileSetupCard extends StatelessWidget {
     required this.onColorSelected,
     required this.onSubmit,
     super.key,
+    this.title = 'Your light',
+    this.subtitle = 'Set how you appear to the people you love',
+    this.submitLabel = 'Keep this glow',
   });
 
   final ProfileSetupState state;
@@ -21,6 +24,9 @@ class ProfileSetupCard extends StatelessWidget {
   final ValueChanged<String> onAvatarStyleChanged;
   final ValueChanged<int> onColorSelected;
   final VoidCallback onSubmit;
+  final String title;
+  final String subtitle;
+  final String submitLabel;
 
   static const List<String> _avatarGlyphs = <String>[
     '◐',
@@ -38,6 +44,9 @@ class ProfileSetupCard extends StatelessWidget {
       state.avatarStyle,
     );
     final String avatarGlyph = _avatarGlyphs[avatarIndex < 0 ? 0 : avatarIndex];
+    final bool isBusy =
+        state.status == ProfileSetupStatus.loading ||
+        state.status == ProfileSetupStatus.saving;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -57,23 +66,33 @@ class ProfileSetupCard extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'Your light',
+          title,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
         Text(
-          'Set how you appear to the people you love',
+          subtitle,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Colors.white.withValues(alpha: 0.45),
           ),
         ),
         const SizedBox(height: 28),
+        if (state.status == ProfileSetupStatus.loading) ...<Widget>[
+          const CircularProgressIndicator.adaptive(),
+          const SizedBox(height: 20),
+        ],
         TextFormField(
+          key: ValueKey<String>(
+            'profile-name-${state.status}-${state.restoredFromCloud}',
+          ),
           initialValue: state.displayName,
           onChanged: onNameChanged,
+          enabled: state.status != ProfileSetupStatus.loading,
           decoration: const InputDecoration(hintText: 'Display name'),
+          textInputAction: TextInputAction.done,
+          autofillHints: const <String>[AutofillHints.name],
         ),
         const SizedBox(height: 24),
         Align(
@@ -186,12 +205,10 @@ class ProfileSetupCard extends StatelessWidget {
         const SizedBox(height: 28),
         PrimaryGlowButton(
           label: state.status == ProfileSetupStatus.saving
-              ? 'Saving…'
-              : 'Keep this glow',
+              ? 'Saving...'
+              : submitLabel,
           glowColor: glowColor,
-          onPressed: state.status == ProfileSetupStatus.saving
-              ? null
-              : onSubmit,
+          onPressed: isBusy || !state.isProfileComplete ? null : onSubmit,
         ),
         if (state.errorMessage != null) ...<Widget>[
           const SizedBox(height: 16),

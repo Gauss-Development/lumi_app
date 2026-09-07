@@ -6,6 +6,23 @@ class PreferencesService {
   PreferencesService(this._sharedPreferences);
 
   final SharedPreferences _sharedPreferences;
+  String? _activeUserId;
+
+  void setActiveUser(String userId) {
+    _activeUserId = userId;
+  }
+
+  void clearActiveUser() {
+    _activeUserId = null;
+  }
+
+  String userScopedKey(String key) {
+    final String? userId = _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      return key;
+    }
+    return '${key}_$userId';
+  }
 
   bool getBool(String key, {bool fallback = false}) {
     return _sharedPreferences.getBool(key) ?? fallback;

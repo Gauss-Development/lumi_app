@@ -12,6 +12,9 @@ class PaywallSheet extends StatelessWidget {
   const PaywallSheet({super.key});
 
   static Future<void> show(BuildContext context) {
+    context.read<SubscriptionBloc>().add(
+      const SubscriptionEvent.loadRequested(),
+    );
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -28,7 +31,6 @@ class PaywallSheet extends StatelessWidget {
     'Pulse, doodle and color modes',
     'Unlimited kept shelf',
     'Family circle up to 12 lights',
-    'Quiet hours and arrival rituals',
   ];
 
   @override
@@ -44,15 +46,26 @@ class PaywallSheet extends StatelessWidget {
           builder: (BuildContext context, SubscriptionState state) {
             final List<PaywallPlan> plans = state.map(
               initial: (_) => const <PaywallPlan>[],
-              loading: (_) => const <PaywallPlan>[],
+              loading: (loading) => loading.plans,
               loaded: (loaded) => loaded.plans,
               failure: (_) => const <PaywallPlan>[],
             );
+            final bool plansUnavailable =
+                plans.isEmpty &&
+                state.maybeWhen(
+                  loaded: (_, _) => true,
+                  failure: (_) => true,
+                  orElse: () => false,
+                );
             final String selectedId = plans.any((p) => p.isAnnual)
                 ? plans.firstWhere((p) => p.isAnnual).id
                 : (plans.isNotEmpty ? plans.first.id : '');
 
-            return _PaywallBody(plans: plans, selectedId: selectedId);
+            return _PaywallBody(
+              plans: plans,
+              selectedId: selectedId,
+              plansUnavailable: plansUnavailable,
+            );
           },
         ),
       ),
@@ -61,10 +74,15 @@ class PaywallSheet extends StatelessWidget {
 }
 
 class _PaywallBody extends StatefulWidget {
-  const _PaywallBody({required this.plans, required this.selectedId});
+  const _PaywallBody({
+    required this.plans,
+    required this.selectedId,
+    required this.plansUnavailable,
+  });
 
   final List<PaywallPlan> plans;
   final String selectedId;
+  final bool plansUnavailable;
 
   @override
   State<_PaywallBody> createState() => _PaywallBodyState();
@@ -72,6 +90,17 @@ class _PaywallBody extends StatefulWidget {
 
 class _PaywallBodyState extends State<_PaywallBody> {
   late String _selectedId = widget.selectedId;
+
+  @override
+  void didUpdateWidget(covariant _PaywallBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final bool selectedStillAvailable = widget.plans.any(
+      (PaywallPlan plan) => plan.id == _selectedId,
+    );
+    if (!selectedStillAvailable && widget.selectedId.isNotEmpty) {
+      _selectedId = widget.selectedId;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +188,17 @@ class _PaywallBodyState extends State<_PaywallBody> {
               );
             }),
             const SizedBox(height: 20),
+            if (widget.plansUnavailable)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  'Plans are unavailable right now. Please try again later.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
             ...widget.plans.map((PaywallPlan plan) {
               final bool selected = _selectedId == plan.id;
               return Padding(
@@ -268,11 +308,11 @@ class _PaywallBodyState extends State<_PaywallBody> {
                   orElse: () => false,
                 );
                 final bool purchaseCompleted =
-                    prev.maybeWhen(loading: () => true, orElse: () => false) &&
-                    curr.maybeWhen(
-                      loaded: (_, _) => true,
+                    prev.maybeWhen(
+                      loading: (_, _) => true,
                       orElse: () => false,
-                    );
+                    ) &&
+                    curr.maybeWhen(loaded: (_, _) => true, orElse: () => false);
                 return failed || purchaseCompleted;
               },
               listener: (BuildContext context, SubscriptionState state) {
@@ -292,7 +332,7 @@ class _PaywallBodyState extends State<_PaywallBody> {
               child: PrimaryGlowButton(
                 label: 'Begin Glow+',
                 glowColor: AppColors.gold,
-                onPressed: widget.plans.isEmpty
+                onPressed: widget.plans.isEmpty || _selectedId.isEmpty
                     ? null
                     : () {
                         context.read<SubscriptionBloc>().add(
@@ -312,7 +352,7 @@ class _PaywallBodyState extends State<_PaywallBody> {
             ),
             const SizedBox(height: 14),
             Text(
-              '7 days free, then renews automatically. Cancel anytime in settings.',
+              'Renews automatically. Cancel anytime in your store settings.',
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,

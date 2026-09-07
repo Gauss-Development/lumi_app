@@ -65,13 +65,13 @@ void main() {
   blocTest<LumiBloc, LumiState>(
     'watchRecent always loads the full inbox even when memberId is set',
     build: () {
-      when(() => getRecentLumisUseCase(memberId: any(named: 'memberId')))
-          .thenAnswer((_) async => Right(<Lumi>[incoming]));
+      when(
+        () => getRecentLumisUseCase(memberId: any(named: 'memberId')),
+      ).thenAnswer((_) async => Right(<Lumi>[incoming]));
       return bloc;
     },
-    act: (LumiBloc bloc) => bloc.add(
-      const LumiEvent.watchRecent(memberId: 'member-a-to-b'),
-    ),
+    act: (LumiBloc bloc) =>
+        bloc.add(const LumiEvent.watchRecent(memberId: 'member-a-to-b')),
     expect: () => <LumiState>[
       const LumiState.loading(
         selectedMemberId: 'member-a-to-b',
