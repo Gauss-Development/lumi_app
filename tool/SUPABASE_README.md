@@ -67,6 +67,10 @@ OAUTH_REDIRECT_URL=io.supabase.lumi://login-callback/
 - **`send_lumi`** — validates circle membership, pace limits (5/day/pair), creates `lumis` row, optional FCM push
 - **`react_lumi`** — recipient-only reaction, updates lumi, optional FCM to sender
 
+## Realtime
+
+The `lumis` table is published to `supabase_realtime` (see migration `20260307130000_enable_lumis_realtime.sql`). The Flutter client subscribes via `LumiRealtimeDataSource` and refreshes the inbox on Postgres changes instead of polling every 12 seconds. If the channel fails, a 60-second fallback poll is used.
+
 ## RLS summary
 
 - `profiles` — users read/update own row

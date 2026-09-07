@@ -44,6 +44,7 @@ import 'package:lumi/features/presence/domain/usecases/detect_together_moment_us
 import 'package:lumi/features/presence/domain/usecases/record_presence_heartbeat_usecase.dart';
 import 'package:lumi/features/presence/presentation/bloc/presence_bloc.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_local_data_source.dart';
+import 'package:lumi/features/lumi/data/datasources/lumi_realtime_data_source.dart';
 import 'package:lumi/features/lumi/data/datasources/lumi_remote_data_source.dart';
 import 'package:lumi/features/lumi/data/repositories/lumi_repository_impl.dart';
 import 'package:lumi/features/lumi/domain/repositories/lumi_repository.dart';
@@ -55,6 +56,7 @@ import 'package:lumi/features/lumi/domain/usecases/clear_doodle_draft_usecase.da
 import 'package:lumi/features/lumi/domain/usecases/get_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/save_doodle_draft_usecase.dart';
 import 'package:lumi/features/lumi/domain/usecases/send_lumi_usecase.dart';
+import 'package:lumi/features/lumi/domain/usecases/watch_lumi_inbox_changes_usecase.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:lumi/features/auth/domain/usecases/request_phone_otp_usecase.dart';
@@ -195,10 +197,12 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
     ),
   );
   sl.registerLazySingleton<LumiRemoteDataSource>(LumiRemoteDataSource.new);
+  sl.registerLazySingleton<LumiRealtimeDataSource>(LumiRealtimeDataSource.new);
   sl.registerLazySingleton<LumiRepository>(
     () => LumiRepositoryImpl(
       localDataSource: sl<LumiLocalDataSource>(),
       remoteDataSource: sl<LumiRemoteDataSource>(),
+      realtimeDataSource: sl<LumiRealtimeDataSource>(),
       settingsRepository: sl<SettingsRepository>(),
     ),
   );
@@ -303,6 +307,9 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerLazySingleton<GetRecentLumisUseCase>(
     () => GetRecentLumisUseCase(sl<LumiRepository>()),
   );
+  sl.registerLazySingleton<WatchLumiInboxChangesUseCase>(
+    () => WatchLumiInboxChangesUseCase(sl<LumiRepository>()),
+  );
   sl.registerLazySingleton<ReactToLumiUseCase>(
     () => ReactToLumiUseCase(sl<LumiRepository>()),
   );
@@ -383,6 +390,7 @@ Future<void> configureDependencies(EnvironmentConfig environment) async {
   sl.registerFactory<LumiBloc>(
     () => LumiBloc(
       getRecentLumisUseCase: sl<GetRecentLumisUseCase>(),
+      watchLumiInboxChangesUseCase: sl<WatchLumiInboxChangesUseCase>(),
       sendLumiUseCase: sl<SendLumiUseCase>(),
       reactToLumiUseCase: sl<ReactToLumiUseCase>(),
       replyWithPureLumiUseCase: sl<ReplyWithPureLumiUseCase>(),
