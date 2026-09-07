@@ -11,6 +11,7 @@ Lumi uses **Supabase** for auth, shared data, and server-side Lumi delivery.
 | `invitations` | Shareable invite codes and accept flow |
 | `lumis` | Sent/received Lumi signals between users |
 | `push_tokens` | FCM device tokens for push notifications |
+| `presence_heartbeats` | Last app-open timestamp per user (together-moment detection) |
 
 ## What stays on-device only
 
@@ -73,6 +74,7 @@ OAUTH_REDIRECT_URL=io.supabase.lumi://login-callback/
 - `invitations` — authenticated read/update; inviter creates/deletes
 - `lumis` — participants read; recipient updates (mark seen); inserts via edge function
 - `push_tokens` — users manage own tokens
+- `presence_heartbeats` — users upsert own row; circle members can read mutual connections' heartbeats
 
 ## Auth migration notes
 

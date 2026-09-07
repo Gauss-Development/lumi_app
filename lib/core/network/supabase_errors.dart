@@ -1,4 +1,4 @@
-import 'package:postgrest/postgrest.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 bool isNotFoundError(Object error) {
   if (error is PostgrestException) {

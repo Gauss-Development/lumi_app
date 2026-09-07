@@ -15,6 +15,8 @@ import 'package:lumi/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lumi/features/circle/presentation/bloc/circle_bloc.dart';
 import 'package:lumi/features/lumi/presentation/bloc/lumi_bloc.dart';
 import 'package:lumi/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:lumi/features/presence/presentation/bloc/presence_bloc.dart';
+import 'package:lumi/features/presence/presentation/widgets/presence_heartbeat_host.dart';
 import 'package:lumi/features/profile/presentation/bloc/profile_setup_bloc.dart';
 import 'package:lumi/features/rituals/presentation/bloc/rituals_cubit.dart';
 import 'package:lumi/features/settings/presentation/bloc/settings_bloc.dart';
@@ -66,6 +68,7 @@ class _LumiAppState extends State<LumiApp> {
         BlocProvider<LumiBloc>(
           create: (_) => sl<LumiBloc>()..add(const LumiEvent.watchRecent()),
         ),
+        BlocProvider<PresenceBloc>(create: (_) => sl<PresenceBloc>()),
         BlocProvider<SettingsBloc>(
           create: (_) =>
               sl<SettingsBloc>()..add(const SettingsEvent.loadRequested()),
@@ -114,6 +117,9 @@ class _LumiAppState extends State<LumiApp> {
               );
               context.read<CircleBloc>().add(const CircleEvent.loadRequested());
               context.read<LumiBloc>().add(const LumiEvent.watchRecent());
+              context.read<PresenceBloc>().add(
+                const PresenceEvent.heartbeatRequested(),
+              );
               context.read<SubscriptionBloc>().add(
                 const SubscriptionEvent.loadRequested(),
               );
@@ -193,11 +199,13 @@ class _LumiAppState extends State<LumiApp> {
             },
           ),
         ],
-        child: _PushNotificationCoordinator(
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light(),
-            routerConfig: _router,
+        child: PresenceHeartbeatHost(
+          child: _PushNotificationCoordinator(
+            child: MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.light(),
+              routerConfig: _router,
+            ),
           ),
         ),
       ),
