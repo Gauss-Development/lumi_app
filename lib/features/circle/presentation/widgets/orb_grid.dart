@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:lumi/features/circle/domain/entities/circle_member.dart';
 import 'package:lumi/features/circle/presentation/widgets/member_orb.dart';
+import 'package:lumi/features/lumi/domain/entities/lumi.dart';
 
 class OrbGrid extends StatelessWidget {
   const OrbGrid({
@@ -10,12 +11,18 @@ class OrbGrid extends StatelessWidget {
     required this.onLongPress,
     super.key,
     this.unreadByMemberId = const <String, int>{},
+    this.incomingTypeByMemberId = const <String, LumiType>{},
+    this.nameGlowByMemberId = const <String, bool>{},
+    this.reactionBadgeByMemberId = const <String, LumiReactionType>{},
   });
 
   final List<CircleMember> members;
   final ValueChanged<CircleMember?> onTap;
   final ValueChanged<CircleMember?> onLongPress;
   final Map<String, int> unreadByMemberId;
+  final Map<String, LumiType> incomingTypeByMemberId;
+  final Map<String, bool> nameGlowByMemberId;
+  final Map<String, LumiReactionType> reactionBadgeByMemberId;
 
   static const List<_OrbPosition> _positions = <_OrbPosition>[
     _OrbPosition(x: 0.50, y: 0.20, size: 96),
@@ -33,43 +40,75 @@ class OrbGrid extends StatelessWidget {
   ];
 
   static const double _labelReserve = 48;
+  static const double _labelGap = 8;
+
+  /// Room for [GlowOrb] box shadows beyond the circle diameter.
+  static double _glowPadFor(double diameter) =>
+      (diameter * 0.24).clamp(12, 28);
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Stack(
+          clipBehavior: Clip.none,
           children: List<Widget>.generate(_positions.length, (int index) {
             final _OrbPosition position = _positions[index];
             final CircleMember? member = index < members.length
                 ? members[index]
                 : null;
-            final double width = position.size;
-            final double height = width + _labelReserve;
-            final double left = constraints.maxWidth * position.x - width / 2;
-            final double top = constraints.maxHeight * position.y - width / 2;
-            final double maxLeft = (constraints.maxWidth - width).clamp(
+            final double diameter = position.size;
+            final double glowPad = _glowPadFor(diameter);
+            final double slotWidth = diameter + glowPad * 2;
+            final double slotHeight =
+                diameter + _labelGap + _labelReserve + glowPad;
+
+            // Anchor (x, y) at the orb circle center; reserve label space below.
+            final double left =
+                constraints.maxWidth * position.x - slotWidth / 2;
+            final double top =
+                constraints.maxHeight * position.y -
+                (diameter / 2 + glowPad);
+            final double maxLeft = (constraints.maxWidth - slotWidth).clamp(
               0,
               double.infinity,
             );
-            final double maxTop = (constraints.maxHeight - height).clamp(
+            final double maxTop = (constraints.maxHeight - slotHeight).clamp(
               0,
               double.infinity,
             );
 
+            final String? memberId = member?.id;
+            final LumiType? incomingType = memberId == null
+                ? null
+                : incomingTypeByMemberId[memberId];
+
             return Positioned(
               left: left.clamp(0, maxLeft),
               top: top.clamp(0, maxTop),
-              width: width,
-              height: height,
-              child: MemberOrb(
-                member: member,
-                diameter: position.size,
-                unreadCount: member == null
-                    ? 0
-                    : unreadByMemberId[member.id] ?? 0,
-                onTap: () => onTap(member),
-                onLongPress: () => onLongPress(member),
+              width: slotWidth,
+              height: slotHeight,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: glowPad,
+                  right: glowPad,
+                  top: glowPad,
+                ),
+                child: MemberOrb(
+                  member: member,
+                  diameter: diameter,
+                  unreadCount: memberId == null
+                      ? 0
+                      : unreadByMemberId[memberId] ?? 0,
+                  incomingType: incomingType,
+                  nameGlowActive: memberId != null &&
+                      (nameGlowByMemberId[memberId] ?? false),
+                  reactionBadge: memberId == null
+                      ? null
+                      : reactionBadgeByMemberId[memberId],
+                  onTap: () => onTap(member),
+                  onLongPress: () => onLongPress(member),
+                ),
               ),
             );
           }),
