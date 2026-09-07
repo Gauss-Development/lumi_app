@@ -138,12 +138,8 @@ flutter test
 
 ## Known environment note
 
-Linux desktop builds may require additional linker/toolchain setup depending on the VM image. Web and test/analyze workflows are the most reliable local verification paths in minimal environments.
-
-CI is configured in `.github/workflows/flutter_ci.yml` to run:
+Lumi targets **iOS and Android only**. CI is configured in `.github/workflows/flutter_ci.yml` to run:
 
 - `dart run build_runner build`
 - `flutter analyze`
 - `flutter test`
-- `flutter build web --target lib/main_development.dart`
-- `flutter build web --target lib/main_production.dart`

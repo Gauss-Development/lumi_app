@@ -29,22 +29,15 @@ Do **not** run `make setup` on Linux cloud VMs — it always runs `make pods` (i
 | Codegen (freezed/json) | `make gen` or `dart run build_runner build` |
 | Lint | `make analyze` or `flutter analyze` |
 | Tests | `make test` or `flutter test` |
-| Run (mobile flavor) | `make run` — needs Android/iOS device or emulator |
-| Web build (CI parity) | `flutter build web --target lib/main_development.dart` |
+| Run (iOS or Android) | `make run` — needs a device or emulator |
 | Apply DB schema | `supabase db push` (see `tool/SUPABASE_README.md`) |
 | Deploy edge functions | `make deploy-functions` |
 
 Full Makefile targets: `make help`.
 
-### Web runtime
-
-`flutter build web` and `flutter run -d web-server --web-port=8080 -t lib/main_development.dart` work in cloud VMs after `RevenueCatService` avoids `dart:io` `Platform` on web (`kIsWeb` guard).
+The client is **iOS and Android only**. Cloud VMs should verify with `flutter analyze` and `flutter test`; they cannot run `make setup` (CocoaPods) or mobile builds without a device/emulator.
 
 Auth/sign-up against Supabase requires `SUPABASE_URL` and `SUPABASE_ANON_KEY` in env files. Without valid credentials the UI still loads to the login screen.
-
-### Linux desktop
-
-`flutter build linux` may fail in minimal Ubuntu images (missing `libstdc++` linker paths for clang, `webkit2gtk`, C++ header paths). Web build + tests are the supported cloud verification path per `README.md`.
 
 ### Environment files
 

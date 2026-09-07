@@ -31,9 +31,3 @@ jobs:
 
       - name: Run tests
         run: flutter test
-
-      - name: Build web development entrypoint
-        run: flutter build web --target lib/main_development.dart
-
-      - name: Build web production entrypoint
-        run: flutter build web --target lib/main_production.dart

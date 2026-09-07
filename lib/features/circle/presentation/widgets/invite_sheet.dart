@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -164,15 +163,6 @@ class _InviteSheetState extends State<InviteSheet> {
   }
 
   Future<void> _pickContact(BuildContext context) async {
-    if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Contact picking is available on mobile devices.'),
-        ),
-      );
-      return;
-    }
-
     final PermissionStatus status = await Permission.contacts.request();
     if (!status.isGranted && !status.isLimited) {
       if (!context.mounted) return;

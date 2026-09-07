@@ -20,14 +20,6 @@ class FirebaseOptionsFactory {
     }
 
     final EnvironmentConfig config = EnvironmentConfig.instance;
-    if (kIsWeb) {
-      return FirebaseOptions(
-        apiKey: config.firebaseApiKey,
-        appId: config.firebaseAppId,
-        messagingSenderId: config.firebaseMessagingSenderId,
-        projectId: config.firebaseProjectId,
-      );
-    }
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -38,7 +30,6 @@ class FirebaseOptionsFactory {
           projectId: config.firebaseProjectId,
         );
       case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
         return FirebaseOptions(
           apiKey: config.firebaseApiKey,
           appId: config.firebaseAppId,

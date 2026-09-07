@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import 'package:lumi/core/config/environment_config.dart';
@@ -76,9 +76,6 @@ class RevenueCatService {
   }
 
   String? _resolveApiKey() {
-    if (kIsWeb) {
-      return null;
-    }
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       return _config.revenueCatAppleKey;
     }

@@ -23,10 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isSignUp = false;
   bool _isSubmitting = false;
 
-  bool get _showAppleSignIn =>
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.macOS);
+  bool get _showAppleSignIn => defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   void dispose() {
